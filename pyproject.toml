@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling",
+            "hatch-pyinstaller",
+            "hatch-semver"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+exceltojson = "mypydiscord.tbd:_tbd"
+
+[tool.hatch.build.targets.pyinstaller]
+require-runtime-dependencies = true
+flags = ["--clean", "--onefile", "--noconfirm"]
+scriptname = "src/mypydiscord/exceltojson.py"
+specpath = "./.spec"
+zip = true
+
+[project]
+name = "mypydiscord"
+dynamic = ["version"]
+dependencies = ["vbrpytools",
+                "discord.py",
+               ]
+description = "Discord for personal use"
+readme = "README.md"
+requires-python = ">=3.13"
+license = {file = "LICENSE"}
+keywords = ["tools", "discord","personal"]
+authors = [
+  { name="Vincent Brettnacher", email="vincent.brettnacher@veoneer.com" },
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License"
+]
+
+[project.urls]
+Documentation = "https://github.com/vbrett/mypydiscord/blob/master/README.md"
+source = "https://github.com/vbrett/mypydiscord"
+Repository = "https://github.com/vbrett/mypydiscord.git"
+Issues = "https://github.com/vbrett/mypydiscord/issues"
+
+[tool.hatch.version]
+path = "src/mypydiscord/__init__.py"
+scheme = "semver"
