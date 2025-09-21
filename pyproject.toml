@@ -5,12 +5,12 @@ requires = ["hatchling",
 build-backend = "hatchling.build"
 
 [project.scripts]
-exceltojson = "mypydiscord.tbd:_tbd"
+mypydiscord = "mypydiscord.__main__:_main"
 
 [tool.hatch.build.targets.pyinstaller]
 require-runtime-dependencies = true
 flags = ["--clean", "--onefile", "--noconfirm"]
-scriptname = "src/mypydiscord/exceltojson.py"
+scriptname = "src/mypydiscord/__main__.py"
 specpath = "./.spec"
 zip = true
 
