@@ -19,6 +19,8 @@ name = "mypydiscord"
 dynamic = ["version"]
 dependencies = ["vbrpytools",
                 "discord.py",
+                "keyring",
+                "pwinput"
                ]
 description = "Discord for personal use"
 readme = "README.md"
