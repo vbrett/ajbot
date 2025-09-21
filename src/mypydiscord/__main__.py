@@ -2,6 +2,8 @@
 """
 import sys
 import asyncio
+import tempfile
+from pathlib import Path
 
 import discord
 import keyring
@@ -53,12 +55,22 @@ async def _async_main(output_file = None):
                 if message.author == client.user:
                     return
 
+                if message.content.startswith('$hello'):
+                    await message.reply(f'Hello {message.author.display_name}!')
+
                 if message.content.startswith('$bye'):
-                    await message.channel.send('Bye!')
+                    await message.reply("J'me déconnecte, Bye!")
                     await client.close()
 
                 if message.content.startswith('$members'):
-                    await message.reply(member_info_csv([message.guild.name]))
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        member_info_csv_file = Path(temp_dir) / "members.csv"
+                        member_list = member_info_csv([message.guild.name] if message.guild else None)
+                        with open_preserve(member_info_csv_file, 'w', preserve=False) as f:
+                            f.write(member_list)
+                        await message.reply("Et voilà:",
+                                            file=discord.File(fp=member_info_csv_file,
+                                                              filename='members.csv'))
 
             await client.start(token)
             continue_running = False
