@@ -13,9 +13,8 @@ import keyring
 from pwinput import pwinput
 from vbrpytools.dicjsontools import save_json_file
 
+from ._internal.config import DISCORD_KEY_SERVER, DISCORD_KEY_USER
 
-KEYRING_SERVER = "discord"
-KEYRING_USER = "mypydiscord"
 
 def get_member_dict(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.
@@ -120,7 +119,7 @@ async def _async_bot(export_members = None):
     continue_running = True
     while continue_running:
         try:
-            token = keyring.get_password(KEYRING_SERVER, KEYRING_USER)
+            token = keyring.get_password(DISCORD_KEY_SERVER, DISCORD_KEY_USER)
             bot = commands.Bot(command_prefix='$', intents=intents)
             await bot.add_cog(MyCommandsAndEvents(bot, export_members=export_members))
             await bot.start(token)
@@ -131,7 +130,7 @@ async def _async_bot(export_members = None):
             if isinstance(e, discord.errors.LoginFailure):
                 print("Invalid token. Please enter a valid token:")
                 token = pwinput("", mask="*")
-                keyring.set_password(KEYRING_SERVER, KEYRING_USER, token)
+                keyring.set_password(DISCORD_KEY_SERVER, DISCORD_KEY_USER, token)
                 continue_running = True
 
     print("Bot has shutdown.")
