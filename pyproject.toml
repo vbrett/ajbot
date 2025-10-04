@@ -5,17 +5,18 @@ requires = ["hatchling",
 build-backend = "hatchling.build"
 
 [project.scripts]
-mypydiscord = "mypydiscord.__main__:_main"
+aj_bot = "ajbot.__main__:_main"
+aj_creds = "ajbot.credentials:_main"
 
 [tool.hatch.build.targets.pyinstaller]
 require-runtime-dependencies = true
 flags = ["--clean", "--onefile", "--noconfirm"]
-scriptname = "src/mypydiscord/__main__.py"
+scriptname = "src/ajbot/__main__.py"
 specpath = "./.spec"
 zip = true
 
 [project]
-name = "mypydiscord"
+name = "ajbot"
 dynamic = ["version"]
 dependencies = ["vbrpytools >= 3.6.0",
                 "discord.py",
@@ -43,11 +44,11 @@ classifiers = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/vbrett/mypydiscord/blob/master/README.md"
-source = "https://github.com/vbrett/mypydiscord"
-Repository = "https://github.com/vbrett/mypydiscord.git"
-Issues = "https://github.com/vbrett/mypydiscord/issues"
+Documentation = "https://github.com/vbrett/ajbot/blob/master/README.md"
+source = "https://github.com/vbrett/ajbot"
+Repository = "https://github.com/vbrett/ajbot.git"
+Issues = "https://github.com/vbrett/ajbot/issues"
 
 [tool.hatch.version]
-path = "src/mypydiscord/__init__.py"
+path = "src/ajbot/__init__.py"
 scheme = "semver"

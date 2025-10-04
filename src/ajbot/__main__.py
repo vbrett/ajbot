@@ -9,11 +9,10 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
-import keyring
-from pwinput import pwinput
 from vbrpytools.dicjsontools import save_json_file
 
-from ._internal.config import DISCORD_KEY_SERVER, DISCORD_KEY_USER
+from ajbot._internal.exceptions import SecretException
+from ajbot import credentials
 
 
 def get_member_dict(discord_client, guild_names=None):
@@ -116,22 +115,16 @@ async def _async_bot(export_members = None):
     intents.message_content = True
     intents.members = True
 
-    continue_running = True
-    while continue_running:
-        try:
-            token = keyring.get_password(DISCORD_KEY_SERVER, DISCORD_KEY_USER)
-            bot = commands.Bot(command_prefix='$', intents=intents)
-            await bot.add_cog(MyCommandsAndEvents(bot, export_members=export_members))
-            await bot.start(token)
-            continue_running = False
+    try:
+        bot = commands.Bot(command_prefix='$', intents=intents)
+        await bot.add_cog(MyCommandsAndEvents(bot, export_members=export_members))
+        token = credentials.get_set_discord(prompt_if_present=False,
+                                            break_if_missing=True)
+        await bot.start(token)
 
-        except (discord.errors.LoginFailure) as e:
-            await bot.close()
-            if isinstance(e, discord.errors.LoginFailure):
-                print("Invalid token. Please enter a valid token:")
-                token = pwinput("", mask="*")
-                keyring.set_password(DISCORD_KEY_SERVER, DISCORD_KEY_USER, token)
-                continue_running = True
+    except (discord.errors.LoginFailure, SecretException):
+        await bot.close()
+        print("Missing or Invalid token. Please define it using either set token using 'aj_setsecret'")
 
     print("Bot has shutdown.")
 

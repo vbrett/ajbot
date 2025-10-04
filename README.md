@@ -1,1 +1,1 @@
-# mypydiscord
+# ajbot

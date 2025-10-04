@@ -4,8 +4,8 @@ Test Google Drive API integration.
 
 from vbrpytools.exceltojson import ExcelWorkbook
 
-from mypydiscord._internal.google_api import GoogleDrive
-from mypydiscord._internal.config import AJ_DB_FILE_ID, AJ_TABLE_NAME_SUIVI, AJ_TABLE_NAME_ANNUAIRE
+from ajbot._internal.google_api import GoogleDrive
+from ajbot._internal.config import AJ_DB_FILE_ID, AJ_TABLE_NAME_SUIVI, AJ_TABLE_NAME_ANNUAIRE
 
 if __name__ == "__main__":
     gdrive = GoogleDrive()
