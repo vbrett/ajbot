@@ -1,7 +1,8 @@
 """
 Test Google Drive API integration.
 """
-
+from thefuzz import fuzz
+from thefuzz import process
 from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal.google_api import GoogleDrive
@@ -20,3 +21,8 @@ if __name__ == "__main__":
     seances = [v["date"] for v in suivi_saison_en_cours if v["entree"]["categorie"].lower() == "présence"]
     derniere_seance = max(seances)
     print(f"Dernière séance: {derniere_seance} - {len([seance for seance in seances if seance == derniere_seance])} participants.")
+
+    SEARCH_NAME = "Falaschi Florian"
+    choices = [member['nom_userfriendly'] for member in annuaire]
+    process.extractBests(SEARCH_NAME, choices, 90)
+    max(annuaire, key=lambda x:fuzz.token_sort_ratio("mouchet anges", x["nom_userfriendly"]))

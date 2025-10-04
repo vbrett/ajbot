@@ -77,7 +77,7 @@ def get_set_gdrive(prompt_if_present = False,
     # Expired credentials, refresh them
     elif creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
-        keyring.set_password(KEY_SERVER, KEY_USER_DRIVE, json.dumps(creds.to_json()))
+        keyring.set_password(KEY_SERVER, KEY_USER_DRIVE, creds.to_json())
         return creds
 
     # Invalid credentials, break if asked

@@ -25,6 +25,8 @@ dependencies = ["vbrpytools >= 3.6.0",
                 "google-api-python-client",
                 "google-auth-httplib2",
                 "google-auth-oauthlib",
+                "humanize",
+                "thefuzz[speedup]",
                ]
 description = "Discord for personal use"
 readme = "README.md"

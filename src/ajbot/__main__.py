@@ -9,10 +9,24 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
+from thefuzz import fuzz
+import humanize
+
 from vbrpytools.dicjsontools import save_json_file
+from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal.exceptions import SecretException
 from ajbot import credentials
+from ajbot._internal.google_api import GoogleDrive
+from ajbot._internal.config import AJ_DISCORD_ID, AJ_DB_FILE_ID, AJ_TABLE_NAME_SUIVI, AJ_TABLE_NAME_ANNUAIRE
+
+
+def get_aj_db():
+    """ return de content of the AJ database
+    """
+    gdrive = GoogleDrive()
+    aj_file = gdrive.get_file(AJ_DB_FILE_ID)
+    return ExcelWorkbook(aj_file)
 
 
 def get_member_dict(discord_client, guild_names=None):
@@ -37,8 +51,8 @@ def needs_manage_role(func):
     """ A decorator to protect commands that require manage role permission. """
     @wraps(func)
     async def wrapper(self, ctx, *args, **kwargs):
-        if not ctx.author.guild_permissions.manage_roles:
-            await ctx.reply("Tu dois avoir la permission 'Gérer les rôles' pour pouvoir utiliser cette commande.")
+        if ctx.guild.id != AJ_DISCORD_ID:
+            await ctx.reply("Cette commande n'est pas possible depuis ce serveur.")
             return
         return await func(self, ctx, *args, **kwargs)
     return wrapper
@@ -53,12 +67,28 @@ def needs_administrator(func):
         return await func(self, ctx, *args, **kwargs)
     return wrapper
 
+def needs_aj_manage_role(func):
+    """ A decorator to protect commands that require manage role permission on the AJ server. """
+    @wraps(func)
+    @needs_manage_role
+    async def wrapper(self, ctx, *args, **kwargs):
+        if not ctx.author.guild_permissions.manage_roles:
+            await ctx.reply("Tu dois avoir la permission 'Gérer les rôles' pour pouvoir utiliser cette commande.")
+            return
+        return await func(self, ctx, *args, **kwargs)
+    return wrapper
+
+
 class MyCommandsAndEvents(commands.Cog):
     """ A class to hold bot commands. """
     def __init__(self, bot, export_members = None):
         self.bot = bot
         self.last_hello_member = None
         self.export_members = export_members
+        aj_db = get_aj_db()
+        self.aj_suivi = aj_db.dict_from_table(AJ_TABLE_NAME_SUIVI, with_ignored=True)
+        self.aj_annuaire = aj_db.dict_from_table(AJ_TABLE_NAME_ANNUAIRE, with_ignored=True)
+
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -95,22 +125,68 @@ class MyCommandsAndEvents(commands.Cog):
         await ctx.reply("J'me déconnecte. Bye!")
         await self.bot.close()
 
-    @commands.command(name='members')
+    @commands.command(name='roles')
     @needs_manage_role
-    async def _members(self, ctx):
+    async def _roles(self, ctx):
         """ Envoie un fichier JSON avec la liste des membres du serveur. """
         with tempfile.TemporaryDirectory() as temp_dir:
             json_filename = "members.json"
             member_info_json_file = Path(temp_dir) / json_filename
             save_json_file(get_member_dict(discord_client=self.bot,
-                                           guild_names=([ctx.guild.name] if ctx.guild else None)),
-                           member_info_json_file, preserve=False)
+                                        guild_names=([ctx.guild.name] if ctx.guild else None)),
+                        member_info_json_file, preserve=False)
             await ctx.reply("Et voilà:",
                             file=discord.File(fp=member_info_json_file,
-                                              filename=json_filename))
+                                            filename=json_filename))
+
+    @commands.command(name='seance')
+    @needs_aj_manage_role
+    async def _seance(self, ctx, arg=None):
+        """ Gere les infos des seances. """
+        if not arg:
+            suivi_saison_en_cours = [v for v in self.aj_suivi if v.get('#support', {}).get('saison_en_cours', 0) > 0]
+            seances = [v["date"] for v in suivi_saison_en_cours if v["entree"]["categorie"].lower() == "présence"]
+            derniere_seance = max(seances)
+            await ctx.reply(f"Il y a eu {len([seance for seance in seances if seance == derniere_seance])} participants à la séance du {humanize.naturaldate(derniere_seance)}.")
+
+    @commands.command(name='membre')
+    @needs_aj_manage_role
+    async def _membre(self, ctx, in_member):
+        """ Gere les infos des membres de l'assaut. """
+        try:
+            in_member = await discord.ext.commands.MemberConverter().convert(ctx, in_member)
+            members = [(v, 100) for v in self.aj_annuaire if v.get("pseudo_discord") == in_member.name]
+        except discord.ext.commands.MemberNotFound:
+            try:
+                in_member = int(in_member)
+                members = [(v, 100) for v in self.aj_annuaire if v["id"] == in_member]
+            except ValueError:
+                def fmatch(x):
+                    """ compute matching criteria based on fuzzy search """
+                    return fuzz.token_sort_ratio(in_member, x["nom_userfriendly"])
+                members = [(x, fmatch(x)) for x in self.aj_annuaire if fmatch(x) > 50]
+
+        if members:
+            members.sort(key=lambda x: x[1], reverse=True)
+            if max (list(m for _, m in members)) == 100:
+                members = [(x, m) for x, m in members if m == 100]
+            member_info = [[f"AJ-{str(member["id"]).zfill(5)}",
+                            f"{member.get("nom", "")} {member.get("prenom", "")}",
+                            "@"+member.get("pseudo_discord", ".") if member.get("pseudo_discord") else None,
+                            f"-- match à {crit}%"
+                            ] for member, crit in members]
+            reply = "\r\n".join([" ".join([x for x in member if x]) for member in member_info])
+        else:
+            reply = f"Je connais pas ton {in_member}."
+
+        await ctx.reply(reply)
+
+
 
 async def _async_bot(export_members = None):
     """ bot async function """
+    humanize.activate("fr_FR")
+
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
