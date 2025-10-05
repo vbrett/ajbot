@@ -8,25 +8,14 @@ from pathlib import Path
 
 import discord
 from discord.ext import commands
-
-from thefuzz import fuzz
+from dateparser import parse as dateparse
 import humanize
-
 from vbrpytools.dicjsontools import save_json_file
-from vbrpytools.exceltojson import ExcelWorkbook
 
-from ajbot._internal.exceptions import SecretException
 from ajbot import credentials
-from ajbot._internal.google_api import GoogleDrive
-from ajbot._internal.config import AJ_DISCORD_ID, AJ_DB_FILE_ID, AJ_TABLE_NAME_SUIVI, AJ_TABLE_NAME_ANNUAIRE
-
-
-def get_aj_db():
-    """ return de content of the AJ database
-    """
-    gdrive = GoogleDrive()
-    aj_file = gdrive.get_file(AJ_DB_FILE_ID)
-    return ExcelWorkbook(aj_file)
+from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
+from ajbot._internal.exceptions import SecretException
+from ajbot._internal.config import AJ_DISCORD_ID, DATEPARSER_CONFIG
 
 
 def get_member_dict(discord_client, guild_names=None):
@@ -85,10 +74,7 @@ class MyCommandsAndEvents(commands.Cog):
         self.bot = bot
         self.last_hello_member = None
         self.export_members = export_members
-        aj_db = get_aj_db()
-        self.aj_suivi = aj_db.dict_from_table(AJ_TABLE_NAME_SUIVI, with_ignored=True)
-        self.aj_annuaire = aj_db.dict_from_table(AJ_TABLE_NAME_ANNUAIRE, with_ignored=True)
-
+        self.ajdb = AjDb()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -141,41 +127,48 @@ class MyCommandsAndEvents(commands.Cog):
 
     @commands.command(name='seance')
     @needs_aj_manage_role
-    async def _seance(self, ctx, arg=None):
-        """ Gere les infos des seances. """
-        if not arg:
-            suivi_saison_en_cours = [v for v in self.aj_suivi if v.get('#support', {}).get('saison_en_cours', 0) > 0]
-            seances = [v["date"] for v in suivi_saison_en_cours if v["entree"]["categorie"].lower() == "présence"]
-            derniere_seance = max(seances)
-            await ctx.reply(f"Il y a eu {len([seance for seance in seances if seance == derniere_seance])} participants à la séance du {humanize.naturaldate(derniere_seance)}.")
+    async def _seance(self, ctx, *, raw_input_date=None):
+        """ Affiche le nombre de présent à une seance. Parametre = date. Si vide, prend la dernière séance enregistrée """
+        session_dates = [s.date for s in self.ajdb.events.get_in_season_events(AjEvent.EVENT_TYPE_PRESENCE)]
+
+        if not raw_input_date:
+            input_date = max(session_dates)
+        else:
+            try:
+                input_date = AjDate(dateparse(raw_input_date, settings=DATEPARSER_CONFIG))
+            except TypeError:
+                input_date = None
+
+        if input_date:
+            # look for closest date with presence
+            session_date = min(session_dates, key=lambda x: abs(x - input_date))
+
+            if session_date:
+                reply = f"Il y a eu {len([s_date for s_date in session_dates if s_date == session_date])} participants à la séance du {session_date}."
+            else:
+                reply = f"Déso, pas trouvé de séance à la date du {raw_input_date} ou proche de cette date."
+        else:
+            reply = f"Mmmm... Ca m'étonnerait que '{raw_input_date}' soit une date."
+
+        await ctx.reply(reply)
 
     @commands.command(name='membre')
     @needs_aj_manage_role
-    async def _membre(self, ctx, in_member):
-        """ Gere les infos des membres de l'assaut. """
-        try:
-            in_member = await discord.ext.commands.MemberConverter().convert(ctx, in_member)
-            members = [(v, 100) for v in self.aj_annuaire if v.get("pseudo_discord") == in_member.name]
-        except discord.ext.commands.MemberNotFound:
-            try:
-                in_member = int(in_member)
-                members = [(v, 100) for v in self.aj_annuaire if v["id"] == in_member]
-            except ValueError:
-                def fmatch(x):
-                    """ compute matching criteria based on fuzzy search """
-                    return fuzz.token_sort_ratio(in_member, x["nom_userfriendly"])
-                members = [(x, fmatch(x)) for x in self.aj_annuaire if fmatch(x) > 50]
+    async def _membre(self, ctx, *, in_member):
+        """ Affiche les infos des membres. Réservé au bureau. Parametre = ID, pseudo discord ou nom (complet ou partiel)
+            paramètre au choix:
+                - ID (ex: 12, 124)
+                - pseudo_discord (ex: VbrBot)
+                - prénom nom ou nom prénom (sans guillement)
+                  supporte des valeurs approximatives comme
+                    - nom ou prenom seul
+                    - nom et/ou prénom approximatif
+                  retourne alors une liste avec la valeur de match)
+        """
+        members = await self.ajdb.members.search(in_member, ctx, 50, False)
 
         if members:
-            members.sort(key=lambda x: x[1], reverse=True)
-            if max (list(m for _, m in members)) == 100:
-                members = [(x, m) for x, m in members if m == 100]
-            member_info = [[f"AJ-{str(member["id"]).zfill(5)}",
-                            f"{member.get("nom", "")} {member.get("prenom", "")}",
-                            "@"+member.get("pseudo_discord", ".") if member.get("pseudo_discord") else None,
-                            f"-- match à {crit}%"
-                            ] for member, crit in members]
-            reply = "\r\n".join([" ".join([x for x in member if x]) for member in member_info])
+            reply = "\r\n".join([f"{member:short}" for member in members])
         else:
             reply = f"Je connais pas ton {in_member}."
 

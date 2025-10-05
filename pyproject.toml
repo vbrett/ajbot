@@ -26,6 +26,7 @@ dependencies = ["vbrpytools >= 3.6.0",
                 "google-auth-httplib2",
                 "google-auth-oauthlib",
                 "humanize",
+                "dateparser",
                 "thefuzz[speedup]",
                ]
 description = "Discord for personal use"

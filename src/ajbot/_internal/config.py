@@ -7,12 +7,17 @@ KEY_SERVER = "ajbot"
 KEY_USER_DISCORD = "discord"
 KEY_USER_DRIVE = "db"
 
-AJ_DISCORD_ID = 691003175037042788
-AJ_DB_FILE_ID = "1OATzmXMK-ssWjGjGY9rI6TOX99DLboEf"
-AJ_TABLE_NAME_SUIVI = "suivi"
-AJ_TABLE_NAME_ANNUAIRE = "annuaire"
+DATEPARSER_CONFIG = {'DATE_ORDER': 'DMY', 'DEFAULT_LANGUAGES': ["fr"]}
 
-# If modifying these scopes, delete the file token.json.
+AJ_DISCORD_ID = 691003175037042788
+
+AJ_DB_FILE_ID = "1OATzmXMK-ssWjGjGY9rI6TOX99DLboEf"
+AJ_TABLE_NAME_EVENTS = "suivi"
+AJ_TABLE_NAME_ROSTER = "annuaire"
+AJ_TABLE_NAME_ROLE = "roles"
+AJ_TABLE_EVENT_TYPE = "categories"
+
+# Google credential needed scope (If modifying these scopes, delete the file token.json.)
 AJ_DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 

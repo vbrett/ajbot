@@ -3,11 +3,13 @@ Library for support package exceptions
 """
 
 class SecretException(Exception):
-    """Exception related to secret management"""
+    """ Exception related to secret management """
+
+class AjDbException(Exception):
+    """ Aj DB related exception """
 
 class OtherException(Exception):
-    """General exception for Support package"""
-
+    """ General exception for Support package """
 
 if __name__ == '__main__':
     raise OtherException('This module should not be called directly.')
