@@ -2,8 +2,8 @@
 Library for support package exceptions
 """
 
-class SecretException(Exception):
-    """ Exception related to secret management """
+class CredsException(Exception):
+    """ Exception related to credential management """
 
 class AjDbException(Exception):
     """ Aj DB related exception """

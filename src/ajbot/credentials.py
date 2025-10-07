@@ -14,7 +14,7 @@ import keyring
 from pwinput import pwinput
 
 from ajbot._internal.config import KEY_SERVER, KEY_USER_DISCORD, KEY_USER_DRIVE, AJ_DRIVE_SCOPES
-from ajbot._internal.exceptions import SecretException
+from ajbot._internal.exceptions import CredsException
 
 def get_set_discord(prompt_if_present = False,
                     break_if_missing = False,):
@@ -34,7 +34,7 @@ def get_set_discord(prompt_if_present = False,
             return token
 
     elif break_if_missing:
-        raise SecretException("Le token d'accès à Discord n'est pas défini.")
+        raise CredsException("Le token d'accès à Discord n'est pas défini.")
 
     token = pwinput("Entrez le token d'accès à Discord : ")
     if token:
@@ -42,7 +42,7 @@ def get_set_discord(prompt_if_present = False,
         return token
 
     if break_if_missing:
-        raise SecretException("Le token d'accès à Discord n'est pas défini.")
+        raise CredsException("Le token d'accès à Discord n'est pas défini.")
 
     return None
 
@@ -82,7 +82,7 @@ def get_set_gdrive(prompt_if_present = False,
 
     # Invalid credentials, break if asked
     elif break_if_missing:
-        raise SecretException("Le token d'accès au drive n'est pas défini ou n'est pas valide.")
+        raise CredsException("Le token d'accès au drive n'est pas défini ou n'est pas valide.")
 
     # Prompt for credential file
     root = tk.Tk()
@@ -104,7 +104,7 @@ def get_set_gdrive(prompt_if_present = False,
         return creds
 
     if break_if_missing:
-        raise SecretException("Le token d'accès au drive n'est pas défini ou n'est pas valide.")
+        raise CredsException("Le token d'accès au drive n'est pas défini ou n'est pas valide.")
 
     return None
 

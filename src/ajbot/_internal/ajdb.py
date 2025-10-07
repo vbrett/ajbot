@@ -7,8 +7,7 @@ from discord.ext.commands import MemberConverter, MemberNotFound
 from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.google_api import GoogleDrive
-from ajbot._internal.config import AJ_DB_FILE_ID, AJ_TABLE_NAME_EVENTS, AJ_TABLE_NAME_ROSTER
+from ajbot._internal.config import AJ_TABLE_NAME_EVENTS, AJ_TABLE_NAME_ROSTER
 
 class AjDate(date):
     """ class that handles date type for AJ DB
@@ -196,7 +195,7 @@ class AjEvent():
     EVENT_TYPE_PRESENCE = "Présence"
     EVENT_TYPE_EVENT = "Evènement"
     EVENT_TYPE_CONTRIBUTION = "Cotisation"
-    EVENT_TYPE_MEMBER_INFO = "Info Membre"    
+    EVENT_TYPE_MEMBER_INFO = "Info Membre"
     EVENT_TYPE_MGMT = "Gestion"
     EVENT_TYPE_PURCHASE = "Achat"
 
@@ -235,10 +234,8 @@ class AjEvents(list):
 class AjDb():
     ''' manage AJ database
     '''
-    def __init__(self):
-        self._gdrive = GoogleDrive()
-        aj_file = self._gdrive.get_file(AJ_DB_FILE_ID)
-        self._wb = ExcelWorkbook(aj_file)
+    def __init__(self, xls_file):
+        self._wb = ExcelWorkbook(xls_file)
         self.members = AjMembers(self._wb.dict_from_table(AJ_TABLE_NAME_ROSTER, nested=False, with_ignored=True))
         self.events = AjEvents(self._wb.dict_from_table(AJ_TABLE_NAME_EVENTS, nested=False, with_ignored=True))
 

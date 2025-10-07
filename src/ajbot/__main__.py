@@ -9,14 +9,13 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 from dateparser import parse as dateparse
-import humanize
 from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import credentials
 from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
-from ajbot._internal.exceptions import SecretException
-from ajbot._internal.config import AJ_DISCORD_ID, DATEPARSER_CONFIG
-
+from ajbot._internal.exceptions import CredsException
+from ajbot._internal.google_api import GoogleDrive
+from ajbot._internal.config import DISCORD_ID_AJ, DATEPARSER_CONFIG, AJ_DB_FILE_ID, AJ_PRESENCE_FILE_ID
 
 def get_member_dict(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.
@@ -40,8 +39,8 @@ def needs_manage_role(func):
     """ A decorator to protect commands that require manage role permission. """
     @wraps(func)
     async def wrapper(self, ctx, *args, **kwargs):
-        if ctx.guild.id != AJ_DISCORD_ID:
-            await ctx.reply("Cette commande n'est pas possible depuis ce serveur.")
+        if not ctx.author.guild_permissions.manage_roles:
+            await ctx.reply("Tu dois avoir la permission 'Gérer les rôles' pour pouvoir utiliser cette commande.")
             return
         return await func(self, ctx, *args, **kwargs)
     return wrapper
@@ -61,8 +60,8 @@ def needs_aj_manage_role(func):
     @wraps(func)
     @needs_manage_role
     async def wrapper(self, ctx, *args, **kwargs):
-        if not ctx.author.guild_permissions.manage_roles:
-            await ctx.reply("Tu dois avoir la permission 'Gérer les rôles' pour pouvoir utiliser cette commande.")
+        if ctx.guild.id != DISCORD_ID_AJ:
+            await ctx.reply("Cette commande n'est pas possible depuis ce serveur.")
             return
         return await func(self, ctx, *args, **kwargs)
     return wrapper
@@ -74,7 +73,9 @@ class MyCommandsAndEvents(commands.Cog):
         self.bot = bot
         self.last_hello_member = None
         self.export_members = export_members
-        self.ajdb = AjDb()
+        self._gdrive = GoogleDrive()
+        aj_file = self._gdrive.get_file(AJ_DB_FILE_ID)
+        self.ajdb = AjDb(aj_file)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -101,20 +102,20 @@ class MyCommandsAndEvents(commands.Cog):
     @commands.command(name='test')
     @needs_administrator
     async def _test(self, ctx, *args):
-        """ Commande de test qui renvoie les arguments. """
+        """ (Réservé aux admin) Commande de test qui renvoie les arguments. """
         await ctx.reply(" - ".join(args))
 
     @commands.command(name='bye')
     @needs_administrator
     async def _bye(self, ctx):
-        """ Déconnecte le bot. """
+        """ (Réservé aux admin) Déconnecte le bot. """
         await ctx.reply("J'me déconnecte. Bye!")
         await self.bot.close()
 
     @commands.command(name='roles')
     @needs_manage_role
     async def _roles(self, ctx):
-        """ Envoie un fichier JSON avec la liste des membres du serveur. """
+        """ (Réservé au bureau) Envoie un fichier JSON avec la liste des membres du serveur. """
         with tempfile.TemporaryDirectory() as temp_dir:
             json_filename = "members.json"
             member_info_json_file = Path(temp_dir) / json_filename
@@ -125,10 +126,31 @@ class MyCommandsAndEvents(commands.Cog):
                             file=discord.File(fp=member_info_json_file,
                                             filename=json_filename))
 
+    # @commands.command(name='emargement')
+    # @needs_administrator
+    # async def _signsheet(self, ctx):
+    #     """ (Réservé au bureau) Envoie la fiche d'émargement. """
+    #     sign_sheet_filename="emargement.pdf"
+    #     with self._gdrive.get_file(AJ_PRESENCE_FILE_ID) as sign_sheet:
+    #         # with tempfile.TemporaryDirectory() as temp_dir:
+    #         #     sign_sheet_file = Path(temp_dir) / sign_sheet_filename
+    #         #     try:
+    #         #         with open(sign_sheet_file, mode="wb") as fp:
+    #         #             fp.write(sign_sheet)
+    #         #         await ctx.reply("Et voilà:",
+    #         #                         file=discord.File(fp=sign_sheet_file,
+    #         #                                         filename=sign_sheet_filename))
+    #         #     except Exception as e:
+    #         #         print(e)
+    #         #         raise
+    #         await ctx.reply("Et voilà:",
+    #                         file=discord.File(fp=sign_sheet,
+    #                                         filename=sign_sheet_filename))
+
     @commands.command(name='seance')
     @needs_aj_manage_role
-    async def _seance(self, ctx, *, raw_input_date=None):
-        """ Affiche le nombre de présent à une seance. Parametre = date. Si vide, prend la dernière séance enregistrée """
+    async def _session(self, ctx, *, raw_input_date=None):
+        """ (Réservé au bureau) Affiche le nombre de présent à une seance. Parametre = date. Si vide, prend la dernière séance enregistrée """
         session_dates = [s.date for s in self.ajdb.events.get_in_season_events(AjEvent.EVENT_TYPE_PRESENCE)]
 
         if not raw_input_date:
@@ -154,8 +176,8 @@ class MyCommandsAndEvents(commands.Cog):
 
     @commands.command(name='membre')
     @needs_aj_manage_role
-    async def _membre(self, ctx, *, in_member):
-        """ Affiche les infos des membres. Réservé au bureau. Parametre = ID, pseudo discord ou nom (complet ou partiel)
+    async def _member(self, ctx, *, in_member):
+        """ (Réservé au bureau) Affiche les infos des membres. Parametre = ID, pseudo discord ou nom (complet ou partiel)
             paramètre au choix:
                 - ID (ex: 12, 124)
                 - pseudo_discord (ex: VbrBot)
@@ -178,7 +200,6 @@ class MyCommandsAndEvents(commands.Cog):
 
 async def _async_bot(export_members = None):
     """ bot async function """
-    humanize.activate("fr_FR")
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -191,7 +212,7 @@ async def _async_bot(export_members = None):
                                             break_if_missing=True)
         await bot.start(token)
 
-    except (discord.errors.LoginFailure, SecretException):
+    except (discord.errors.LoginFailure, CredsException):
         await bot.close()
         print("Missing or Invalid token. Please define it using either set token using 'aj_setsecret'")
 
