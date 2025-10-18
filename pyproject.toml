@@ -1,57 +1,60 @@
 [build-system]
-requires = ["hatchling",
-            "hatch-pyinstaller",
-            "hatch-semver"]
-build-backend = "hatchling.build"
+requires = ['hatchling',
+            'hatch-pyinstaller',
+            'hatch-semver']
+build-backend = 'hatchling.build'
 
 [project.scripts]
-aj_bot = "ajbot.__main__:_main"
-aj_creds = "ajbot.credentials:_main"
+aj_bot = 'ajbot.__main__:_main'
+aj_creds = 'ajbot.credentials:_main'
 
 [tool.hatch.build.targets.pyinstaller]
 require-runtime-dependencies = true
-flags = ["--clean", "--onefile", "--noconfirm"]
-scriptname = "src/ajbot/__main__.py"
-specpath = "./.spec"
+flags = ['--clean', '--onefile', '--noconfirm']
+scriptname = 'src/ajbot/__main__.py'
+specpath = './.spec'
 zip = true
 
 [project]
-name = "ajbot"
-dynamic = ["version"]
-dependencies = ["vbrpytools >= 3.6.0",
-                "discord.py",
-                "keyring",
-                "pwinput",
-                "google-api-python-client",
-                "google-auth-httplib2",
-                "google-auth-oauthlib",
-                "humanize",
-                "dateparser",
-                "thefuzz[speedup]",
+name = 'ajbot'
+dynamic = ['version']
+dependencies = ['discord.py',
+                'google-api-python-client',
+                'google-auth-httplib2',
+                'google-auth-oauthlib',
+                'vbrpytools >= 3.7.0',
+                'humanize',
+                'dateparser',
+                'thefuzz[speedup]',
+                'motor',
+                'pydantic',
+                'keyring; platform_system == "Windows"',
+                'pwinput; platform_system == "Windows"',
                ]
-description = "Discord for personal use"
-readme = "README.md"
-requires-python = ">=3.13"
-license = {file = "LICENSE"}
-keywords = ["tools", "discord","personal"]
+description = 'Discord for personal use'
+readme = 'README.md'
+requires-python = '>=3.13'
+license = {file = 'LICENSE'}
+keywords = ['tools', 'discord','personal']
 authors = [
-  { name="Vincent Brettnacher", email="vincent.brettnacher@veoneer.com" },
+  { name='Vincent Brettnacher', email='vincent.brettnacher@veoneer.com' },
 ]
 classifiers = [
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.13",
-    "Operating System :: Microsoft :: Windows :: Windows 11",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License"
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.13',
+    'Operating System :: Microsoft :: Windows :: Windows 11',
+    'Operating System :: POSIX :: Linux',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License'
 ]
 
 [project.urls]
-Documentation = "https://github.com/vbrett/ajbot/blob/master/README.md"
-source = "https://github.com/vbrett/ajbot"
-Repository = "https://github.com/vbrett/ajbot.git"
-Issues = "https://github.com/vbrett/ajbot/issues"
+Documentation = 'https://github.com/vbrett/ajbot/blob/master/README.md'
+source = 'https://github.com/vbrett/ajbot'
+Repository = 'https://github.com/vbrett/ajbot.git'
+Issues = 'https://github.com/vbrett/ajbot/issues'
 
 [tool.hatch.version]
-path = "src/ajbot/__init__.py"
-scheme = "semver"
+path = 'src/ajbot/__init__.py'
+scheme = 'semver'

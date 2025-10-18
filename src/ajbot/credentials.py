@@ -1,20 +1,25 @@
 ''' Handle storing secrets in system keyring
 '''
 
+import os
 import sys
-import tkinter as tk
-from tkinter import filedialog
+from platform import system
 import json
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-import keyring
-from pwinput import pwinput
-
-from ajbot._internal.config import KEY_SERVER, KEY_USER_DISCORD, KEY_USER_DRIVE, AJ_DRIVE_SCOPES
+from ajbot._internal.config import ENV_VAR_DISCORD, ENV_VAR_DRIVE, KEY_SERVER, KEY_USER_DISCORD, KEY_USER_DRIVE, AJ_DRIVE_SCOPES
 from ajbot._internal.exceptions import CredsException
+
+keyring_supported = system() == 'Windows'
+if keyring_supported:
+    import tkinter as tk
+    from tkinter import filedialog
+    import keyring
+    from pwinput import pwinput
+
 
 def get_set_discord(prompt_if_present = False,
                     break_if_missing = False,):
@@ -27,7 +32,13 @@ def get_set_discord(prompt_if_present = False,
     Returns:
         The Discord token, None if not found and not set.
     """
-    token = keyring.get_password(KEY_SERVER, KEY_USER_DISCORD)
+    if keyring_supported:
+        token = keyring.get_password(KEY_SERVER, KEY_USER_DISCORD)
+    else:
+        break_if_missing = True
+        prompt_if_present = False
+        token = os.getenv(ENV_VAR_DISCORD)
+
     if token:
         action = '' if not prompt_if_present else input("Le token d'accès à Discord est déjà défini. Voulez-vous le remplacer ? (o/n) ")
         if action.lower() != 'o':
@@ -36,7 +47,7 @@ def get_set_discord(prompt_if_present = False,
     elif break_if_missing:
         raise CredsException("Le token d'accès à Discord n'est pas défini.")
 
-    token = pwinput("Entrez le token d'accès à Discord : ")
+    token = pwinput("Entrez le token d'accès à Discord : ") #pylint: disable=possibly-used-before-assignment #this code is only run if keyring is supported
     if token:
         keyring.set_password(KEY_SERVER, KEY_USER_DISCORD, token)
         return token
@@ -61,7 +72,14 @@ def get_set_gdrive(prompt_if_present = False,
     # created automatically when the authorization flow completes for the first
     # time.
     creds = None
-    token = keyring.get_password(KEY_SERVER, KEY_USER_DRIVE)
+
+    if keyring_supported:
+        token = keyring.get_password(KEY_SERVER, KEY_USER_DRIVE)
+    else:
+        break_if_missing = True
+        prompt_if_present = False
+        token = os.getenv(ENV_VAR_DRIVE)
+
     if token:
         try:
             creds = Credentials.from_authorized_user_info(json.loads(token), AJ_DRIVE_SCOPES)
@@ -77,7 +95,8 @@ def get_set_gdrive(prompt_if_present = False,
     # Expired credentials, refresh them
     elif creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
-        keyring.set_password(KEY_SERVER, KEY_USER_DRIVE, creds.to_json())
+        if keyring_supported:
+            keyring.set_password(KEY_SERVER, KEY_USER_DRIVE, creds.to_json())
         return creds
 
     # Invalid credentials, break if asked
@@ -85,10 +104,10 @@ def get_set_gdrive(prompt_if_present = False,
         raise CredsException("Le token d'accès au drive n'est pas défini ou n'est pas valide.")
 
     # Prompt for credential file
-    root = tk.Tk()
+    root = tk.Tk()   #pylint: disable=possibly-used-before-assignment #this code is only run if keyring is supported
     root.withdraw()
     root.wm_attributes('-topmost', 1)
-    cred_file_path = filedialog.askopenfilename(parent = root,
+    cred_file_path = filedialog.askopenfilename(parent = root,   #pylint: disable=possibly-used-before-assignment #this code is only run if keyring is supported
                                                 defaultextension=".json",
                                                 title="Sélectionnez le fichier JSON contenant les info d'accès au drive",
                                                 filetypes=[("Fichier JSON", "*.json"), ("Tous les fichiers", "*.*")],
