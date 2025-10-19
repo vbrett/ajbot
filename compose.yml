@@ -11,8 +11,8 @@ services:
       target: runner
     ports:
       - 8000:8000
-    env_file:
-      - ./ajbot.env
+    volumes:
+      - ".env:/.env"
     # depends_on:
     #   - ajdb
 
