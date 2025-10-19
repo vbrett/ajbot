@@ -28,8 +28,7 @@ dependencies = ['discord.py',
                 'thefuzz[speedup]',
                 'motor',
                 'pydantic',
-                'keyring; platform_system == "Windows"',
-                'pwinput; platform_system == "Windows"',
+                'pwinput',
                ]
 description = 'Discord for personal use'
 readme = 'README.md'

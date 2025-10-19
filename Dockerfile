@@ -17,5 +17,5 @@ RUN pip install --no-cache /wheels/* && rm -rf /wheels
 EXPOSE 8000
 
 # CMD ["uvicorn", "mysite.main:app", "--host", "0.0.0.0", "--port", "8000"]
-ENTRYPOINT ["tail", "-f", "/dev/null"]
-# ENTRYPOINT [ "aj_bot" ]
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT [ "aj_bot" ]

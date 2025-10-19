@@ -7,14 +7,17 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 
+from ajbot._internal.config import AjConfig
 from ajbot._internal.exceptions import OtherException
 from ajbot import credentials
 
 class GoogleDrive:
     """ Class to interact with Google Drive API. """
-    def __init__(self):
-        creds = credentials.get_set_gdrive(prompt_if_present=False,
-                                           break_if_missing=True)
+    def __init__(self,
+                 aj_config:AjConfig,
+                ):
+        creds = credentials.get_set_gdrive(aj_config,
+                                           prompt_if_present=False)
 
         try:
             self.service = build("drive", "v3", credentials=creds)

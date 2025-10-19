@@ -15,7 +15,7 @@ from ajbot import credentials
 from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
 from ajbot._internal.exceptions import CredsException
 from ajbot._internal.google_api import GoogleDrive
-from ajbot._internal.config import DISCORD_ID_AJ, DATEPARSER_CONFIG, AJ_DB_FILE_ID, AJ_PRESENCE_FILE_ID
+from ajbot._internal.config import DATEPARSER_CONFIG, AjConfig
 
 def get_member_dict(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.
@@ -60,7 +60,8 @@ def needs_aj_manage_role(func):
     @wraps(func)
     @needs_manage_role
     async def wrapper(self, ctx, *args, **kwargs):
-        if ctx.guild.id != DISCORD_ID_AJ:
+        #FIXME replace with proper call
+        if ctx.guild.id != self.aj_config.discord_guild:
             await ctx.reply("Cette commande n'est pas possible depuis ce serveur.")
             return
         return await func(self, ctx, *args, **kwargs)
@@ -69,13 +70,16 @@ def needs_aj_manage_role(func):
 
 class MyCommandsAndEvents(commands.Cog):
     """ A class to hold bot commands. """
-    def __init__(self, bot, export_members = None):
+    def __init__(self, bot,
+                 aj_config:AjConfig,
+                 export_members = None):
         self.bot = bot
+        self.aj_config = aj_config  #TODO: maybe remove
         self.last_hello_member = None
         self.export_members = export_members
-        self._gdrive = GoogleDrive()
-        aj_file = self._gdrive.get_file(AJ_DB_FILE_ID)
-        self.ajdb = AjDb(aj_file)
+        self._gdrive = GoogleDrive(aj_config)
+        aj_file = self._gdrive.get_file(aj_config.file_id_db)
+        self.ajdb = AjDb(aj_config, aj_file)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -131,7 +135,7 @@ class MyCommandsAndEvents(commands.Cog):
     # async def _signsheet(self, ctx):
     #     """ (Réservé au bureau) Envoie la fiche d'émargement. """
     #     sign_sheet_filename="emargement.pdf"
-    #     with self._gdrive.get_file(AJ_PRESENCE_FILE_ID) as sign_sheet:
+    #     with self._gdrive.get_file(aj_config.file_id_presence) as sign_sheet:
     #         # with tempfile.TemporaryDirectory() as temp_dir:
     #         #     sign_sheet_file = Path(temp_dir) / sign_sheet_filename
     #         #     try:
@@ -204,17 +208,19 @@ async def _async_bot(export_members = None):
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
+    with AjConfig(break_if_missing=True, save_on_exit=True) as aj_config:
+        try:
+            bot = commands.Bot(command_prefix='$', intents=intents)
+            await bot.add_cog(MyCommandsAndEvents(bot,
+                                                  aj_config=aj_config,
+                                                  export_members=export_members))
+            token = credentials.get_set_discord(aj_config,
+                                                prompt_if_present=False)
+            await bot.start(token)
 
-    try:
-        bot = commands.Bot(command_prefix='$', intents=intents)
-        await bot.add_cog(MyCommandsAndEvents(bot, export_members=export_members))
-        token = credentials.get_set_discord(prompt_if_present=False,
-                                            break_if_missing=True)
-        await bot.start(token)
-
-    except (discord.errors.LoginFailure, CredsException):
-        await bot.close()
-        print("Missing or Invalid token. Please define it using either set token using 'aj_setsecret'")
+        except (discord.errors.LoginFailure, CredsException):
+            await bot.close()
+            print("Missing or Invalid token. Please define it using either set token using 'aj_setsecret'")
 
     print("Bot has shutdown.")
 

@@ -6,15 +6,16 @@ from thefuzz import process
 from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal.google_api import GoogleDrive
-from ajbot._internal.config import AJ_DB_FILE_ID, AJ_TABLE_NAME_EVENTS, AJ_TABLE_NAME_ROSTER
+from ajbot._internal.config import AjConfig
 
 if __name__ == "__main__":
-    gdrive = GoogleDrive()
-    aj_file = gdrive.get_file(AJ_DB_FILE_ID)
-    xls = ExcelWorkbook(aj_file)
+    with AjConfig(break_if_missing=True, save_on_exit=False) as aj_config:
+        gdrive = GoogleDrive(aj_config)
+        aj_file = gdrive.get_file(aj_config.file_id_db)
+        xls = ExcelWorkbook(aj_file)
 
-    suivi = xls.dict_from_table(AJ_TABLE_NAME_EVENTS, with_ignored=True)
-    annuaire = xls.dict_from_table(AJ_TABLE_NAME_ROSTER, with_ignored=True)
+        suivi = xls.dict_from_table(aj_config.db_table_events, with_ignored=True)
+        annuaire = xls.dict_from_table(aj_config.db_table_roster, with_ignored=True)
 
     suivi_saison_en_cours = [v for v in suivi if v.get('#support', {}).get('saison_en_cours', 0) > 0]
 

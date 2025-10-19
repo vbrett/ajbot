@@ -1,23 +1,28 @@
 """ test ing discord.py library
 """
 from typing import Optional
+from pathlib import Path
 
 import discord
 from discord import app_commands
 
 from ajbot import credentials
-from ajbot._internal.config import DISCORD_ID_DEBUG, DISCORD_ID_ME
+from ajbot._internal.config import AjConfig
+
+aj_config = AjConfig(break_if_missing=True,
+                     save_on_exit=False,
+                     file_path=Path("tests/.env")/"ajbot").open()
 
 # The guild in which this slash command will be registered.
 # It is recommended to have a test guild to separate from your "production" bot
-MY_GUILD = discord.Object(DISCORD_ID_DEBUG)
+MY_GUILD = discord.Object(aj_config.discord_guild)
 
 class MyClient(discord.Client):
     # Suppress error on the User attribute being None since it fills up later
     user: discord.ClientUser
 
-    def __init__(self, *, intents: discord.Intents):
-        super().__init__(intents=intents)
+    def __init__(self, *, l_intents: discord.Intents):
+        super().__init__(intents=l_intents)
         # A CommandTree is a special type that holds all the application command
         # state required to make it work. This is a separate class because it
         # allows all the extra state to be opt-in.
@@ -40,7 +45,7 @@ class MyClient(discord.Client):
 intents = discord.Intents.default()
 # intents.message_content = True
 intents.members = True
-client = MyClient(intents=intents)
+client = MyClient(l_intents=intents)
 
 
 @client.event
@@ -76,14 +81,14 @@ async def send(interaction: discord.Interaction, text_to_send: str):
     await interaction.response.send_message(text_to_send)
 
 
-def is_me(interaction: discord.Interaction) -> bool:
+def is_admin(interaction: discord.Interaction) -> bool:
     """A check which only allows the command owner to use the command."""
-    return interaction.user.id != DISCORD_ID_ME
+    return interaction.user.id == aj_config.discord_admin
 
 # To make an argument optional, you can either give it a supported default argument
 # or you can mark it as Optional from the typing standard library. This example does both.
 @client.tree.command()
-@app_commands.check(is_me)
+@app_commands.check(is_admin)
 @app_commands.checks.has_permissions(manage_roles=True)
 @app_commands.describe(member='The member you want to get the joined date from; defaults to the user who uses the command')
 async def joined(interaction: discord.Interaction, member: Optional[discord.Member] = None):
@@ -156,7 +161,9 @@ async def report_message(interaction: discord.Interaction, message: discord.Mess
     await log_channel.send(embed=embed, view=url_view)
 
 
-token = credentials.get_set_discord(prompt_if_present=False,
-                                    break_if_missing=True)
+token = credentials.get_set_discord(aj_config,
+                                    prompt_if_present=False)
 
 client.run(token)
+
+aj_config.close()

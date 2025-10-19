@@ -7,7 +7,7 @@ from discord.ext.commands import MemberConverter, MemberNotFound
 from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import AJ_TABLE_NAME_EVENTS, AJ_TABLE_NAME_ROSTER
+from ajbot._internal.config import AjConfig
 
 class AjDate(date):
     """ class that handles date type for AJ DB
@@ -234,10 +234,10 @@ class AjEvents(list):
 class AjDb():
     ''' manage AJ database
     '''
-    def __init__(self, xls_file):
+    def __init__(self, aj_config:AjConfig, xls_file):
         self._wb = ExcelWorkbook(xls_file)
-        self.members = AjMembers(self._wb.dict_from_table(AJ_TABLE_NAME_ROSTER, nested=False, with_ignored=True))
-        self.events = AjEvents(self._wb.dict_from_table(AJ_TABLE_NAME_EVENTS, nested=False, with_ignored=True))
+        self.members = AjMembers(self._wb.dict_from_table(aj_config.db_table_roster, nested=False, with_ignored=True))
+        self.events = AjEvents(self._wb.dict_from_table(aj_config.db_table_events, nested=False, with_ignored=True))
 
 
 if __name__ == '__main__':
