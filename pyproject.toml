@@ -54,4 +54,3 @@ Issues = 'https://github.com/vbrett/ajbot/issues'
 
 [tool.hatch.version]
 path = 'src/ajbot/__init__.py'
-scheme = 'semver'

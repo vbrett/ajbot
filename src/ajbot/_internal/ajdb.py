@@ -3,6 +3,7 @@
 from datetime import datetime, date, time
 from thefuzz import fuzz
 import humanize
+import discord
 from discord.ext.commands import MemberConverter, MemberNotFound
 from vbrpytools.exceltojson import ExcelWorkbook
 
@@ -59,13 +60,19 @@ class AjMember():
                 val = varinfo[1](val)
             setattr(self, varname, val)
 
-    def __format__(self, format_spec="short"):
+    def __format__(self, format_spec="user"):
         """ override format
         """
         match format_spec:
-            case "short":
+            case "manager":
                 member_info = [f"{self.id}",
                                " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
+                               f"@{self.discord}" if self.discord else None,
+                              ]
+                return " - ".join([x for x in member_info if x])
+
+            case "user":
+                member_info = [self.first_name if self.first_name else None,
                                f"@{self.discord}" if self.discord else None,
                               ]
                 return " - ".join([x for x in member_info if x])
@@ -81,7 +88,7 @@ class AjMatchedMember():
         self.member = member
         self.match_val = match_val
 
-    def __format__(self, format_spec="short"):
+    def __format__(self, format_spec="user"):
         """ override format
         """
         return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
@@ -95,8 +102,10 @@ class AjMembers(dict):
         super().__init__()
         self.update({AjMemberId(m["id"]) : AjMember(m) for m in input_list})
 
-    async def search(self, lookup_val,
-                     discord_ctx = None, match_crit = 50,
+    async def search(self,
+                     member_discord:discord.Member = None,
+                     member_str = None,
+                     match_crit = 50,
                      break_if_multi_perfect_match = True,):
         ''' retrieve list of member ids matching lookup_val which can be
                 - integer = member ID
@@ -111,24 +120,23 @@ class AjMembers(dict):
                 [member (if perfect match) or matchedMember (if not perfect match)]
         '''
         # Try to convert to discord member. If succeed, search using discord name
-        if discord_ctx:
+        if member_discord:
             try:
-                lookup_val = await MemberConverter().convert(discord_ctx, lookup_val)
                 return [v for v in self.values()
-                        if v.discord == lookup_val.name]
+                        if v.discord == member_discord.name]
             except MemberNotFound:
                 pass
 
         # Try to convert to integer. If succeed, search using member id
         try:
-            lookup_val = int(lookup_val)
+            member_str = int(member_str)
             return [v for k, v in self.items()
-                    if k == lookup_val]
+                    if k == member_str]
         except ValueError:
             pass
 
         # Fuzz search on friendly name
-        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, v.friendly_name))
+        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(member_str, v.friendly_name))
                        for v in self.values()]
         fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
         fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
@@ -136,7 +144,7 @@ class AjMembers(dict):
         perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
         if perfect_match:
             if len(perfect_match) > 1 and break_if_multi_perfect_match:
-                raise AjDbException(f"multiple member perfectly match {lookup_val}")
+                raise AjDbException(f"multiple member perfectly match {member_str}")
             return perfect_match
 
         return fuzzy_match
@@ -203,7 +211,7 @@ class AjEvent():
         """ override format
         """
         # match format_spec:
-        #     case "short":
+        #     case "user":
         #         member_info = [f"{self.id}",
         #                        " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
         #                        f"@{self.discord}" if self.discord else None,

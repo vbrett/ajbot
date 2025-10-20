@@ -1,4 +1,4 @@
 """ Package init
 """
 
-__version__ = "v2.0.0"
+__version__ = "v3.0.0"

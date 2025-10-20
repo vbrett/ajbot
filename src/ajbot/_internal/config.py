@@ -16,15 +16,18 @@ AJ_DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive"]
 _AJ_CONFIG_PATH = Path(".env")
 _AJ_CONFIG_FILE = "ajbot"
 
-_KEY_CREDS_DISCORD = "creds_discord"
-_KEY_GUILD = "discord_guild"
-_KEY_ADMIN = "discord_admin"
-_KEY_CREDS_DB = "creds_db"
+_KEY_CREDS = "creds"
+
+_KEY_DISCORD = "discord"
+_KEY_GUILD = "guild"
+_KEY_OWNER = "owner"
+
+_KEY_DB = "db"
 _KEY_FILE_ID_DB = "file_id_db"
-_KEY_TABLE_EVENTS = "db_table_events"
-_KEY_TABLE_ROSTER = "db_table_roster"
-_KEY_TABLE_ROLE = "db_table_role"
-_KEY_TABLE_EVENT_TYPE = "db_table_event_type"
+_KEY_TABLE_EVENTS = "table_events"
+_KEY_TABLE_ROSTER = "table_roster"
+_KEY_TABLE_ROLE = "table_role"
+_KEY_TABLE_EVENT_TYPE = "table_event_type"
 _KEY_FILE_ID_PRESENCE = "file_id_presence"
 
 
@@ -44,7 +47,7 @@ class AjConfig():
         save_on_exit:      if True, save the config on exit.
         break_if_missing:  if True and secret not found or not valid, raise SecretException.
         """
-        self._usr_creds = {}
+        self._config_dict = {}
         self._file_path = file_path
         self._save_on_exit = save_on_exit
         self._break_if_missing = break_if_missing
@@ -58,14 +61,19 @@ class AjConfig():
     def open(self):
         """ Opens the config file and loads its content.
         """
-        self._usr_creds = load_json_file(self._file_path, abort_on_file_missing=self._break_if_missing)
+        self._config_dict = load_json_file(self._file_path, abort_on_file_missing=self._break_if_missing)
         return self
 
     def close(self):
         """ Closes the config file, saving its content if needed.
         """
-        if self._save_on_exit:
-            save_json_file(self._usr_creds,
+        self.save()
+
+    def save(self, force_save:bool=False):
+        """ Saves the config file.
+        """
+        if self._save_on_exit or force_save:
+            save_json_file(self._config_dict,
                         self._file_path,
                         preserve=False)
 
@@ -79,71 +87,71 @@ class AjConfig():
     def discord_token(self):
         """ Returns the Discord token from config.
         """
-        return self._usr_creds.get(_KEY_CREDS_DISCORD)
+        return self._config_dict[_KEY_DISCORD].get(_KEY_CREDS)
     @discord_token.setter
     def discord_token(self, value):
         """ Sets the Discord token in config.
         """
-        self._usr_creds[_KEY_CREDS_DISCORD] = value
-
-    @property
-    def db_creds(self):
-        """ Returns the Google Drive credentials from config.
-        """
-        return self._usr_creds.get(_KEY_CREDS_DB)
-    @db_creds.setter
-    def db_creds(self, value):
-        """ Sets the Google Drive credentials in config.
-        """
-        self._usr_creds[_KEY_CREDS_DB] = value
-
-    @property
-    def file_id_db(self):
-        """ Returns the Google Drive file ID for the database from config.
-        """
-        return self._usr_creds.get(_KEY_FILE_ID_DB)
-
-    @property
-    def db_table_events(self):
-        """ Returns the database table name for events from config.
-        """
-        return self._usr_creds.get(_KEY_TABLE_EVENTS)
-
-    @property
-    def db_table_roster(self):
-        """ Returns the database table name for roster from config.
-        """
-        return self._usr_creds.get(_KEY_TABLE_ROSTER)
-
-    @property
-    def db_table_role(self):
-        """ Returns the database table name for roles from config.
-        """
-        return self._usr_creds.get(_KEY_TABLE_ROLE)
-
-    @property
-    def db_table_event_type(self):
-        """ Returns the database table name for event types from config.
-        """
-        return self._usr_creds.get(_KEY_TABLE_EVENT_TYPE)
-
-    @property
-    def file_id_presence(self):
-        """ Returns the Google Drive file ID for presence from config.
-        """
-        return self._usr_creds.get(_KEY_FILE_ID_PRESENCE)
+        self._config_dict[_KEY_DISCORD][_KEY_CREDS] = value
 
     @property
     def discord_guild(self):
         """ Returns the Discord guild ID from config.
         """
-        return self._usr_creds.get(_KEY_GUILD)
+        return self._config_dict[_KEY_DISCORD].get(_KEY_GUILD)
 
     @property
-    def discord_admin(self):
-        """ Returns the Discord admin ID from config.
+    def discord_bot_owner(self):
+        """ Returns the Discord bot owner ID from config.
         """
-        return self._usr_creds.get(_KEY_ADMIN)
+        return self._config_dict[_KEY_DISCORD].get(_KEY_OWNER)
+
+    @property
+    def db_creds(self):
+        """ Returns the Google Drive credentials from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_CREDS)
+    @db_creds.setter
+    def db_creds(self, value):
+        """ Sets the Google Drive credentials in config.
+        """
+        self._config_dict[_KEY_DB][_KEY_CREDS] = value
+
+    @property
+    def file_id_db(self):
+        """ Returns the Google Drive file ID for the database from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_FILE_ID_DB)
+
+    @property
+    def db_table_events(self):
+        """ Returns the database table name for events from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_TABLE_EVENTS)
+
+    @property
+    def db_table_roster(self):
+        """ Returns the database table name for roster from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_TABLE_ROSTER)
+
+    @property
+    def db_table_role(self):
+        """ Returns the database table name for roles from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_TABLE_ROLE)
+
+    @property
+    def db_table_event_type(self):
+        """ Returns the database table name for event types from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_TABLE_EVENT_TYPE)
+
+    @property
+    def file_id_presence(self):
+        """ Returns the Google Drive file ID for presence from config.
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_FILE_ID_PRESENCE)
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

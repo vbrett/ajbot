@@ -86,10 +86,8 @@ def get_set_gdrive(aj_config:AjConfig,
         raise CredsException("Le token d'accès au drive n'est pas défini ou n'est pas valide.")
 
     # Prompt for credential file
-    #TODO: tkinter not supported in linux. Find a better way to get the file path than prompting the user to type it
     if system() != 'Windows':
         cred_file_path = input("Entrez le chemin du fichier JSON contenant les info d'accès au drive : ")
-        # raise CredsException("Impossible de demander le fichier d'identification sur ce système.")
 
     else:
         import tkinter as tk            #pylint: disable=import-outside-toplevel    #this is done because it only is supported in windows system
