@@ -1,7 +1,7 @@
 services:
 
   backend:
-    image: vibrett/ajbot:1.0.0
+    image: ajbot:2.0.0
     restart: unless-stopped
     pull_policy: never
     container_name: ajbot
