@@ -7,6 +7,7 @@ import discord
 from discord.ext.commands import MemberConverter, MemberNotFound
 from vbrpytools.exceltojson import ExcelWorkbook
 
+from ajbot._internal.google_api import GoogleDrive
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
 
@@ -242,10 +243,20 @@ class AjEvents(list):
 class AjDb():
     ''' manage AJ database
     '''
-    def __init__(self, aj_config:AjConfig, xls_file):
-        self._wb = ExcelWorkbook(xls_file)
-        self.members = AjMembers(self._wb.dict_from_table(aj_config.db_table_roster, nested=False, with_ignored=True))
-        self.events = AjEvents(self._wb.dict_from_table(aj_config.db_table_events, nested=False, with_ignored=True))
+    def __init__(self, aj_config:AjConfig):
+        self.aj_config = aj_config
+        self._gdrive = GoogleDrive(self.aj_config)
+        self._wb = None
+        self.members = None
+        self.events = None
+        self.load_db()
+
+    def load_db(self):
+        ''' reload the database from Google Drive
+        '''
+        self._wb = ExcelWorkbook(self._gdrive.get_file(self.aj_config.file_id_db))
+        self.members = AjMembers(self._wb.dict_from_table(self.aj_config.db_table_roster, nested=False, with_ignored=True))
+        self.events = AjEvents(self._wb.dict_from_table(self.aj_config.db_table_events, nested=False, with_ignored=True))
 
 
 if __name__ == '__main__':

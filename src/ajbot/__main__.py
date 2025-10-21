@@ -14,7 +14,6 @@ from vbrpytools.dicjsontools import save_json_file
 from ajbot import credentials
 from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
 from ajbot._internal.exceptions import CredsException
-from ajbot._internal.google_api import GoogleDrive
 from ajbot._internal.config import DATEPARSER_CONFIG, AjConfig
 
 def get_member_dict(discord_client, guild_names=None):
@@ -80,8 +79,7 @@ class MyAppEventsAndCommands():
 
         self.aj_config = aj_config
 
-        _gdrive = GoogleDrive(aj_config)
-        self.aj_db = AjDb(aj_config, _gdrive.get_file(aj_config.file_id_db))
+        self.aj_db = AjDb(aj_config)
 
         self.last_hello_member : discord.User = None
 
@@ -105,11 +103,19 @@ class MyAppEventsAndCommands():
             else:
                 self.last_hello_member = interaction.user
                 message = f'Bonjour {interaction.user.mention}!'
-            await interaction.response.send_message(message)
+            await interaction.response.send_message(message, ephemeral=True)
+
+        # TODO: redo this command so it can support longer operations
+        # @self.client.tree.command(name="recharger_db")
+        # @app_commands.check(self._is_manager)
+        # async def reload_db(interaction: discord.Interaction):
+        #     """ Recharge le fichier excel de la base de données depuis Google Drive.
+        #     """
+        #     self.aj_db.load_db()
+        #     await interaction.response.send_message("C'est fait !", ephemeral=True)
 
         @self.client.tree.command(name="membre")
-        # @app_commands.checks.has_role("bureau")
-        # @app_commands.checks.has_permissions(manage_roles=True)
+        @app_commands.check(self._is_member)
         @app_commands.rename(in_member='pseudo')
         @app_commands.rename(str_member='nom')
         @app_commands.describe(in_member='pseudo discord.')
@@ -131,10 +137,13 @@ class MyAppEventsAndCommands():
         # # List of context menu commands for the bot
         # # ========================================================
 
-        @self.client.tree.context_menu(name='Nom du membre')
+        @self.client.tree.context_menu(name='Info membre')
+        @app_commands.check(self._is_member)
         async def show_name(interaction: discord.Interaction, member: discord.Member):
-            await self.send_member_info(interaction, member, None, 5)
+            await self.send_member_info(interaction, member)
 
+    # # Support functions
+    # # ========================================================
 
     async def send_member_info(self, interaction: discord.Interaction,
                                in_member:discord.Member=None, str_member:str=None,
@@ -149,7 +158,7 @@ class MyAppEventsAndCommands():
         members = await self.aj_db.members.search(in_member, str_member, 50, False)
 
         if members:
-            if interaction.user.guild_permissions.manage_roles:
+            if self._is_manager(interaction):
                 reply = "\r\n".join([f"{member:manager}" for member in members])
             else:
                 reply = "\r\n".join([f"{member:user}" for member in members])
@@ -165,6 +174,13 @@ class MyAppEventsAndCommands():
         """A check which only allows the bot owner to use the command."""
         return interaction.user.id == self.aj_config.discord_bot_owner
 
+    def _is_member(self, interaction: discord.Interaction) -> bool:
+        """A check which only allows members to use the command."""
+        return any(role.id in self.aj_config.discord_role_member for role in interaction.user.roles)
+
+    def _is_manager(self, interaction: discord.Interaction) -> bool:
+        """A check which only allows managers to use the command."""
+        return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
 
 
 # def needs_manage_role(func):

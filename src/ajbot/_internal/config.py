@@ -21,6 +21,8 @@ _KEY_CREDS = "creds"
 _KEY_DISCORD = "discord"
 _KEY_GUILD = "guild"
 _KEY_OWNER = "owner"
+_KEY_ROLE_MANAGER = "role_manager"
+_KEY_ROLE_MEMBER = "role_member"
 
 _KEY_DB = "db"
 _KEY_FILE_ID_DB = "file_id_db"
@@ -105,6 +107,18 @@ class AjConfig():
         """ Returns the Discord bot owner ID from config.
         """
         return self._config_dict[_KEY_DISCORD].get(_KEY_OWNER)
+
+    @property
+    def discord_role_manager(self):
+        """ Returns the Discord role manager IDs from config.
+        """
+        return self._config_dict[_KEY_DISCORD].get(_KEY_ROLE_MANAGER)
+
+    @property
+    def discord_role_member(self):
+        """ Returns the Discord role member IDs from config.
+        """
+        return self._config_dict[_KEY_DISCORD].get(_KEY_ROLE_MEMBER)
 
     @property
     def db_creds(self):

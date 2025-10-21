@@ -10,7 +10,6 @@ from discord import app_commands
 from ajbot import credentials
 from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
 from ajbot._internal.exceptions import CredsException
-from ajbot._internal.google_api import GoogleDrive
 from ajbot._internal.config import DATEPARSER_CONFIG, AjConfig
 
 
@@ -60,8 +59,7 @@ class MyAppEventsAndCommands():
 
         self.aj_config = aj_config
 
-        _gdrive = GoogleDrive(aj_config)
-        self.aj_db = AjDb(aj_config, _gdrive.get_file(aj_config.file_id_db))
+        self.aj_db = AjDb(aj_config)
 
         self.last_hello_member : discord.User = None
 
@@ -175,7 +173,7 @@ def _main():
 
         # # List of checks that can be used with app commands
         # # ========================================================
-        # def is_bot_owner(interaction: discord.Interaction) -> bool:
+        # def _is_bot_owner(interaction: discord.Interaction) -> bool:
         #     """A check which only allows the bot owner to use the command."""
         #     return interaction.user.id == aj_config.discord_bot_owner
 
@@ -256,7 +254,7 @@ def _main():
         # # To make an argument optional, you can either give it a supported default argument
         # # or you can mark it as Optional from the typing standard library. This example does both.
         # @client.tree.command()
-        # @app_commands.check(is_bot_owner)
+        # @app_commands.check(_is_bot_owner)
         # @app_commands.checks.has_permissions(manage_roles=True)
         # @app_commands.describe(member='The member you want to get the joined date from; defaults to the user who uses the command')
         # async def joined(interaction: discord.Interaction, member: Optional[discord.Member] = None):
