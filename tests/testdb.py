@@ -1,17 +1,21 @@
 """ test deployment of a MongoDB instance
 """
 import sys
+from pathlib import Path
 import asyncio
 from uuid import UUID, uuid4
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 
-#TODO: replace by AjConfig
-MONGODB_CONNECTION_STRING = "mongodb://root:example@mymongodb:27017"
+from ajbot._internal.config import AjConfig
+
+aj_config = AjConfig(break_if_missing=True,
+                     save_on_exit=False,                                 #TODO: change to True
+                     file_path=Path("tests/.env")/"ajbot")
 
 
-client = AsyncIOMotorClient(MONGODB_CONNECTION_STRING,
+client = AsyncIOMotorClient(aj_config._config_dict.get("mongodb_uri"),
                             uuidRepresentation="standard")
 event_db = client.eventlist
 events = event_db.events
