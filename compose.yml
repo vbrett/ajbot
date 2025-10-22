@@ -13,24 +13,24 @@ services:
       - 8000:8000
     volumes:
       - ".env:/.env"
-    # depends_on:
-    #   - ajdb
+    depends_on:
+      - ajdb
 
-#   ajdb:
-#     image: mongo:8.0.15
-#     container_name: ajdb
-#     volumes:
-#       - ajdb-data:/data/db
-#     env_file:
-#       - ./ajdb.env
+  ajdb:
+    image: mongo:8.0.15
+    container_name: ajdb
+    volumes:
+      - ajdb-data:/data/db
+    env_file:
+      - ./ajdb.env
 
-#   ajdb-express:
-#     image: mongo-express:1.0.2-20-alpine3.19
-#     ports:
-#       - 8081:8081
-#     container_name: ajdb-express
-#     env_file:
-#     - ./ajdb-express.env
+  ajdb-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    ports:
+      - 8081:8081
+    container_name: ajdb-express
+    env_file:
+    - ./ajdb-express.env
 
-# volumes:
-#   ajdb-data:
+volumes:
+  ajdb-data:
