@@ -105,6 +105,14 @@ class MyAppEventsAndCommands():
             """
             await self.send_member_info(interaction, in_member, str_member)
 
+        # @MyClient.tree.command(name="recharger_db")
+        # @app_commands.check(self._is_manager)
+        # async def reload_db(interaction: discord.Interaction):
+        #     """ Recharge le fichier excel de la base de données depuis Google Drive.
+        #     """
+        #     self.aj_db.load_db()
+        #     await interaction.response.send_message("C'est fait !", ephemeral=True)
+
 
         # # List of context menu commands for the bot
         # # ========================================================
@@ -142,6 +150,10 @@ class MyAppEventsAndCommands():
     def _is_bot_owner(self, interaction: discord.Interaction) -> bool:
         """A check which only allows the bot owner to use the command."""
         return interaction.user.id == self.aj_config.discord_bot_owner
+
+    def _is_manager(self, interaction: discord.Interaction) -> bool:
+        """A check which only allows managers to use the command."""
+        return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
 
 
 

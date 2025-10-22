@@ -1,0 +1,37 @@
+{
+    "discord": {
+        "creds": "ABCD123",
+        "guild": 1234567890123456789,
+        "owner": 0,
+        "role_manager": [
+            1234567890123456789,
+            1234567890123456789
+        ],
+        "role_member": [
+            1234567890123456789,
+            1234567890123456789,
+            1234567890123456789
+        ]
+    },
+    "db": {
+        "creds": {
+            "token": "ABCDEF",
+            "refresh_token": "XXXXX",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "client_id": "AAAAAAA.apps.googleusercontent.com",
+            "client_secret": "ABCDEFGHIJ",
+            "scopes": [
+                "https://www.googleapis.com/auth/drive"
+            ],
+            "universe_domain": "googleapis.com",
+            "account": "",
+            "expiry": "2025-10-21T21:46:35.092993Z"
+        },
+        "file_id_db": "ABCDEFGHIJ",
+        "table_events": "suivi",
+        "table_roster": "annuaire",
+        "table_role": "roles",
+        "table_event_type": "categories",
+        "file_id_presence": "ABCDEFGHIJ"
+    }
+}
