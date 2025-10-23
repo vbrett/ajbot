@@ -85,26 +85,6 @@ class MyAppEventsAndCommands():
                 message = f'Bonjour {interaction.user.mention}!'
             await interaction.response.send_message(message)
 
-        @self.client.tree.command(name="membre")
-        # @app_commands.checks.has_role("bureau")
-        # @app_commands.checks.has_permissions(manage_roles=True)
-        @app_commands.rename(in_member='pseudo')
-        @app_commands.rename(str_member='nom')
-        @app_commands.describe(in_member='pseudo discord.')
-        @app_commands.describe(str_member='nom (ID, nom complet ou partiel)')
-        async def member(interaction: discord.Interaction, in_member:Optional[discord.Member]=None, str_member:Optional[str]=None):
-            """ Affiche les infos des membres. Parametre = ID, pseudo discord ou nom (complet ou partiel)
-                paramètre au choix:
-                    - ID (ex: 12, 124)
-                    - pseudo_discord (ex: VbrBot)
-                    - prénom nom ou nom prénom (sans guillement)
-                    supporte des valeurs approximatives comme
-                        - nom ou prenom seul
-                        - nom et/ou prénom approximatif
-                    retourne alors une liste avec la valeur de match
-            """
-            await self.send_member_info(interaction, in_member, str_member)
-
         # @MyClient.tree.command(name="recharger_db")
         # @app_commands.check(self._is_manager)
         # async def reload_db(interaction: discord.Interaction):
@@ -117,32 +97,6 @@ class MyAppEventsAndCommands():
         # # List of context menu commands for the bot
         # # ========================================================
 
-        @self.client.tree.context_menu(name='Nom du membre')
-        async def show_name(interaction: discord.Interaction, member: discord.Member):
-            await self.send_member_info(interaction, member, None, 5)
-
-
-    async def send_member_info(self, interaction: discord.Interaction,
-                               in_member:discord.Member=None, str_member:str=None,
-                               delete_after=None):
-        """ Affiche les infos des membres
-        """
-        if in_member and str_member:
-            await interaction.response.send_message("Tu peux fournir soit un pseudo, soit un nom, mais pas les deux.",
-                                                    ephemeral=True, delete_after=5)
-            return
-
-        members = await self.aj_db.members.search(in_member, str_member, 50, False)
-
-        if members:
-            if interaction.user.guild_permissions.manage_roles:
-                reply = "\r\n".join([f"{member:manager}" for member in members])
-            else:
-                reply = "\r\n".join([f"{member:user}" for member in members])
-        else:
-            reply = f"Je connais pas ton {in_member}."
-
-        await interaction.response.send_message(reply, ephemeral=True, delete_after=delete_after)
 
 
     # List of checks that can be used with app commands

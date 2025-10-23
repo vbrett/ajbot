@@ -4,7 +4,7 @@ from datetime import datetime, date, time
 from thefuzz import fuzz
 import humanize
 import discord
-from discord.ext.commands import MemberConverter, MemberNotFound
+from discord.ext.commands import MemberNotFound
 from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal.google_api import GoogleDrive
@@ -61,18 +61,18 @@ class AjMember():
                 val = varinfo[1](val)
             setattr(self, varname, val)
 
-    def __format__(self, format_spec="user"):
+    def __format__(self, format_spec="simple"):
         """ override format
         """
         match format_spec:
-            case "manager":
+            case "full":
                 member_info = [f"{self.id}",
                                " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
                                f"@{self.discord}" if self.discord else None,
                               ]
                 return " - ".join([x for x in member_info if x])
 
-            case "user":
+            case "simple":
                 member_info = [self.first_name if self.first_name else None,
                                f"@{self.discord}" if self.discord else None,
                               ]
@@ -89,7 +89,7 @@ class AjMatchedMember():
         self.member = member
         self.match_val = match_val
 
-    def __format__(self, format_spec="user"):
+    def __format__(self, format_spec="simple"):
         """ override format
         """
         return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
@@ -104,13 +104,12 @@ class AjMembers(dict):
         self.update({AjMemberId(m["id"]) : AjMember(m) for m in input_list})
 
     async def search(self,
-                     member_discord:discord.Member = None,
-                     member_str = None,
+                     lookup_val = None,
                      match_crit = 50,
                      break_if_multi_perfect_match = True,):
         ''' retrieve list of member ids matching lookup_val which can be
+                - discord member object
                 - integer = member ID
-                - discord pseudo (needs discord_ctx)
                 - string that is compared to "user friendly name" using fuzzy search
 
             for first 2 types, return exact match
@@ -120,24 +119,24 @@ class AjMembers(dict):
             @return
                 [member (if perfect match) or matchedMember (if not perfect match)]
         '''
-        # Try to convert to discord member. If succeed, search using discord name
-        if member_discord:
+        # Check if lookup_val is a discord.Member object
+        if isinstance(lookup_val, discord.Member):
             try:
                 return [v for v in self.values()
-                        if v.discord == member_discord.name]
+                        if v.discord == lookup_val.name]
             except MemberNotFound:
                 pass
 
-        # Try to convert to integer. If succeed, search using member id
-        try:
-            member_str = int(member_str)
+        # check if lookup_val is an integer (member ID)
+        if isinstance(lookup_val, int):
             return [v for k, v in self.items()
-                    if k == member_str]
-        except ValueError:
-            pass
+                    if k == lookup_val]
+
+        if not isinstance(lookup_val, str):
+            raise AjDbException(f"lookup_val must be discord.Member, int or str, not {type(lookup_val)}")
 
         # Fuzz search on friendly name
-        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(member_str, v.friendly_name))
+        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, v.friendly_name))
                        for v in self.values()]
         fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
         fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
@@ -145,7 +144,7 @@ class AjMembers(dict):
         perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
         if perfect_match:
             if len(perfect_match) > 1 and break_if_multi_perfect_match:
-                raise AjDbException(f"multiple member perfectly match {member_str}")
+                raise AjDbException(f"multiple member perfectly match {lookup_val}")
             return perfect_match
 
         return fuzzy_match
@@ -212,7 +211,7 @@ class AjEvent():
         """ override format
         """
         # match format_spec:
-        #     case "user":
+        #     case "simple":
         #         member_info = [f"{self.id}",
         #                        " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
         #                        f"@{self.discord}" if self.discord else None,

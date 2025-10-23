@@ -22,17 +22,17 @@ def _main():
 
         aj_bot = AjBot(aj_config, intents)
 
-        token = credentials.get_set_discord(aj_config,
-                                            prompt_if_present=False)
+        token = credentials.get_set_discord(aj_config, prompt_if_present=False)
 
         # ensure any changes are saved before running
         aj_config.save()  #TODO: change class to non context mgr?
+
         try:
             aj_bot.client.run(token)
         except (errors.LoginFailure, CredsException):
-            print("Missing or Invalid token. Please define it using either set token using 'aj_setsecret'")
+            print("Token invalide ou manquant. Veuillez le définir en utilisant 'aj_creds'.")
 
-    print("Bot has shutdown.")
+    print("Le Bot a été arrêté.")
     return 0
 
 
