@@ -143,7 +143,7 @@ class AjBot():
         async def version(interaction: discord.Interaction):
             """ Affiche la version du bot
             """
-            await interaction.response.send_message(f"Version du bot: {ajbot_version}")
+            await interaction.response.send_message(f"Version du bot: {ajbot_version}", ephemeral=True)
 
 
         # # List of context menu commands for the bot
