@@ -10,9 +10,10 @@ from discord import app_commands
 # from dateparser import parse as dateparse
 # from vbrpytools.dicjsontools import save_json_file
 
-from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
+from ajbot import __version__ as ajbot_version
+from ajbot._internal.ajdb import AjDb #, AjDate, AjEvent
 from ajbot._internal.exceptions import OtherException
-from ajbot._internal.config import DATEPARSER_CONFIG, AjConfig
+from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
 
 def get_member_dict(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.
@@ -76,13 +77,10 @@ class AjBot():
                  intents:discord.Intents):
 
         self.aj_config = aj_config
-
         self.aj_db = AjDb(aj_config)
-
-        self.last_hello_member : discord.User = None
-
         self.client = MyDiscordClient(intents=intents,
-                               guild=discord.Object(aj_config.discord_guild))
+                                      guild=discord.Object(aj_config.discord_guild))
+        self.last_hello_member : discord.User = None
 
         # List of events for the bot
         # ========================================================
@@ -114,22 +112,38 @@ class AjBot():
 
         @self.client.tree.command(name="membre")
         @app_commands.check(self._is_member)
-        @app_commands.rename(in_member='pseudo')
+        @app_commands.rename(disc_member='pseudo')
+        @app_commands.rename(int_member='id')
         @app_commands.rename(str_member='nom')
-        @app_commands.describe(in_member='pseudo discord.')
+        @app_commands.describe(disc_member='pseudo discord.')
+        @app_commands.describe(int_member='ID de l\'asso.')
         @app_commands.describe(str_member='nom (ID, nom complet ou partiel)')
-        async def member(interaction: discord.Interaction, in_member:Optional[discord.Member]=None, str_member:Optional[str]=None):
+        async def member(interaction: discord.Interaction,
+                         disc_member:Optional[discord.Member]=None,
+                         int_member:Optional[int]=None,
+                         str_member:Optional[str]=None):
             """ Affiche les infos des membres. Parametre = ID, pseudo discord ou nom (complet ou partiel)
                 paramètre au choix:
-                    - ID (ex: 12, 124)
                     - pseudo_discord (ex: VbrBot)
+                    - ID de l'asso (ex: 12, 124)
                     - prénom nom ou nom prénom (sans guillement)
                     supporte des valeurs approximatives comme
                         - nom ou prenom seul
                         - nom et/ou prénom approximatif
                     retourne alors une liste avec la valeur de match
             """
-            await self.send_member_info(interaction, in_member, str_member)
+            await self.send_member_info(interaction=interaction,
+                                        disc_member=disc_member,
+                                        int_member=int_member,
+                                        str_member=str_member)
+
+
+        @self.client.tree.command(name="version")
+        @app_commands.check(self._is_manager)
+        async def version(interaction: discord.Interaction):
+            """ Affiche la version du bot
+            """
+            await interaction.response.send_message(f"Version du bot: {ajbot_version}")
 
 
         # # List of context menu commands for the bot
@@ -138,30 +152,31 @@ class AjBot():
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(self._is_member)
         async def show_name(interaction: discord.Interaction, member: discord.Member):
-            await self.send_member_info(interaction, member)
+            await self.send_member_info(interaction=interaction, disc_member=member)
 
     # # Support functions
     # # ========================================================
 
     async def send_member_info(self, interaction: discord.Interaction,
-                               in_member:discord.Member=None, str_member:str=None,
+                               disc_member:discord.Member=None,
+                               int_member:int=None,
+                               str_member:str=None,
                                delete_after=None):
         """ Affiche les infos des membres
         """
-        if in_member and str_member:
-            await interaction.response.send_message("Tu peux fournir soit un pseudo, soit un nom, mais pas les deux.",
-                                                    ephemeral=True, delete_after=5)
+        input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
+        if len(input_member) != 1:
+            await interaction.response.send_message("Tu peux fournir soit:\r\n* un pseudo\r\n* un nom\r\n* un ID\r\nMais s'il te plait, pas de mélange, c'est pas bon pour ma santé.",
+                                                    ephemeral=True, delete_after=10)
             return
+        input_member = input_member[0]
 
-        members = await self.aj_db.members.search(in_member, str_member, 50, False)
+        members = await self.aj_db.members.search(input_member, 50, False)
 
         if members:
-            if self._is_manager(interaction):
-                reply = "\r\n".join([f"{member:manager}" for member in members])
-            else:
-                reply = "\r\n".join([f"{member:user}" for member in members])
+            reply = "\r\n".join(format(member, "full" if self._is_manager(interaction) else "simple") for member in members)
         else:
-            reply = f"Je connais pas ton {in_member}."
+            reply = f"Je ne connais pas ton ou ta {input_member}."
 
         await interaction.response.send_message(reply, ephemeral=True, delete_after=delete_after)
 
@@ -340,7 +355,7 @@ class AjBot():
 #         members = await self.ajdb.members.search(in_member, ctx, 50, False)
 
 #         if members:
-#             reply = "\r\n".join([f"{member:manager}" for member in members])
+#             reply = "\r\n".join([f"{member:full}" for member in members])
 #         else:
 #             reply = f"Je connais pas ton {in_member}."
 
