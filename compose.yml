@@ -9,28 +9,30 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    ports:
-      - 8000:8000
+    # ports:
+    #   - 8000:8000
     volumes:
       - ".env:/.env"
     depends_on:
       - ajdb
 
   ajdb:
-    image: mongo:8.0.15
+    image: mongo:7.0.12
     container_name: ajdb
     volumes:
       - ajdb-data:/data/db
     env_file:
-      - ./ajdb.env
+      - ajdb.env
 
   ajdb-express:
-    image: mongo-express:1.0.2-20-alpine3.19
+    image: mongo-express:1.0.2
     ports:
-      - 8081:8081
+      - 8082:8082
     container_name: ajdb-express
     env_file:
-    - ./ajdb-express.env
+    - ajdb-express.env
+    depends_on:
+      - ajdb
 
 volumes:
   ajdb-data:

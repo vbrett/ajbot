@@ -9,12 +9,12 @@ COPY src src
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir wheels .
 
 
-FROM python:3.13 AS runner
+FROM python:3.13-slim AS runner
 
 COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache /wheels/* && rm -rf /wheels
 
-EXPOSE 8000
+# EXPOSE 8000
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 # ENTRYPOINT [ "aj_bot" ]
