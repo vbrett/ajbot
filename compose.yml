@@ -17,17 +17,21 @@ services:
       - ajdb
 
   ajdb:
-    image: mongo:7.0.12
+    image: mongo:latest
     container_name: ajdb
+    restart: unless-stopped
+    # ports:
+    #   - 27017:27017
     volumes:
       - ajdb-data:/data/db
     env_file:
       - ajdb.env
 
   ajdb-express:
-    image: mongo-express:1.0.2
+    image: mongo-express:latest
+    restart: unless-stopped
     ports:
-      - 8082:8082
+      - 8081:8081
     container_name: ajdb-express
     env_file:
     - ajdb-express.env
