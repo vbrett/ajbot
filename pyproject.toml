@@ -18,6 +18,7 @@ zip = true
 name = 'ajbot'
 dynamic = ['version']
 dependencies = ['discord.py',
+                'sqlalchemy[asyncio]', 'aiomysql',
                 'google-api-python-client',
                 'google-auth-httplib2',
                 'google-auth-oauthlib',
@@ -25,8 +26,6 @@ dependencies = ['discord.py',
                 'humanize',
                 'dateparser',
                 'thefuzz[speedup]',
-                'pymongo',
-                'pydantic',
                 'pwinput',
                ]
 description = 'Discord for personal use'

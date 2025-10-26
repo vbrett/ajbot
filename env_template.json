@@ -14,6 +14,11 @@
         ]
     },
     "db": {
+        "host": "",
+        "port": 0,
+        "user": "",
+        "password": "",
+        "db_name": "",
         "creds": {
             "token": "ABCDEF",
             "refresh_token": "XXXXX",

@@ -1,6 +1,7 @@
 ''' contains configuration variables
 '''
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from vbrpytools.dicjsontools import load_json_file, save_json_file
 
@@ -25,6 +26,12 @@ _KEY_ROLE_MANAGER = "role_manager"
 _KEY_ROLE_MEMBER = "role_member"
 
 _KEY_DB = "db"
+_KEY_DB_HOST = "host"
+_KEY_DB_PORT = "port"
+_KEY_DB_USER = "user"
+_KEY_DB_PASSWORD = "password"
+_KEY_DB_NAME = "db_name"
+
 _KEY_FILE_ID_DB = "file_id_db"
 _KEY_TABLE_EVENTS = "table_events"
 _KEY_TABLE_ROSTER = "table_roster"
@@ -166,6 +173,18 @@ class AjConfig():
         """ Returns the Google Drive file ID for presence from config.
         """
         return self._config_dict[_KEY_DB].get(_KEY_FILE_ID_PRESENCE)
+
+    @property
+    def db_connection_string(self):
+        """ return the connection string to remote DB
+        """
+        host = self._config_dict[_KEY_DB][_KEY_DB_HOST]
+        port = self._config_dict[_KEY_DB][_KEY_DB_PORT]
+        user = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_USER])
+        password = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_PASSWORD])
+        database = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_NAME])
+
+        return user + ':' + password + '@' + host + ':' + str(port) + '/' + database + '?charset=utf8mb4'
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')
