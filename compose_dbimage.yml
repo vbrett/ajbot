@@ -19,6 +19,8 @@ services:
       target: runner
     volumes:
       - ".env:/.env"
+    networks:
+      - ajnet
     depends_on:
       - ajdb
 

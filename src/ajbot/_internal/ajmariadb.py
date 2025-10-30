@@ -18,16 +18,16 @@ class Base(aio_sa.AsyncAttrs, DeclarativeBase):
     """ Base ORM class
     """
 
-class User(Base):
+class Users(Base):
     """ user account table class
     """
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True, index=True, unique=True)
-    creation_date: Mapped[datetime] = mapped_column(server_default=datetime.now())
+    creation_date: Mapped[datetime] = mapped_column(default=datetime.now())
     last_name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     first_name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     emails: Mapped[List["Emails"]] = relationship(
-        back_populates="users", cascade="all, delete-orphan"
+        back_populates="user", cascade="all, delete-orphan"
     )
     discord: Mapped[Optional[str]] = mapped_column(sa.String(50))
     # addresses: Mapped[List["Address"]] = relationship(
@@ -61,10 +61,10 @@ class Emails(Base):
     """ user account table class
     """
     __tablename__ = "emails"
-    id: Mapped[UUID] = mapped_column(primary_key=True, unique=True, server_default=uuid4())
+    id: Mapped[UUID] = mapped_column(primary_key=True, unique=True, default=uuid4())
     email: Mapped[str] = mapped_column(sa.String(50), index=True, unique=True)
     user_id: Mapped[int] = mapped_column(sa.ForeignKey("users.id"))
-    user: Mapped["User"] = relationship(back_populates="emails")
+    user: Mapped["Users"] = relationship(back_populates="emails")
 
 
 # class Address(Base):
@@ -97,13 +97,13 @@ async def _main():
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
-        new_user = User(first_name="Machin")
+        new_user = Users(first_name="Machin", emails=[Emails(email="toto@here.com")])
 
         async with async_session.begin() as session:
             session.add(new_user)
 
         async with async_session.begin() as session:
-            query = sa.select(User).options(selectinload(User.emails)).limit(1)
+            query = sa.select(Users).options(selectinload(Users.emails)).limit(1)
             query_result = await session.execute(query)
             for qr in query_result.scalars():
                 print(qr)
