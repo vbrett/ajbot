@@ -5,7 +5,7 @@ build-backend = 'hatchling.build'
 [project.scripts]
 aj_bot = 'ajbot.__main__:_main'
 aj_creds = 'ajbot.credentials:_main'
-aj_testdb = 'ajbot._internal.ajmongodb:_main'
+aj_testdb = 'ajbot._internal.ajmariadb:_main'
 
 [tool.hatch.build.targets.pyinstaller]
 require-runtime-dependencies = true
