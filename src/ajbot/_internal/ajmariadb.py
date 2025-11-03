@@ -487,31 +487,47 @@ async def _create_db():
         # expire_on_commit - don't expire objects after transaction commit
         async_session = aio_sa.async_sessionmaker(bind = db_engine, expire_on_commit=False)
 
+
+        # create all tables
         async with db_engine.begin() as conn:
-            # await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
-        xsldb_lut_season = load_json_file(Path('tests/xlsdb_LUP_saison.json'))
-
         # init lookup tables
+        xsldb_lut_season = load_json_file(Path('tests/xlsdb_LUP_saison.json'))
         async with async_session.begin() as session:
             for val in ['Membre','Membre saison préc','Artisan',
                         'Bureau - Communication', 'Bureau - Président','Bureau - Secrétaire',
                         'Bureau - Trésorier','Bureau - Autre', 'Bureau - Admin',
                         'ProBot ✨','Simple Poll','VbrBot']:
                 session.add(LUTDiscordRoles(name=val))
-            for val in xsldb_lut_season['compte']: #['Espèce', 'Chèque', 'Banque', 'helloAsso']:
+            for val in xsldb_lut_season['compte']:
                 session.add(LUTAccounts(name=val['name']))
-            for val in xsldb_lut_season['contribution']: #['plein', 'réduit', 'offert', 'autre', 'inconnu']:
+            for val in xsldb_lut_season['contribution']:
                 session.add(LUTContribution(name=val['name']))
-            for val in xsldb_lut_season['connaissance']: #['Forum Asso','Gobelin / Dédale / Afterwork','Bouche à oreille','Réseaux sociaux','Autre']:
+            for val in xsldb_lut_season['connaissance']:
                 session.add(LUTKnowFrom(name=val['name']))
-            for val in xsldb_lut_season['type_voie']: #['avenue','rue','boulevard','place','allée','impasse','passage','sente','chemin']:
+            for val in xsldb_lut_season['type_voie']:
                 session.add(LUTStreetTypes(name=val['name']))
             for val in xsldb_lut_season['saisons']:
                 session.add(Seasons(name=val['name'],
                                     start=datetime.fromisoformat(val['start']).date(),
                                     end=datetime.fromisoformat(val['end']).date()))
+
+        # init member table
+        xsldb_lut_member = load_json_file(Path('tests/xlsdb_membre.json'))
+        async with async_session.begin() as session:
+            for val in xsldb_lut_member['membres']:
+                new_member = Members()
+                if val.get('discord_role'):
+                    new_member.discord_pseudo=val['pseudo_discord']
+                session.add(new_member)
+                if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
+                    new_member_cred = Credentials(member_id=new_member.member_id,
+                                                  first_name=val.get('prenom'),
+                                                  last_name=val.get('nom'))
+                    if val.get('date_naissance'):
+                        new_member_cred.birthdate = datetime.fromisoformat(val['date_naissance']).date()
+                    session.add(new_member_cred)
 
 
         # async with async_session.begin() as session:
