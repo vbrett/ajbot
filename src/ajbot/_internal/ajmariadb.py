@@ -5,7 +5,6 @@ sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 """
 import sys
 import asyncio
-from typing import List
 from typing import Optional
 from datetime import datetime, date #, time
 from pathlib import Path
@@ -39,7 +38,7 @@ class LUTAccounts(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    transaction: Mapped[List['Transaction']] = relationship('Transaction', back_populates='LUT_accounts')
+    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='LUT_accounts')
 
 
 class LUTContribution(Base):
@@ -54,7 +53,7 @@ class LUTContribution(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    memberships: Mapped[List['Memberships']] = relationship('Memberships', back_populates='LUT_contribution')
+    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_contribution')
 
 
 class LUTDiscordRoles(Base):
@@ -69,7 +68,7 @@ class LUTDiscordRoles(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    members: Mapped[List['Members']] = relationship('Members', back_populates='LUT_discord_roles')
+    members: Mapped[list['Members']] = relationship('Members', back_populates='LUT_discord_roles')
 
 
 class LUTKnowFrom(Base):
@@ -84,7 +83,7 @@ class LUTKnowFrom(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    memberships: Mapped[List['Memberships']] = relationship('Memberships', back_populates='LUT_know_from')
+    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_know_from')
 
 
 class LUTStreetTypes(Base):
@@ -99,7 +98,7 @@ class LUTStreetTypes(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    addresses: Mapped[List['Addresses']] = relationship('Addresses', back_populates='LUT_street_types')
+    addresses: Mapped[list['Addresses']] = relationship('Addresses', back_populates='LUT_street_types')
 
 
 # Main tables
@@ -118,7 +117,7 @@ class Assets(Base):
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
-    transaction: Mapped[List['Transaction']] = relationship('Transaction', back_populates='assets')
+    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='assets')
 
 
 class Seasons(Base):
@@ -137,9 +136,9 @@ class Seasons(Base):
     start: Mapped[date] = mapped_column(sa.Date, nullable=False)
     end: Mapped[date] = mapped_column(sa.Date, nullable=False)
 
-    events: Mapped[List['Events']] = relationship('Events', back_populates='seasons')
-    memberships: Mapped[List['Memberships']] = relationship('Memberships', back_populates='seasons')
-    transaction: Mapped[List['Transaction']] = relationship('Transaction', back_populates='seasons')
+    events: Mapped[list['Events']] = relationship('Events', back_populates='seasons')
+    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='seasons')
+    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='seasons')
 
 
 class Events(Base):
@@ -160,9 +159,9 @@ class Events(Base):
     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
     seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='events')
-    JCT_event_member: Mapped[List['JCTEventMember']] = relationship('JCTEventMember', back_populates='events')
-    transaction: Mapped[List['Transaction']] = relationship('Transaction', back_populates='events')
-    log: Mapped[List['Log']] = relationship('Log', back_populates='events')
+    JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='events')
+    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='events')
+    log: Mapped[list['Log']] = relationship('Log', back_populates='events')
 
 
 class Members(Base):
@@ -176,18 +175,18 @@ class Members(Base):
     )
 
     member_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
-    discord_role: Mapped[int] = mapped_column(sa.Integer, nullable=False, comment='to override role defined by membership rules')
+    discord_role: Mapped[Optional[int]] = mapped_column(sa.Integer, nullable=False, comment='to override role defined by membership rules')
     discord_pseudo: Mapped[Optional[str]] = mapped_column(sa.String(50))
     comment: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
     LUT_discord_roles: Mapped['LUTDiscordRoles'] = relationship('LUTDiscordRoles', back_populates='members')
-    JCT_event_member: Mapped[List['JCTEventMember']] = relationship('JCTEventMember', back_populates='members')
-    JCT_member_address: Mapped[List['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='member')
-    JCT_member_email: Mapped[List['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='member')
-    JCT_member_phone: Mapped[List['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='member')
-    memberships: Mapped[List['Memberships']] = relationship('Memberships', back_populates='member')
-    log: Mapped[List['Log']] = relationship('Log', foreign_keys='[Log.author]', back_populates='members')
-    log_: Mapped[List['Log']] = relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
+    JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='members')
+    JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='member')
+    JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='member')
+    JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='member')
+    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='member')
+    log: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.author]', back_populates='members')
+    log_: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
 
 
 class Memberships(Base):
@@ -222,8 +221,8 @@ class Memberships(Base):
     LUT_know_from: Mapped[Optional['LUTKnowFrom']] = relationship('LUTKnowFrom', back_populates='memberships')
     member: Mapped['Members'] = relationship('Members', back_populates='memberships')
     seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='memberships')
-    transaction: Mapped[List['Transaction']] = relationship('Transaction', back_populates='memberships')
-    log: Mapped[List['Log']] = relationship('Log', back_populates='memberships')
+    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='memberships')
+    log: Mapped[list['Log']] = relationship('Log', back_populates='memberships')
 
 
 class Transaction(Base):
@@ -262,7 +261,7 @@ class Transaction(Base):
     events: Mapped[Optional['Events']] = relationship('Events', back_populates='transaction')
     memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='transaction')
     seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='transaction')
-    log: Mapped[List['Log']] = relationship('Log', back_populates='transaction')
+    log: Mapped[list['Log']] = relationship('Log', back_populates='transaction')
 
 
 class Log(Base):
@@ -317,7 +316,7 @@ class Emails(Base):
     email_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     email: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    JCT_member_email: Mapped[List['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='email')
+    JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='email')
 
 
 class Phones(Base):
@@ -333,7 +332,7 @@ class Phones(Base):
     phone_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     phone_number: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    JCT_member_phone: Mapped[List['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='phone')
+    JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='phone')
 
 
 class Addresses(Base):
@@ -357,7 +356,7 @@ class Addresses(Base):
     other: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
     LUT_street_types: Mapped[Optional['LUTStreetTypes']] = relationship('LUTStreetTypes', back_populates='addresses')
-    JCT_member_address: Mapped[List['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='address')
+    JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='address')
 
 
 class Credentials(Members):
@@ -488,30 +487,30 @@ async def _create_db():
         async_session = aio_sa.async_sessionmaker(bind = db_engine, expire_on_commit=False)
 
 
-        # create all tables
-        async with db_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        # # create all tables
+        # async with db_engine.begin() as conn:
+        #     await conn.run_sync(Base.metadata.create_all)
 
-        # init lookup tables
-        xsldb_lut_season = load_json_file(Path('tests/xlsdb_LUP_saison.json'))
-        async with async_session.begin() as session:
-            for val in ['Membre','Membre saison préc','Artisan',
-                        'Bureau - Communication', 'Bureau - Président','Bureau - Secrétaire',
-                        'Bureau - Trésorier','Bureau - Autre', 'Bureau - Admin',
-                        'ProBot ✨','Simple Poll','VbrBot']:
-                session.add(LUTDiscordRoles(name=val))
-            for val in xsldb_lut_season['compte']:
-                session.add(LUTAccounts(name=val['name']))
-            for val in xsldb_lut_season['contribution']:
-                session.add(LUTContribution(name=val['name']))
-            for val in xsldb_lut_season['connaissance']:
-                session.add(LUTKnowFrom(name=val['name']))
-            for val in xsldb_lut_season['type_voie']:
-                session.add(LUTStreetTypes(name=val['name']))
-            for val in xsldb_lut_season['saisons']:
-                session.add(Seasons(name=val['name'],
-                                    start=datetime.fromisoformat(val['start']).date(),
-                                    end=datetime.fromisoformat(val['end']).date()))
+        # # init lookup tables
+        # xsldb_lut_season = load_json_file(Path('tests/xlsdb_LUP_saison.json'))
+        # async with async_session.begin() as session:
+        #     for val in ['Membre','Membre saison préc','Artisan',
+        #                 'Bureau - Communication', 'Bureau - Président','Bureau - Secrétaire',
+        #                 'Bureau - Trésorier','Bureau - Autre', 'Bureau - Admin',
+        #                 'ProBot ✨','Simple Poll','VbrBot']:
+        #         session.add(LUTDiscordRoles(name=val))
+        #     for val in xsldb_lut_season['compte']:
+        #         session.add(LUTAccounts(name=val['name']))
+        #     for val in xsldb_lut_season['contribution']:
+        #         session.add(LUTContribution(name=val['name']))
+        #     for val in xsldb_lut_season['connaissance']:
+        #         session.add(LUTKnowFrom(name=val['name']))
+        #     for val in xsldb_lut_season['type_voie']:
+        #         session.add(LUTStreetTypes(name=val['name']))
+        #     for val in xsldb_lut_season['saisons']:
+        #         session.add(Seasons(name=val['name'],
+        #                             start=datetime.fromisoformat(val['start']).date(),
+        #                             end=datetime.fromisoformat(val['end']).date()))
 
         # init member table
         xsldb_lut_member = load_json_file(Path('tests/xlsdb_membre.json'))
@@ -521,6 +520,8 @@ async def _create_db():
                 if val.get('discord_role'):
                     new_member.discord_pseudo=val['pseudo_discord']
                 session.add(new_member)
+                await session.flush()  # to get new_member.member_id
+                await session.commit()
                 if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
                     new_member_cred = Credentials(member_id=new_member.member_id,
                                                   first_name=val.get('prenom'),
@@ -528,6 +529,7 @@ async def _create_db():
                     if val.get('date_naissance'):
                         new_member_cred.birthdate = datetime.fromisoformat(val['date_naissance']).date()
                     session.add(new_member_cred)
+                    await session.flush()  # to get new_member.member_id
 
 
         # async with async_session.begin() as session:

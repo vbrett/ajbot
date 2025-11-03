@@ -4,8 +4,8 @@
   "settings": {
     "width": 4000,
     "height": 4000,
-    "scrollTop": -802.1864,
-    "scrollLeft": -459.2372,
+    "scrollTop": -745.1864,
+    "scrollLeft": -852.2372,
     "zoomLevel": 0.79,
     "show": 511,
     "database": 1,
@@ -4296,7 +4296,7 @@
         "comment": "to override role defined by membership rules",
         "dataType": "INT",
         "default": "",
-        "options": 8,
+        "options": 0,
         "ui": {
           "keys": 2,
           "widthName": 66,
@@ -4305,7 +4305,7 @@
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1762097147138,
+          "updateAt": 1762203847394,
           "createAt": 1762097132770
         }
       },
@@ -6295,7 +6295,7 @@
         "id": "znAvMKtvHENhPwDSYjXN9",
         "identification": false,
         "relationshipType": 4,
-        "startRelationshipType": 2,
+        "startRelationshipType": 1,
         "start": {
           "tableId": "zCgD1SIsjFR5dk_cePL6o",
           "columnIds": [
