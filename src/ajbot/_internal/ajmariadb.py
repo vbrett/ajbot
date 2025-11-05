@@ -30,13 +30,9 @@ class LUTAccounts(Base):
     """ List of supported transaction accounts
     """
     __tablename__ = 'LUT_accounts'
-    __table_args__ = (
-        sa.Index('UQ_id', 'id', unique=True),
-        sa.Index('UQ_name', 'name', unique=True)
-    )
 
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
     transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='LUT_accounts')
 
@@ -45,13 +41,9 @@ class LUTContribution(Base):
     """ List of supported contribution levels
     """
     __tablename__ = 'LUT_contribution'
-    __table_args__ = (
-        sa.Index('UQ_id', 'id', unique=True),
-        sa.Index('UQ_name', 'name', unique=True),
-    )
 
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_contribution')
 
@@ -60,13 +52,9 @@ class LUTDiscordRoles(Base):
     """ List of supported Discord roles
     """
     __tablename__ = 'LUT_discord_roles'
-    __table_args__ = (
-        sa.Index('UQ_id', 'id', unique=True),
-        sa.Index('UQ_name', 'name', unique=True)
-    )
 
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
     members: Mapped[list['Members']] = relationship('Members', back_populates='LUT_discord_roles')
 
@@ -75,13 +63,9 @@ class LUTKnowFrom(Base):
     """ List of supported sources of knowing about the association
     """
     __tablename__ = 'LUT_know_from'
-    __table_args__ = (
-        sa.Index('UQ_id', 'id', unique=True),
-        sa.Index('UQ_name', 'name', unique=True)
-    )
 
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_know_from')
 
@@ -90,13 +74,9 @@ class LUTStreetTypes(Base):
     """ List of supported street types
     """
     __tablename__ = 'LUT_street_types'
-    __table_args__ = (
-        sa.Index('UQ_id', 'id', unique=True),
-        sa.Index('UQ_name', 'name', unique=True)
-    )
 
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
     addresses: Mapped[list['Addresses']] = relationship('Addresses', back_populates='LUT_street_types')
 
@@ -109,12 +89,9 @@ class Assets(Base):
     """ Assets table class
     """
     __tablename__ = 'assets'
-    __table_args__ = (
-        sa.Index('UQ_asset_id', 'asset_id', unique=True),
-    )
 
-    asset_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+    asset_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
     transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='assets')
@@ -124,15 +101,9 @@ class Seasons(Base):
     """ Seasons table class
     """
     __tablename__ = 'seasons'
-    __table_args__ = (
-        sa.Index('UQ_end', 'end', unique=True),
-        sa.Index('UQ_name', 'name', unique=True),
-        sa.Index('UQ_season_id', 'season_id', unique=True),
-        sa.Index('UQ_start', 'start', unique=True)
-    )
 
-    season_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    name: Mapped[str] = mapped_column(sa.String(10), nullable=False)
+    season_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: Mapped[str] = mapped_column(sa.String(10), nullable=False, index=True)
     start: Mapped[date] = mapped_column(sa.Date, nullable=False)
     end: Mapped[date] = mapped_column(sa.Date, nullable=False)
 
@@ -148,12 +119,10 @@ class Events(Base):
     __table_args__ = (
         sa.ForeignKeyConstraint(['season'], ['seasons.season_id'], name='FK_seasons_TO_events'),
         sa.Index('FK_seasons_TO_events', 'season'),
-        sa.Index('UQ_date', 'event_date', unique=True),
-        sa.Index('UQ_event_id', 'event_id', unique=True)
     )
 
-    event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    event_date: Mapped[date] = mapped_column(sa.Date, nullable=False)
+    event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
+    event_date: Mapped[date] = mapped_column(sa.Date, nullable=False, index=True)
     season: Mapped[int] = mapped_column(sa.Integer, nullable=False, comment='shall be computed based on event_date')
     name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
