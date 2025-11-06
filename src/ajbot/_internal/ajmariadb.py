@@ -34,7 +34,7 @@ class LUTAccounts(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
-    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='LUT_accounts')
+    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='LUT_accounts')
 
 
 class LUTContribution(Base):
@@ -56,7 +56,7 @@ class LUTDiscordRoles(Base):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
 
-    members: Mapped[list['Members']] = relationship('Members', back_populates='LUT_discord_roles')
+    members: Mapped[list['Members']] = relationship('Members', back_populates='discord_roles')
 
 
 class LUTKnowFrom(Base):
@@ -94,7 +94,7 @@ class Assets(Base):
     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
-    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='assets')
+    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='assets')
 
 
 class Seasons(Base):
@@ -109,27 +109,23 @@ class Seasons(Base):
 
     events: Mapped[list['Events']] = relationship('Events', back_populates='seasons')
     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='seasons')
-    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='seasons')
+    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='seasons')
 
 
 class Events(Base):
     """ Events table class
     """
     __tablename__ = 'events'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['season'], ['seasons.season_id'], name='FK_seasons_TO_events'),
-        sa.Index('FK_seasons_TO_events', 'season'),
-    )
 
     event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
     event_date: Mapped[date] = mapped_column(sa.Date, nullable=False, index=True)
-    season: Mapped[int] = mapped_column(sa.Integer, nullable=False, comment='shall be computed based on event_date')
+    season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=True, comment='shall be computed based on event_date', index=True)
+    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='events')
     name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
-    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='events')
     JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='events')
-    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='events')
+    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='events')
     log: Mapped[list['Log']] = relationship('Log', back_populates='events')
 
 
@@ -137,23 +133,19 @@ class Members(Base):
     """ Member table class
     """
     __tablename__ = 'members'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['discord_role'], ['LUT_discord_roles.id'], name='FK_LUT_discord_roles_TO_members'),
-        sa.Index('FK_LUT_discord_roles_TO_members', 'discord_role'),
-        sa.Index('UQ_member_id', 'member_id', unique=True)
-    )
 
-    member_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
-    discord_role: Mapped[Optional[int]] = mapped_column(sa.Integer, nullable=False, comment='to override role defined by membership rules')
+    member_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    discord_role_id: Mapped[Optional[int]] = mapped_column(sa.ForeignKey('LUT_discord_roles.id'), nullable=True, comment='to override role defined by membership rules', index=True)
+    discord_roles: Mapped['LUTDiscordRoles'] = relationship('LUTDiscordRoles', back_populates='members')
     discord_pseudo: Mapped[Optional[str]] = mapped_column(sa.String(50))
     comment: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
-    LUT_discord_roles: Mapped['LUTDiscordRoles'] = relationship('LUTDiscordRoles', back_populates='members')
-    JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='members')
+    credential: Mapped['Credentials'] = relationship('Credentials', back_populates='member')
     JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='member')
     JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='member')
     JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='member')
     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='member')
+    JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='members')
     log: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.author]', back_populates='members')
     log_: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
 
@@ -163,38 +155,30 @@ class Memberships(Base):
     """
     __tablename__ = 'memberships'
     __table_args__ = (
-        sa.ForeignKeyConstraint(['contribution'], ['LUT_contribution.id'], name='FK_LUT_contribution_TO_memberships'),
         sa.ForeignKeyConstraint(['know_from'], ['LUT_know_from.id'], name='FK_LUT_know_from_TO_memberships'),
-        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_memberships'),
-        sa.ForeignKeyConstraint(['season'], ['seasons.season_id'], name='FK_seasons_TO_memberships'),
-        sa.Index('FK_LUT_contribution_TO_memberships', 'contribution'),
         sa.Index('FK_LUT_know_from_TO_memberships', 'know_from'),
-        sa.Index('FK_members_TO_memberships', 'member_id'),
-        sa.Index('FK_seasons_TO_memberships', 'season'),
-        sa.Index('UQ_membership_id', 'membership_id', unique=True),
-        {'comment': 'each association shall be unique - CONSTRAINT IX_Intersection '
-                'UNIQUE(Table A, Table B )'}
+        sa.UniqueConstraint('season_id', 'member_id', name='UQ_season_member',
+                            comment='each member can have only one membership per season'),
     )
 
-    membership_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+    membership_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     membership_date: Mapped[date] = mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-    season: Mapped[int] = mapped_column(sa.Integer, nullable=False, comment='[season;member_id] is unique')
-    member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False, comment='[season;member_id] is unique')
-    contribution: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+    season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, index=True)
+    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='memberships')
+    member_id: Mapped[int] = mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member: Mapped['Members'] = relationship('Members', back_populates='memberships')
+    contribution_id: Mapped[int] = mapped_column(sa.ForeignKey('LUT_contribution.id'), index=True, nullable=False)
+    LUT_contribution: Mapped['LUTContribution'] = relationship('LUTContribution', back_populates='memberships')
     picture_authorized: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
     statutes_accepted: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
     civil_insurance: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
     know_from: Mapped[Optional[int]] = mapped_column(sa.Integer)
-
-    LUT_contribution: Mapped['LUTContribution'] = relationship('LUTContribution', back_populates='memberships')
     LUT_know_from: Mapped[Optional['LUTKnowFrom']] = relationship('LUTKnowFrom', back_populates='memberships')
-    member: Mapped['Members'] = relationship('Members', back_populates='memberships')
-    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='memberships')
-    transaction: Mapped[list['Transaction']] = relationship('Transaction', back_populates='memberships')
+    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='memberships')
     log: Mapped[list['Log']] = relationship('Log', back_populates='memberships')
 
 
-class Transaction(Base):
+class Transactions(Base):
     """ Transaction table class
     """
     __tablename__ = 'transaction'
@@ -203,18 +187,16 @@ class Transaction(Base):
         sa.ForeignKeyConstraint(['associated_asset'], ['assets.asset_id'], name='FK_assets_TO_transaction'),
         sa.ForeignKeyConstraint(['associated_event'], ['events.event_id'], name='FK_events_TO_transaction'),
         sa.ForeignKeyConstraint(['associated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_transaction'),
-        sa.ForeignKeyConstraint(['season'], ['seasons.season_id'], name='FK_seasons_TO_transaction'),
         sa.Index('FK_LUT_accounts_TO_transaction', 'account'),
         sa.Index('FK_assets_TO_transaction', 'associated_asset'),
         sa.Index('FK_events_TO_transaction', 'associated_event'),
         sa.Index('FK_memberships_TO_transaction', 'associated_membership'),
-        sa.Index('FK_seasons_TO_transaction', 'season'),
         sa.Index('UQ_transaction_id', 'transaction_id', unique=True)
     )
 
     transaction_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
     transaction_date: Mapped[date] = mapped_column(sa.Date, nullable=False)
-    season: Mapped[int] = mapped_column(sa.Integer, nullable=False, comment='shall be computed based on transaction_date')
+    season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
     account: Mapped[int] = mapped_column(sa.Integer, nullable=False)
     associated_event: Mapped[Optional[int]] = mapped_column(sa.Integer)
     associated_asset: Mapped[Optional[int]] = mapped_column(sa.Integer)
@@ -225,12 +207,12 @@ class Transaction(Base):
     debit: Mapped[Optional[float]] = mapped_column(sa.Float)
     comment: Mapped[Optional[str]] = mapped_column(sa.String(100))
 
-    LUT_accounts: Mapped['LUTAccounts'] = relationship('LUTAccounts', back_populates='transaction')
-    assets: Mapped[Optional['Assets']] = relationship('Assets', back_populates='transaction')
-    events: Mapped[Optional['Events']] = relationship('Events', back_populates='transaction')
-    memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='transaction')
-    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='transaction')
-    log: Mapped[list['Log']] = relationship('Log', back_populates='transaction')
+    LUT_accounts: Mapped['LUTAccounts'] = relationship('LUTAccounts', back_populates='transactions')
+    assets: Mapped[Optional['Assets']] = relationship('Assets', back_populates='transactions')
+    events: Mapped[Optional['Events']] = relationship('Events', back_populates='transactions')
+    memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='transactions')
+    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='transactions')
+    log: Mapped[list['Log']] = relationship('Log', back_populates='transactions')
 
 
 class Log(Base):
@@ -264,7 +246,7 @@ class Log(Base):
     events: Mapped[Optional['Events']] = relationship('Events', back_populates='log')
     members_: Mapped[Optional['Members']] = relationship('Members', foreign_keys=[updated_member], back_populates='log_')
     memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='log')
-    transaction: Mapped[Optional['Transaction']] = relationship('Transaction', back_populates='log')
+    transactions: Mapped[Optional['Transactions']] = relationship('Transactions', back_populates='log')
 
 
 
@@ -333,12 +315,11 @@ class Credentials(Members):
     """
     __tablename__ = 'credentials'
     __table_args__ = (
-        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_credentials'),
-        sa.Index('UQ_member_id', 'member_id', unique=True),
         {'comment': 'contain RGPD info'}
     )
 
-    member_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(sa.ForeignKey('members.member_id'), primary_key=True, nullable=False, index=True)
+    member: Mapped['Members'] = relationship('Members', back_populates='credential')
     first_name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     last_name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     birthdate: Mapped[Optional[date]] = mapped_column(sa.Date)
@@ -456,9 +437,10 @@ async def _create_db():
         async_session = aio_sa.async_sessionmaker(bind = db_engine, expire_on_commit=False)
 
 
-        # # create all tables
-        # async with db_engine.begin() as conn:
-        #     await conn.run_sync(Base.metadata.create_all)
+        # create all tables
+        async with db_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
 
         # # init lookup tables
         # xsldb_lut_season = load_json_file(Path('tests/xlsdb_LUP_saison.json'))
@@ -484,21 +466,20 @@ async def _create_db():
         # init member table
         xsldb_lut_member = load_json_file(Path('tests/xlsdb_membre.json'))
         async with async_session.begin() as session:
+            new_members = []
             for val in xsldb_lut_member['membres']:
                 new_member = Members()
                 if val.get('discord_role'):
                     new_member.discord_pseudo=val['pseudo_discord']
-                session.add(new_member)
-                await session.flush()  # to get new_member.member_id
-                await session.commit()
                 if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
-                    new_member_cred = Credentials(member_id=new_member.member_id,
-                                                  first_name=val.get('prenom'),
-                                                  last_name=val.get('nom'))
+                    new_member.credential = Credentials(member_id=new_member.member_id,
+                                                        first_name=val.get('prenom'),
+                                                        last_name=val.get('nom'))
                     if val.get('date_naissance'):
-                        new_member_cred.birthdate = datetime.fromisoformat(val['date_naissance']).date()
-                    session.add(new_member_cred)
-                    await session.flush()  # to get new_member.member_id
+                        new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
+                new_members.append(new_member)
+            session.add_all(new_members)
+            await session.commit()
 
 
         # async with async_session.begin() as session:
