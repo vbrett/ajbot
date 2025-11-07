@@ -26,26 +26,26 @@ class Base(aio_sa.AsyncAttrs, DeclarativeBase):
 
 # Lookup tables
 ################################
-class LUTAccounts(Base):
-    """ List of supported transaction accounts
-    """
-    __tablename__ = 'LUT_accounts'
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
-
-    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='LUT_accounts')
-
-
-class LUTContribution(Base):
-    """ List of supported contribution levels
-    """
-    __tablename__ = 'LUT_contribution'
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
-
-    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_contribution')
+# class LUTAccounts(Base):
+#     """ List of supported transaction accounts
+#     """
+#     __tablename__ = 'LUT_accounts'
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
+#
+#     transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='LUT_accounts')
+#
+#
+# class LUTContribution(Base):
+#     """ List of supported contribution levels
+#     """
+#     __tablename__ = 'LUT_contribution'
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
+#
+#     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_contribution')
 
 
 class LUTDiscordRoles(Base):
@@ -59,74 +59,74 @@ class LUTDiscordRoles(Base):
     members: Mapped[list['Members']] = relationship('Members', back_populates='discord_roles')
 
 
-class LUTKnowFrom(Base):
-    """ List of supported sources of knowing about the association
-    """
-    __tablename__ = 'LUT_know_from'
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
-
-    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_know_from')
-
-
-class LUTStreetTypes(Base):
-    """ List of supported street types
-    """
-    __tablename__ = 'LUT_street_types'
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
-
-    addresses: Mapped[list['Addresses']] = relationship('Addresses', back_populates='LUT_street_types')
+# class LUTKnowFrom(Base):
+#     """ List of supported sources of knowing about the association
+#     """
+#     __tablename__ = 'LUT_know_from'
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
+#
+#     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='LUT_know_from')
+#
+#
+# class LUTStreetTypes(Base):
+#     """ List of supported street types
+#     """
+#     __tablename__ = 'LUT_street_types'
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
+#
+#     addresses: Mapped[list['Addresses']] = relationship('Addresses', back_populates='LUT_street_types')
 
 
 # Main tables
 ################################
 
 
-class Assets(Base):
-    """ Assets table class
-    """
-    __tablename__ = 'assets'
-
-    asset_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
-    description: Mapped[Optional[str]] = mapped_column(sa.String(255))
-
-    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='assets')
-
-
-class Seasons(Base):
-    """ Seasons table class
-    """
-    __tablename__ = 'seasons'
-
-    season_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: Mapped[str] = mapped_column(sa.String(10), nullable=False, index=True)
-    start: Mapped[date] = mapped_column(sa.Date, nullable=False)
-    end: Mapped[date] = mapped_column(sa.Date, nullable=False)
-
-    events: Mapped[list['Events']] = relationship('Events', back_populates='seasons')
-    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='seasons')
-    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='seasons')
-
-
-class Events(Base):
-    """ Events table class
-    """
-    __tablename__ = 'events'
-
-    event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    event_date: Mapped[date] = mapped_column(sa.Date, nullable=False, index=True)
-    season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=True, comment='shall be computed based on event_date', index=True)
-    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='events')
-    name: Mapped[Optional[str]] = mapped_column(sa.String(50))
-    description: Mapped[Optional[str]] = mapped_column(sa.String(255))
-
-    JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='events')
-    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='events')
-    log: Mapped[list['Log']] = relationship('Log', back_populates='events')
+# class Assets(Base):
+#     """ Assets table class
+#     """
+#     __tablename__ = 'assets'
+#
+#     asset_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: Mapped[str] = mapped_column(sa.String(50), nullable=False, index=True,)
+#     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#
+#     transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='assets')
+#
+#
+# class Seasons(Base):
+#     """ Seasons table class
+#     """
+#     __tablename__ = 'seasons'
+#
+#     season_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: Mapped[str] = mapped_column(sa.String(10), nullable=False, index=True)
+#     start: Mapped[date] = mapped_column(sa.Date, nullable=False)
+#     end: Mapped[date] = mapped_column(sa.Date, nullable=False)
+#
+#     events: Mapped[list['Events']] = relationship('Events', back_populates='seasons')
+#     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='seasons')
+#     transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='seasons')
+#
+#
+# class Events(Base):
+#     """ Events table class
+#     """
+#     __tablename__ = 'events'
+#
+#     event_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
+#     event_date: Mapped[date] = mapped_column(sa.Date, nullable=False, index=True)
+#     season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=True, comment='shall be computed based on event_date', index=True)
+#     seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='events')
+#     name: Mapped[Optional[str]] = mapped_column(sa.String(50))
+#     description: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#
+#     JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='events')
+#     transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='events')
+#     log: Mapped[list['Log']] = relationship('Log', back_populates='events')
 
 
 class Members(Base):
@@ -141,112 +141,110 @@ class Members(Base):
     comment: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
     credential: Mapped['Credentials'] = relationship('Credentials', back_populates='member')
-    JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='member')
-    JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='member')
-    JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='member')
-    memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='member')
-    JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='members')
-    log: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.author]', back_populates='members')
-    log_: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
+#     JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='member')
+#     JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='member')
+#     JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='member')
+#     JCT_event_member: Mapped[list['JCTEventMember']] = relationship('JCTEventMember', back_populates='members')
+#     memberships: Mapped[list['Memberships']] = relationship('Memberships', back_populates='member')
+#     log: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.author]', back_populates='members')
+#     log_: Mapped[list['Log']] = relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
+#
+#
+# class Memberships(Base):
+#     """ Memberships table class
+#     """
+#     __tablename__ = 'memberships'
+#     __table_args__ = (
+#         sa.UniqueConstraint('season_id', 'member_id', name='UQ_season_member',
+#                             comment='each member can have only one membership per season'),
+#     )
+#
+#     membership_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+#     membership_date: Mapped[date] = mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
+#     season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, index=True)
+#     seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='memberships')
+#     member_id: Mapped[int] = mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+#     member: Mapped['Members'] = relationship('Members', back_populates='memberships')
+#     contribution_id: Mapped[int] = mapped_column(sa.ForeignKey('LUT_contribution.id'), index=True, nullable=False)
+#     LUT_contribution: Mapped['LUTContribution'] = relationship('LUTContribution', back_populates='memberships')
+#     picture_authorized: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
+#     statutes_accepted: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
+#     civil_insurance: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
+#     know_from: Mapped[Optional[int]] = mapped_column(sa.ForeignKey(['LUT_know_from.id']), index=True)
+#     LUT_know_from: Mapped[Optional['LUTKnowFrom']] = relationship('LUTKnowFrom', back_populates='memberships')
+#     transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='memberships')
+#     log: Mapped[list['Log']] = relationship('Log', back_populates='memberships')
 
 
-class Memberships(Base):
-    """ Memberships table class
-    """
-    __tablename__ = 'memberships'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['know_from'], ['LUT_know_from.id'], name='FK_LUT_know_from_TO_memberships'),
-        sa.Index('FK_LUT_know_from_TO_memberships', 'know_from'),
-        sa.UniqueConstraint('season_id', 'member_id', name='UQ_season_member',
-                            comment='each member can have only one membership per season'),
-    )
+# class Transactions(Base):
+#     """ Transaction table class
+#     """
+#     __tablename__ = 'transaction'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['account'], ['LUT_accounts.id'], name='FK_LUT_accounts_TO_transaction'),
+#         sa.ForeignKeyConstraint(['associated_asset'], ['assets.asset_id'], name='FK_assets_TO_transaction'),
+#         sa.ForeignKeyConstraint(['associated_event'], ['events.event_id'], name='FK_events_TO_transaction'),
+#         sa.ForeignKeyConstraint(['associated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_transaction'),
+#         sa.Index('FK_LUT_accounts_TO_transaction', 'account'),
+#         sa.Index('FK_assets_TO_transaction', 'associated_asset'),
+#         sa.Index('FK_events_TO_transaction', 'associated_event'),
+#         sa.Index('FK_memberships_TO_transaction', 'associated_membership'),
+#         sa.Index('UQ_transaction_id', 'transaction_id', unique=True)
+#     )
 
-    membership_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
-    membership_date: Mapped[date] = mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-    season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, index=True)
-    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='memberships')
-    member_id: Mapped[int] = mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
-    member: Mapped['Members'] = relationship('Members', back_populates='memberships')
-    contribution_id: Mapped[int] = mapped_column(sa.ForeignKey('LUT_contribution.id'), index=True, nullable=False)
-    LUT_contribution: Mapped['LUTContribution'] = relationship('LUTContribution', back_populates='memberships')
-    picture_authorized: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
-    statutes_accepted: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
-    civil_insurance: Mapped[bool] = mapped_column(sa.Boolean, nullable=False)
-    know_from: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    LUT_know_from: Mapped[Optional['LUTKnowFrom']] = relationship('LUTKnowFrom', back_populates='memberships')
-    transactions: Mapped[list['Transactions']] = relationship('Transactions', back_populates='memberships')
-    log: Mapped[list['Log']] = relationship('Log', back_populates='memberships')
+#     transaction_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     transaction_date: Mapped[date] = mapped_column(sa.Date, nullable=False)
+#     season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
+#     account: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     associated_event: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     associated_asset: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     associated_membership: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     title: Mapped[Optional[str]] = mapped_column(sa.String(50), comment='non empty only if all associated_xxx are empty')
+#     details: Mapped[Optional[str]] = mapped_column(sa.String(100))
+#     credit: Mapped[Optional[float]] = mapped_column(sa.Float)
+#     debit: Mapped[Optional[float]] = mapped_column(sa.Float)
+#     comment: Mapped[Optional[str]] = mapped_column(sa.String(100))
 
-
-class Transactions(Base):
-    """ Transaction table class
-    """
-    __tablename__ = 'transaction'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['account'], ['LUT_accounts.id'], name='FK_LUT_accounts_TO_transaction'),
-        sa.ForeignKeyConstraint(['associated_asset'], ['assets.asset_id'], name='FK_assets_TO_transaction'),
-        sa.ForeignKeyConstraint(['associated_event'], ['events.event_id'], name='FK_events_TO_transaction'),
-        sa.ForeignKeyConstraint(['associated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_transaction'),
-        sa.Index('FK_LUT_accounts_TO_transaction', 'account'),
-        sa.Index('FK_assets_TO_transaction', 'associated_asset'),
-        sa.Index('FK_events_TO_transaction', 'associated_event'),
-        sa.Index('FK_memberships_TO_transaction', 'associated_membership'),
-        sa.Index('UQ_transaction_id', 'transaction_id', unique=True)
-    )
-
-    transaction_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    transaction_date: Mapped[date] = mapped_column(sa.Date, nullable=False)
-    season_id: Mapped[int] = mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
-    account: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    associated_event: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    associated_asset: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    associated_membership: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    title: Mapped[Optional[str]] = mapped_column(sa.String(50), comment='non empty only if all associated_xxx are empty')
-    details: Mapped[Optional[str]] = mapped_column(sa.String(100))
-    credit: Mapped[Optional[float]] = mapped_column(sa.Float)
-    debit: Mapped[Optional[float]] = mapped_column(sa.Float)
-    comment: Mapped[Optional[str]] = mapped_column(sa.String(100))
-
-    LUT_accounts: Mapped['LUTAccounts'] = relationship('LUTAccounts', back_populates='transactions')
-    assets: Mapped[Optional['Assets']] = relationship('Assets', back_populates='transactions')
-    events: Mapped[Optional['Events']] = relationship('Events', back_populates='transactions')
-    memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='transactions')
-    seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='transactions')
-    log: Mapped[list['Log']] = relationship('Log', back_populates='transactions')
+#     LUT_accounts: Mapped['LUTAccounts'] = relationship('LUTAccounts', back_populates='transactions')
+#     assets: Mapped[Optional['Assets']] = relationship('Assets', back_populates='transactions')
+#     events: Mapped[Optional['Events']] = relationship('Events', back_populates='transactions')
+#     memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='transactions')
+#     seasons: Mapped['Seasons'] = relationship('Seasons', back_populates='transactions')
+#     log: Mapped[list['Log']] = relationship('Log', back_populates='transactions')
 
 
-class Log(Base):
-    """ Log table class
-    """
-    __tablename__ = 'log'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['author'], ['members.member_id'], name='FK_members_TO_log1'),
-        sa.ForeignKeyConstraint(['updated_event'], ['events.event_id'], name='FK_events_TO_log'),
-        sa.ForeignKeyConstraint(['updated_member'], ['members.member_id'], name='FK_members_TO_log'),
-        sa.ForeignKeyConstraint(['updated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_log'),
-        sa.ForeignKeyConstraint(['updated_transaction'], ['transaction.transaction_id'], name='FK_transaction_TO_log'),
-        sa.Index('FK_events_TO_log', 'updated_event'),
-        sa.Index('FK_members_TO_log', 'updated_member'),
-        sa.Index('FK_members_TO_log1', 'author'),
-        sa.Index('FK_memberships_TO_log', 'updated_membership'),
-        sa.Index('FK_transaction_TO_log', 'updated_transaction'),
-        sa.Index('UQ_datetime', 'log_datetime', unique=True)
-    )
+# class Log(Base):
+#     """ Log table class
+#     """
+#     __tablename__ = 'log'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['author'], ['members.member_id'], name='FK_members_TO_log1'),
+#         sa.ForeignKeyConstraint(['updated_event'], ['events.event_id'], name='FK_events_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_member'], ['members.member_id'], name='FK_members_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_transaction'], ['transaction.transaction_id'], name='FK_transaction_TO_log'),
+#         sa.Index('FK_events_TO_log', 'updated_event'),
+#         sa.Index('FK_members_TO_log', 'updated_member'),
+#         sa.Index('FK_members_TO_log1', 'author'),
+#         sa.Index('FK_memberships_TO_log', 'updated_membership'),
+#         sa.Index('FK_transaction_TO_log', 'updated_transaction'),
+#         sa.Index('UQ_datetime', 'log_datetime', unique=True)
+#     )
 
-    log_datetime: Mapped[datetime] = mapped_column(sa.DateTime, primary_key=True)
-    author: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    name: Mapped[Optional[str]] = mapped_column(sa.String(50))
-    comment: Mapped[Optional[str]] = mapped_column(sa.String(255))
-    updated_event: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    updated_membership: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    updated_member: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    updated_transaction: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     log_datetime: Mapped[datetime] = mapped_column(sa.DateTime, primary_key=True)
+#     author: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     name: Mapped[Optional[str]] = mapped_column(sa.String(50))
+#     comment: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#     updated_event: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     updated_membership: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     updated_member: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     updated_transaction: Mapped[Optional[int]] = mapped_column(sa.Integer)
 
-    members: Mapped['Members'] = relationship('Members', foreign_keys=[author], back_populates='log')
-    events: Mapped[Optional['Events']] = relationship('Events', back_populates='log')
-    members_: Mapped[Optional['Members']] = relationship('Members', foreign_keys=[updated_member], back_populates='log_')
-    memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='log')
-    transactions: Mapped[Optional['Transactions']] = relationship('Transactions', back_populates='log')
+#     members: Mapped['Members'] = relationship('Members', foreign_keys=[author], back_populates='log')
+#     events: Mapped[Optional['Events']] = relationship('Events', back_populates='log')
+#     members_: Mapped[Optional['Members']] = relationship('Members', foreign_keys=[updated_member], back_populates='log_')
+#     memberships: Mapped[Optional['Memberships']] = relationship('Memberships', back_populates='log')
+#     transactions: Mapped[Optional['Transactions']] = relationship('Transactions', back_populates='log')
 
 
 
@@ -254,60 +252,58 @@ class Log(Base):
 #########################################
 
 
-class Emails(Base):
-    """ user email table class
-    """
-    __tablename__ = 'emails'
-    __table_args__ = (
-        sa.Index('UQ_email', 'email', unique=True),
-        sa.Index('UQ_email_id', 'email_id', unique=True),
-        {'comment': 'contain RGPD info'}
-    )
+# class Emails(Base):
+#     """ user email table class
+#     """
+#     __tablename__ = 'emails'
+#     __table_args__ = (
+#         {'comment': 'contain RGPD info'}
+#     )
+#
+#     email_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+#     email: Mapped[str] = mapped_column(sa.String(50), nullable=False, unique=True, index=True)
+#
+#     JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='email')
+#
+#
+# class Phones(Base):
+#     """ user phone number table class
+#     """
+#     __tablename__ = 'phones'
+#     __table_args__ = (
+#         sa.Index('UQ_phone_id', 'phone_id', unique=True),
+#         sa.Index('UQ_phone_number', 'phone_number', unique=True),
+#         {'comment': 'contain RGPD info'}
+#     )
 
-    email_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    email: Mapped[str] = mapped_column(sa.String(50), nullable=False)
+#     phone_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     phone_number: Mapped[str] = mapped_column(sa.String(50), nullable=False)
 
-    JCT_member_email: Mapped[list['JCTMemberEmail']] = relationship('JCTMemberEmail', back_populates='email')
-
-
-class Phones(Base):
-    """ user phone number table class
-    """
-    __tablename__ = 'phones'
-    __table_args__ = (
-        sa.Index('UQ_phone_id', 'phone_id', unique=True),
-        sa.Index('UQ_phone_number', 'phone_number', unique=True),
-        {'comment': 'contain RGPD info'}
-    )
-
-    phone_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    phone_number: Mapped[str] = mapped_column(sa.String(50), nullable=False)
-
-    JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='phone')
+#     JCT_member_phone: Mapped[list['JCTMemberPhone']] = relationship('JCTMemberPhone', back_populates='phone')
 
 
-class Addresses(Base):
-    """ user address table class
-    """
-    __tablename__ = 'addresses'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['street_type'], ['LUT_street_types.id'], name='FK_LUT_street_types_TO_addresses'),
-        sa.Index('FK_LUT_street_types_TO_addresses', 'street_type'),
-        sa.Index('UQ_address_id', 'address_id', unique=True),
-        {'comment': 'contain RGPD info'}
-    )
+# class Addresses(Base):
+#     """ user address table class
+#     """
+#     __tablename__ = 'addresses'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['street_type'], ['LUT_street_types.id'], name='FK_LUT_street_types_TO_addresses'),
+#         sa.Index('FK_LUT_street_types_TO_addresses', 'street_type'),
+#         sa.Index('UQ_address_id', 'address_id', unique=True),
+#         {'comment': 'contain RGPD info'}
+#     )
 
-    address_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    street_num: Mapped[Optional[str]] = mapped_column(sa.String(50))
-    street_type: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    street_extra: Mapped[Optional[str]] = mapped_column(sa.String(255))
-    street_name: Mapped[Optional[str]] = mapped_column(sa.String(255))
-    zip_code: Mapped[Optional[int]] = mapped_column(sa.Integer)
-    town: Mapped[Optional[str]] = mapped_column(sa.String(255))
-    other: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#     address_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     street_num: Mapped[Optional[str]] = mapped_column(sa.String(50))
+#     street_type: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     street_extra: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#     street_name: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#     zip_code: Mapped[Optional[int]] = mapped_column(sa.Integer)
+#     town: Mapped[Optional[str]] = mapped_column(sa.String(255))
+#     other: Mapped[Optional[str]] = mapped_column(sa.String(255))
 
-    LUT_street_types: Mapped[Optional['LUTStreetTypes']] = relationship('LUTStreetTypes', back_populates='addresses')
-    JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='address')
+#     LUT_street_types: Mapped[Optional['LUTStreetTypes']] = relationship('LUTStreetTypes', back_populates='addresses')
+#     JCT_member_address: Mapped[list['JCTMemberAddress']] = relationship('JCTMemberAddress', back_populates='address')
 
 
 class Credentials(Members):
@@ -318,7 +314,8 @@ class Credentials(Members):
         {'comment': 'contain RGPD info'}
     )
 
-    member_id: Mapped[int] = mapped_column(sa.ForeignKey('members.member_id'), primary_key=True, nullable=False, index=True)
+    cred_id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    member_id: Mapped[int] = mapped_column(sa.ForeignKey('members.member_id'), unique=True, nullable=False, index=True)
     member: Mapped['Members'] = relationship('Members', back_populates='credential')
     first_name: Mapped[Optional[str]] = mapped_column(sa.String(50))
     last_name: Mapped[Optional[str]] = mapped_column(sa.String(50))
@@ -329,92 +326,92 @@ class Credentials(Members):
 #########################################
 
 
-class JCTEventMember(Base):
-    """ Junction table between events and members
-    """
-    __tablename__ = 'JCT_event_member'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['event'], ['events.event_id'], name='FK_events_TO_JCT_event_member'),
-        sa.ForeignKeyConstraint(['member'], ['members.member_id'], name='FK_members_TO_JCT_event_member'),
-        sa.Index('FK_events_TO_JCT_event_member', 'event'),
-        sa.Index('FK_members_TO_JCT_event_member', 'member'),
-        sa.Index('UQ_id', 'id', unique=True)
-    )
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    event: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    presence: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegating vote')
-    member: Mapped[Optional[int]] = mapped_column(sa.Integer, comment='Can be null name/id is lost.')
-    comment: Mapped[Optional[str]] = mapped_column(sa.String(100))
-
-    events: Mapped['Events'] = relationship('Events', back_populates='JCT_event_member')
-    members: Mapped[Optional['Members']] = relationship('Members', back_populates='JCT_event_member')
-
-
-class JCTMemberAddress(Base):
-    """ Junction table between members and addresses
-    """
-    __tablename__ = 'JCT_member_address'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['address_id'], ['addresses.address_id'], name='FK_addresses_TO_JCT_member_address'),
-        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_address'),
-        sa.Index('FK_addresses_TO_JCT_member_address', 'address_id'),
-        sa.Index('FK_members_TO_JCT_member_address', 'member_id'),
-        sa.Index('UQ_id', 'id', unique=True),
-        {'comment': 'contain RGPD info'}
-    )
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    address_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    principal: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
-
-    address: Mapped['Addresses'] = relationship('Addresses', back_populates='JCT_member_address')
-    member: Mapped['Members'] = relationship('Members', back_populates='JCT_member_address')
-
-
-class JCTMemberEmail(Base):
-    """ Junction table between members and emails
-    """
-    __tablename__ = 'JCT_member_email'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['email_id'], ['emails.email_id'], name='FK_emails_TO_JCT_member_email'),
-        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_email'),
-        sa.Index('FK_emails_TO_JCT_member_email', 'email_id'),
-        sa.Index('FK_members_TO_JCT_member_email', 'member_id'),
-        sa.Index('UQ_id', 'id', unique=True),
-        {'comment': 'contain RGPD info'}
-    )
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    email_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    principal: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
-
-    email: Mapped['Emails'] = relationship('Emails', back_populates='JCT_member_email')
-    member: Mapped['Members'] = relationship('Members', back_populates='JCT_member_email')
-
-
-class JCTMemberPhone(Base):
-    """ Junction table between members and phones
-    """
-    __tablename__ = 'JCT_member_phone'
-    __table_args__ = (
-        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_phone'),
-        sa.ForeignKeyConstraint(['phone_id'], ['phones.phone_id'], name='FK_phones_TO_JCT_member_phone'),
-        sa.Index('FK_members_TO_JCT_member_phone', 'member_id'),
-        sa.Index('FK_phones_TO_JCT_member_phone', 'phone_id'),
-        sa.Index('UQ_id', 'id', unique=True),
-        {'comment': 'contain RGPD info'}
-    )
-
-    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
-    member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    phone_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-    principal: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
-
-    member: Mapped['Members'] = relationship('Members', back_populates='JCT_member_phone')
-    phone: Mapped['Phones'] = relationship('Phones', back_populates='JCT_member_phone')
+# class JCTEventMember(Base):
+#     """ Junction table between events and members
+#     """
+#     __tablename__ = 'JCT_event_member'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['event'], ['events.event_id'], name='FK_events_TO_JCT_event_member'),
+#         sa.ForeignKeyConstraint(['member'], ['members.member_id'], name='FK_members_TO_JCT_event_member'),
+#         sa.Index('FK_events_TO_JCT_event_member', 'event'),
+#         sa.Index('FK_members_TO_JCT_event_member', 'member'),
+#         sa.Index('UQ_id', 'id', unique=True)
+#     )
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     event: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     presence: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegating vote')
+#     member: Mapped[Optional[int]] = mapped_column(sa.Integer, comment='Can be null name/id is lost.')
+#     comment: Mapped[Optional[str]] = mapped_column(sa.String(100))
+#
+#     events: Mapped['Events'] = relationship('Events', back_populates='JCT_event_member')
+#     members: Mapped[Optional['Members']] = relationship('Members', back_populates='JCT_event_member')
+#
+#
+# class JCTMemberEmail(Base):
+#     """ Junction table between members and emails
+#     """
+#     __tablename__ = 'JCT_member_email'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['email_id'], ['emails.email_id'], name='FK_emails_TO_JCT_member_email'),
+#         sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_email'),
+#         sa.Index('FK_emails_TO_JCT_member_email', 'email_id'),
+#         sa.Index('FK_members_TO_JCT_member_email', 'member_id'),
+#         sa.Index('UQ_id', 'id', unique=True),
+#         {'comment': 'contain RGPD info'}
+#     )
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     email_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     principal: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
+#
+#     email: Mapped['Emails'] = relationship('Emails', back_populates='JCT_member_email')
+#     member: Mapped['Members'] = relationship('Members', back_populates='JCT_member_email')
+#
+#
+# class JCTMemberAddress(Base):
+#     """ Junction table between members and addresses
+#     """
+#     __tablename__ = 'JCT_member_address'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['address_id'], ['addresses.address_id'], name='FK_addresses_TO_JCT_member_address'),
+#         sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_address'),
+#         sa.Index('FK_addresses_TO_JCT_member_address', 'address_id'),
+#         sa.Index('FK_members_TO_JCT_member_address', 'member_id'),
+#         sa.Index('UQ_id', 'id', unique=True),
+#         {'comment': 'contain RGPD info'}
+#     )
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     address_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     principal: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
+#
+#     address: Mapped['Addresses'] = relationship('Addresses', back_populates='JCT_member_address')
+#     member: Mapped['Members'] = relationship('Members', back_populates='JCT_member_address')
+#
+#
+# class JCTMemberPhone(Base):
+#     """ Junction table between members and phones
+#     """
+#     __tablename__ = 'JCT_member_phone'
+#     __table_args__ = (
+#         sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_phone'),
+#         sa.ForeignKeyConstraint(['phone_id'], ['phones.phone_id'], name='FK_phones_TO_JCT_member_phone'),
+#         sa.Index('FK_members_TO_JCT_member_phone', 'member_id'),
+#         sa.Index('FK_phones_TO_JCT_member_phone', 'phone_id'),
+#         sa.Index('UQ_id', 'id', unique=True),
+#         {'comment': 'contain RGPD info'}
+#     )
+#
+#     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     member_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     phone_id: Mapped[int] = mapped_column(sa.Integer, nullable=False)
+#     principal: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
+#
+#     member: Mapped['Members'] = relationship('Members', back_populates='JCT_member_phone')
+#     phone: Mapped['Phones'] = relationship('Phones', back_populates='JCT_member_phone')
 
 
 
