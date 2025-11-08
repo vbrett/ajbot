@@ -113,8 +113,8 @@ class Members(Base):
     discord_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discords.discord_id'), index=True, nullable=True)
     discord: orm.Mapped[Optional['Discords']] = orm.relationship('Discords', back_populates='member', uselist=False)
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member')
+    JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member')
 #     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member')
-#     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member')
 #
 #     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member')
 
@@ -302,20 +302,18 @@ class Emails(Base):
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='email')
 
 
-# class Phones(Base):
-#     """ user phone number table class
-#     """
-#     __tablename__ = 'phones'
-#     __table_args__ = (
-#         sa.Index('UQ_phone_id', 'phone_id', unique=True),
-#         sa.Index('UQ_phone_number', 'phone_number', unique=True),
-#         {'comment': 'contains RGPD info'}
-#     )
+class Phones(Base):
+    """ user phone number table class
+    """
+    __tablename__ = 'phones'
+    __table_args__ = (
+        {'comment': 'contains RGPD info'}
+    )
 
-#     phone_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     phone_number: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False)
+    phone_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    phone_number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
 
-#     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='phone')
+    JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='phone')
 
 
 # class Addresses(Base):
@@ -355,10 +353,31 @@ class JCTMemberEmail(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), nullable=False)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_email')
-    email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('emails.email_id'), nullable=False)
+    email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('emails.email_id'), index=True, nullable=False)
     email: orm.Mapped['Emails'] = orm.relationship('Emails', back_populates='JCT_member_email')
+    principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
+
+
+class JCTMemberPhone(Base):
+    """ Junction table between members and phones
+    """
+    __tablename__ = 'JCT_member_phone'
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_phone'),
+        sa.ForeignKeyConstraint(['phone_id'], ['phones.phone_id'], name='FK_phones_TO_JCT_member_phone'),
+        sa.Index('FK_members_TO_JCT_member_phone', 'member_id'),
+        sa.Index('FK_phones_TO_JCT_member_phone', 'phone_id'),
+        sa.Index('UQ_id', 'id', unique=True),
+        {'comment': 'contains RGPD info'}
+    )
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_phone')
+    phone_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('phones.phone_id'), index=True, nullable=False)
+    phone: orm.Mapped['Phones'] = orm.relationship('Phones', back_populates='JCT_member_phone')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
@@ -405,28 +424,6 @@ class JCTMemberEmail(Base):
 #
 #     address: orm.Mapped['Addresses'] = orm.relationship('Addresses', back_populates='JCT_member_address')
 #     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_address')
-#
-#
-# class JCTMemberPhone(Base):
-#     """ Junction table between members and phones
-#     """
-#     __tablename__ = 'JCT_member_phone'
-#     __table_args__ = (
-#         sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_phone'),
-#         sa.ForeignKeyConstraint(['phone_id'], ['phones.phone_id'], name='FK_phones_TO_JCT_member_phone'),
-#         sa.Index('FK_members_TO_JCT_member_phone', 'member_id'),
-#         sa.Index('FK_phones_TO_JCT_member_phone', 'phone_id'),
-#         sa.Index('UQ_id', 'id', unique=True),
-#         {'comment': 'contains RGPD info'}
-#     )
-#
-#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     member_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
-#     phone_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
-#     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
-#
-#     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_phone')
-#     phone: orm.Mapped['Phones'] = orm.relationship('Phones', back_populates='JCT_member_phone')
 
 
 async def _create_db():
@@ -484,12 +481,32 @@ async def _create_db():
                         new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
                 if val.get('emails'):
                     principal = True
-                    for semail in val['emails'].split(';'):
-                        new_jct_member_mail = JCTMemberEmail(member=new_member,
-                                                            email=Emails(email=semail),
-                                                            principal=principal)
+                    for single_rpg in val['emails'].split(';'):
+                        matched_rpg = [elt for elt in element_list
+                                       if isinstance(elt, Emails) and elt.email == single_rpg]
+                        if matched_rpg:
+                            new_rpg = matched_rpg[0]
+                        else:
+                            new_rpg = Emails(email=single_rpg)
+                            element_list.append(new_rpg)
+                        new_jct = JCTMemberEmail(member=new_member,
+                                                 email=new_rpg,
+                                                 principal=principal)
                         principal = False
-                        element_list.append(new_jct_member_mail)
+                        element_list.append(new_jct)
+                if val.get('telephone'):
+                    single_rpg = f"(+33){val['telephone']:9d}"
+                    matched_rpg = [elt for elt in element_list
+                                    if isinstance(elt, Phones) and elt.phone_number == single_rpg]
+                    if matched_rpg:
+                        new_rpg = matched_rpg[0]
+                    else:
+                        new_rpg = Phones(phone_number=single_rpg)
+                        element_list.append(new_rpg)
+                    new_jct = JCTMemberPhone(member=new_member,
+                                             phone=new_rpg,
+                                             principal=True)
+                    element_list.append(new_jct)
 
             async with session.begin():
                 session.add_all(element_list)
