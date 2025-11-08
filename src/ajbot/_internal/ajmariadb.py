@@ -38,15 +38,15 @@ class LUTDiscordRoles(Base):
     discords: orm.Mapped[list['Discords']] = orm.relationship('Discords', back_populates='discord_role')
 
 
-class LUTAccounts(Base):
-    """ List of supported transaction accounts
+class LUTStreetTypes(Base):
+    """ List of supported street types
     """
-    __tablename__ = 'LUT_accounts'
+    __tablename__ = 'LUT_street_types'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='LUT_accounts')
+    addresses: orm.Mapped[list['Addresses']] = orm.relationship('Addresses', back_populates='street_type')
 
 
 class LUTContribution(Base):
@@ -71,15 +71,15 @@ class LUTKnowFrom(Base):
     # memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='LUT_know_from')
 
 
-class LUTStreetTypes(Base):
-    """ List of supported street types
+class LUTAccounts(Base):
+    """ List of supported transaction accounts
     """
-    __tablename__ = 'LUT_street_types'
+    __tablename__ = 'LUT_accounts'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    # addresses: orm.Mapped[list['Addresses']] = orm.relationship('Addresses', back_populates='LUT_street_types')
+    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='LUT_accounts')
 
 
 # Main tables
@@ -114,13 +114,13 @@ class Members(Base):
     discord: orm.Mapped[Optional['Discords']] = orm.relationship('Discords', back_populates='member', uselist=False)
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member')
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member')
-#     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member')
+    JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member')
 #
 #     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member')
+#     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='members')
 
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
-#
-#     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='members')
+
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members')
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
 
@@ -261,9 +261,9 @@ class Credentials(Base):
     """
     __tablename__ = 'credentials'
     __table_args__ = (
-        {'comment': 'contains RGPD info'},
-        # sa.UniqueConstraint('first_name', 'last_name', 'birthdate', name='UQ_credential_identity',)
-    )
+                      sa.UniqueConstraint('first_name', 'last_name', 'birthdate'),
+                      {'comment': 'contains RGPD info'},
+                     )
 
     credential_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='credential', uselist=False)
@@ -280,11 +280,11 @@ class Discords(Base):
         {'comment': 'contains RGPD info'}
     )
 
-    discord_id:      orm.Mapped[int]                         = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
-    member:          orm.Mapped['Members']                   = orm.relationship('Members', back_populates='discord', uselist=False)
-    discord_pseudo:  orm.Mapped[str]                         = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
-    discord_role_id: orm.Mapped[Optional[int]]               = orm.mapped_column(sa.ForeignKey('LUT_discord_roles.id'), unique=True, index=True, nullable=True,
-                                                                                 comment='to override role defined by membership rules')
+    discord_id:      orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    member:          orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord', uselist=False)
+    discord_pseudo:  orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
+    discord_role_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_discord_roles.id'), index=True, nullable=True,
+                                                                   comment='to override role defined by membership rules')
     discord_role:    orm.Mapped[Optional['LUTDiscordRoles']] = orm.relationship('LUTDiscordRoles', back_populates='discords')
 
 
@@ -316,28 +316,25 @@ class Phones(Base):
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='phone')
 
 
-# class Addresses(Base):
-#     """ user address table class
-#     """
-#     __tablename__ = 'addresses'
-#     __table_args__ = (
-#         sa.ForeignKeyConstraint(['street_type'], ['LUT_street_types.id'], name='FK_LUT_street_types_TO_addresses'),
-#         sa.Index('FK_LUT_street_types_TO_addresses', 'street_type'),
-#         sa.Index('UQ_address_id', 'address_id', unique=True),
-#         {'comment': 'contains RGPD info'}
-#     )
+class Addresses(Base):
+    """ user address table class
+    """
+    __tablename__ = 'addresses'
+    __table_args__ = (
+        sa.UniqueConstraint('street_num', 'street_type_id', 'street_name', 'zip_code', 'town',),
+        {'comment': 'contains RGPD info'}
+    )
 
-#     address_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     street_num: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
-#     street_type: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     street_extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#     street_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#     zip_code: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     town: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#     other: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
+    address_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    street_num: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50), nullable=True)
+    street_type_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_street_types.id'), index=True, nullable=True)
+    street_type: orm.Mapped[Optional['LUTStreetTypes']] = orm.relationship('LUTStreetTypes', back_populates='addresses')
+    street_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
+    zip_code: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer, nullable=True)
+    town: orm.Mapped[str] = orm.mapped_column(sa.String(255), nullable=False)
+    street_extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
-#     LUT_street_types: orm.Mapped[Optional['LUTStreetTypes']] = orm.relationship('LUTStreetTypes', back_populates='addresses')
-#     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='address')
+    JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='address')
 
 
 # Junction tables
@@ -365,11 +362,6 @@ class JCTMemberPhone(Base):
     """
     __tablename__ = 'JCT_member_phone'
     __table_args__ = (
-        sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_phone'),
-        sa.ForeignKeyConstraint(['phone_id'], ['phones.phone_id'], name='FK_phones_TO_JCT_member_phone'),
-        sa.Index('FK_members_TO_JCT_member_phone', 'member_id'),
-        sa.Index('FK_phones_TO_JCT_member_phone', 'phone_id'),
-        sa.Index('UQ_id', 'id', unique=True),
         {'comment': 'contains RGPD info'}
     )
 
@@ -380,6 +372,21 @@ class JCTMemberPhone(Base):
     phone: orm.Mapped['Phones'] = orm.relationship('Phones', back_populates='JCT_member_phone')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
+
+class JCTMemberAddress(Base):
+    """ Junction table between members and addresses
+    """
+    __tablename__ = 'JCT_member_address'
+    __table_args__ = (
+        {'comment': 'contains RGPD info'}
+    )
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_address')
+    address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('addresses.address_id'), index=True, nullable=False)
+    address: orm.Mapped['Addresses'] = orm.relationship('Addresses', back_populates='JCT_member_address')
+    principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
 # class JCTEventMember(Base):
@@ -402,28 +409,18 @@ class JCTMemberPhone(Base):
 #
 #     events: orm.Mapped['Events'] = orm.relationship('Events', back_populates='JCT_event_member')
 #     members: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member')
-#
-#
-# class JCTMemberAddress(Base):
-#     """ Junction table between members and addresses
-#     """
-#     __tablename__ = 'JCT_member_address'
-#     __table_args__ = (
-#         sa.ForeignKeyConstraint(['address_id'], ['addresses.address_id'], name='FK_addresses_TO_JCT_member_address'),
-#         sa.ForeignKeyConstraint(['member_id'], ['members.member_id'], name='FK_members_TO_JCT_member_address'),
-#         sa.Index('FK_addresses_TO_JCT_member_address', 'address_id'),
-#         sa.Index('FK_members_TO_JCT_member_address', 'member_id'),
-#         sa.Index('UQ_id', 'id', unique=True),
-#         {'comment': 'contains RGPD info'}
-#     )
-#
-#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     member_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
-#     address_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
-#     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
-#
-#     address: orm.Mapped['Addresses'] = orm.relationship('Addresses', back_populates='JCT_member_address')
-#     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_address')
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 async def _create_db():
@@ -468,17 +465,25 @@ async def _create_db():
                                             end=datetime.fromisoformat(val['end']).date()))
 
             # init member table
-            xsldb_lut_member = load_json_file(Path('aj_xls2db/xlsdb_membre.json'))
+            xsldb_lut_member = load_json_file(Path('aj_xls2db/xlsdb_membres.json'))
             for val in xsldb_lut_member['membres']:
                 new_member = Members()
                 element_list.append(new_member)
+
                 if val.get('pseudo_discord'):
                     new_member.discord=Discords(discord_pseudo=val['pseudo_discord'])
+                    if val.get('saison'):
+                        if val['saison'].get('asso_role_manuel'):
+                            matched_role = [elt for elt in element_list
+                                            if isinstance(elt, LUTDiscordRoles) and elt.name == val['saison']['asso_role_manuel']]
+                            new_member.discord.discord_role = matched_role[0]
+
                 if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
                     new_member.credential = Credentials(first_name=val.get('prenom'),
                                                         last_name=val.get('nom'))
                     if val.get('date_naissance'):
                         new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
+
                 if val.get('emails'):
                     principal = True
                     for single_rpg in val['emails'].split(';'):
@@ -494,6 +499,7 @@ async def _create_db():
                                                  principal=principal)
                         principal = False
                         element_list.append(new_jct)
+
                 if val.get('telephone'):
                     single_rpg = f"(+33){val['telephone']:9d}"
                     matched_rpg = [elt for elt in element_list
@@ -506,6 +512,41 @@ async def _create_db():
                     new_jct = JCTMemberPhone(member=new_member,
                                              phone=new_rpg,
                                              principal=True)
+                    element_list.append(new_jct)
+
+                if val.get('adresse'):
+                    matched_rpg = False
+                    matched_rpg = [elt for elt in element_list
+                                    if     isinstance(elt, Addresses)
+                                       and elt.street_num == val['adresse'].get('numero')
+                                       and elt.street_name == val['adresse'].get('nom_voie')
+                                       and (not elt.street_type
+                                            or elt.street_type.name == val['adresse'].get('type_voie')
+                                            )
+                                       and elt.zip_code == val['adresse'].get('cp')
+                                       and elt.town == val['adresse'].get('ville')
+                                  ]
+                    if matched_rpg:
+                        new_rpg = matched_rpg[0]
+                    else:
+                        new_rpg = Addresses(town=val['adresse']['ville'])
+                        if val['adresse'].get('numero'):
+                            new_rpg.street_num = val['adresse']['numero']
+                        if val['adresse'].get('type_voie'):
+                            matched_type_voie = [elt for elt in element_list
+                                            if isinstance(elt, LUTStreetTypes) and elt.name == val['adresse']['type_voie']]
+                            new_rpg.street_type = matched_type_voie[0]
+                        if val['adresse'].get('autre'):
+                            new_rpg.street_extra = val['adresse']['autre']
+                        if val['adresse'].get('nom_voie'):
+                            new_rpg.street_name = val['adresse']['nom_voie']
+                        if val['adresse'].get('cp'):
+                            new_rpg.zip_code = val['adresse']['cp']
+                        element_list.append(new_rpg)
+
+                    new_jct = JCTMemberAddress(member=new_member,
+                                               address=new_rpg,
+                                               principal=True)
                     element_list.append(new_jct)
 
             async with session.begin():
