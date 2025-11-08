@@ -47,8 +47,8 @@ class AjConfig():
 
     def __init__(self,
                  file_path=_AJ_CONFIG_PATH / _AJ_CONFIG_FILE,
-                 save_on_exit:bool=True,
-                 break_if_missing:bool=False):
+                 save_on_exit:bool=True,        #TODO: remove this parameter when connection to google is removed
+                 break_if_missing:bool=False):  #TODO: remove this parameter when connection to google is removed
         """
             Initializes the AjConfig object.
         Args:
