@@ -57,7 +57,7 @@ class LUTContribution(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    # memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='LUT_contribution')
+    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='contribution')
 
 
 class LUTKnowFrom(Base):
@@ -68,7 +68,7 @@ class LUTKnowFrom(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    # memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='LUT_know_from')
+    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='know_from')
 
 
 class LUTAccounts(Base):
@@ -96,8 +96,8 @@ class Seasons(Base):
     start: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False)
     end: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False)
 
+    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='season')
     # events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='seasons')
-    # memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='seasons')
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='seasons')
 
 
@@ -118,26 +118,40 @@ class Members(Base):
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member')
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member')
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member')
-#
-#     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member')
-#     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='members')
 
-    comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
+    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member')
+#     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='members')
 
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members')
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
 
 
-# class Assets(Base):
-#     """ Assets table class
-#     """
-#     __tablename__ = 'assets'
-#
-#     asset_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-#     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
-#     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#
-#     transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='assets')
+class Memberships(Base):
+    """ Memberships table class
+    """
+    __tablename__ = 'memberships'
+    __table_args__ = (
+        sa.UniqueConstraint('season_id', 'member_id',
+                            comment='each member can have only one membership per season'),
+    )
+
+    membership_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    membership_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships')
+    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), index=True, nullable=False)
+    season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships')
+
+    statutes_accepted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
+    has_civil_insurance: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
+    picture_authorized: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
+
+    know_from_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_know_from.id'), index=True, nullable=True)
+    know_from: orm.Mapped[Optional['LUTKnowFrom']] = orm.relationship('LUTKnowFrom', back_populates='memberships')
+    contribution_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_contribution.id'), index=True, nullable=False)
+    contribution: orm.Mapped['LUTContribution'] = orm.relationship('LUTContribution', back_populates='memberships')
+    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='memberships')
+    # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='memberships')
 #
 #
 # class Events(Base):
@@ -155,32 +169,18 @@ class Members(Base):
 #     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='events')
 #     transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='events')
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events')
-#
-#
-# class Memberships(Base):
-#     """ Memberships table class
+
+
+# class Assets(Base):
+#     """ Assets table class
 #     """
-#     __tablename__ = 'memberships'
-#     __table_args__ = (
-#         sa.UniqueConstraint('season_id', 'member_id', name='UQ_season_member',
-#                             comment='each member can have only one membership per season'),
-#     )
+#     __tablename__ = 'assets'
 #
-#     membership_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
-#     membership_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-#     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, index=True)
-#     seasons: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships')
-#     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
-#     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships')
-#     contribution_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_contribution.id'), index=True, nullable=False)
-#     LUT_contribution: orm.Mapped['LUTContribution'] = orm.relationship('LUTContribution', back_populates='memberships')
-#     picture_authorized: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False)
-#     statutes_accepted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False)
-#     civil_insurance: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False)
-#     know_from: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey(['LUT_know_from.id']), index=True)
-#     LUT_know_from: orm.Mapped[Optional['LUTKnowFrom']] = orm.relationship('LUTKnowFrom', back_populates='memberships')
-#     transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='memberships')
-#     log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='memberships')
+#     asset_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
+#     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
+#
+#     transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='assets')
 
 
 # class Transactions(Base):
@@ -240,7 +240,7 @@ class Members(Base):
 
 #     log_datetime: orm.Mapped[datetime] = orm.mapped_column(sa.DateTime, primary_key=True)
 #     author: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
-#     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
+#  ?  name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
 #     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 #     updated_event: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 #     updated_membership: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
@@ -468,130 +468,154 @@ async def _create_db():
             await conn.run_sync(Base.metadata.create_all)
 
         # Populate all tables
+        lut_tables = []
+        # init lookup tables
+        xsldb_lookup_tables = load_json_file(Path('aj_xls2db/xlsdb_LUP.json'))
+        for val in xsldb_lookup_tables['saisons']:
+            lut_tables.append(Seasons(name=val['nom'],
+                                        start=datetime.fromisoformat(val['debut']).date(),
+                                        end=datetime.fromisoformat(val['fin']).date()))
+        for val in xsldb_lookup_tables['contribution']:
+            lut_tables.append(LUTContribution(name=val['val']))
+        for val in xsldb_lookup_tables['connaissance']:
+            lut_tables.append(LUTKnowFrom(name=val['val']))
+        for val in xsldb_lookup_tables['compte']:
+            lut_tables.append(LUTAccounts(name=val['val']))
+        for val in xsldb_lookup_tables['type_voie']:
+            lut_tables.append(LUTStreetTypes(name=val['val']))
+        for val in xsldb_lookup_tables['discord_role']:
+            lut_tables.append(LUTDiscordRoles(name=val['val'],
+                                                id=int(val['id']),))
+        for val in xsldb_lookup_tables['roles']:
+            new_member_role = MemberRoles(name=val['asso'])
+            lut_tables.append(new_member_role)
+            if val.get('discord'):
+                for d_role in val['discord'].split(','):
+                    matched_role = [elt for elt in lut_tables
+                                    if isinstance(elt, LUTDiscordRoles) and elt.name == d_role]
+                    lut_tables.append(JCTMemberDiscordRole(member_role=new_member_role,
+                                                            discord_role=matched_role[0]))
+
         async with async_session() as session:
-
-            element_list = []
-            # init lookup tables
-            xsldb_lookup_tables = load_json_file(Path('aj_xls2db/xlsdb_LUP.json'))
-            for val in xsldb_lookup_tables['saisons']:
-                element_list.append(Seasons(name=val['nom'],
-                                            start=datetime.fromisoformat(val['debut']).date(),
-                                            end=datetime.fromisoformat(val['fin']).date()))
-            for val in xsldb_lookup_tables['contribution']:
-                element_list.append(LUTContribution(name=val['val']))
-            for val in xsldb_lookup_tables['connaissance']:
-                element_list.append(LUTKnowFrom(name=val['val']))
-            for val in xsldb_lookup_tables['compte']:
-                element_list.append(LUTAccounts(name=val['val']))
-            for val in xsldb_lookup_tables['type_voie']:
-                element_list.append(LUTStreetTypes(name=val['val']))
-            for val in xsldb_lookup_tables['discord_role']:
-                element_list.append(LUTDiscordRoles(name=val['val'],
-                                                    id=int(val['id']),))
-            for val in xsldb_lookup_tables['roles']:
-                new_member_role = MemberRoles(name=val['asso'])
-                element_list.append(new_member_role)
-                if val.get('discord'):
-                    for d_role in val['discord'].split(','):
-                        matched_role = [elt for elt in element_list
-                                        if isinstance(elt, LUTDiscordRoles) and elt.name == d_role]
-                        element_list.append(JCTMemberDiscordRole(member_role=new_member_role,
-                                                                 discord_role=matched_role[0]))
-
-            # init member table
-            xsldb_lut_member = load_json_file(Path('aj_xls2db/xlsdb_membres.json'))
-            for val in xsldb_lut_member['annuaire']:
-                try:
-                    _creation_date = datetime.fromisoformat(val['creation']['date'])
-                except ValueError:
-                    print(f"Invalid creation date for member {val['id']}: {val['creation']['date']}")
-                    continue
-                new_member = Members()
-                element_list.append(new_member)
-
-                if val.get('pseudo_discord'):
-                    new_member.discord_pseudo=MemberDiscordPseudos(discord_pseudo=val['pseudo_discord'])
-
-                if val.get('saison'):
-                    if val['saison'].get('asso_role_manuel'):
-                        matched_role = [elt for elt in element_list
-                                        if isinstance(elt, MemberRoles) and elt.name == val['saison']['asso_role_manuel']]
-                        new_member.forced_role = matched_role[0]
-
-                if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
-                    new_member.credential = MemberCredentials(first_name=val.get('prenom'),
-                                                        last_name=val.get('nom'))
-                    if val.get('date_naissance'):
-                        new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
-
-                if val.get('emails'):
-                    principal = True
-                    for single_rpg in val['emails'].split(';'):
-                        matched_rpg = [elt for elt in element_list
-                                       if isinstance(elt, MemberEmails) and elt.email == single_rpg]
-                        if matched_rpg:
-                            new_rpg = matched_rpg[0]
-                        else:
-                            new_rpg = MemberEmails(email=single_rpg)
-                            element_list.append(new_rpg)
-                        new_jct = JCTMemberEmail(member=new_member,
-                                                 email=new_rpg,
-                                                 principal=principal)
-                        principal = False
-                        element_list.append(new_jct)
-
-                if val.get('telephone'):
-                    single_rpg = f"(+33){val['telephone']:9d}"
-                    matched_rpg = [elt for elt in element_list
-                                    if isinstance(elt, MemberPhones) and elt.phone_number == single_rpg]
-                    if matched_rpg:
-                        new_rpg = matched_rpg[0]
-                    else:
-                        new_rpg = MemberPhones(phone_number=single_rpg)
-                        element_list.append(new_rpg)
-                    new_jct = JCTMemberPhone(member=new_member,
-                                             phone=new_rpg,
-                                             principal=True)
-                    element_list.append(new_jct)
-
-                if val.get('adresse'):
-                    matched_rpg = False
-                    matched_rpg = [elt for elt in element_list
-                                    if     isinstance(elt, MemberAddresses)
-                                       and elt.street_num == val['adresse'].get('numero')
-                                       and elt.street_name == val['adresse'].get('nom_voie')
-                                       and (not elt.street_type
-                                            or elt.street_type.name == val['adresse'].get('type_voie')
-                                            )
-                                       and elt.zip_code == val['adresse'].get('cp')
-                                       and elt.town == val['adresse'].get('ville')
-                                  ]
-                    if matched_rpg:
-                        new_rpg = matched_rpg[0]
-                    else:
-                        new_rpg = MemberAddresses(town=val['adresse']['ville'])
-                        if val['adresse'].get('numero'):
-                            new_rpg.street_num = val['adresse']['numero']
-                        if val['adresse'].get('type_voie'):
-                            matched_type_voie = [elt for elt in element_list
-                                            if isinstance(elt, LUTStreetTypes) and elt.name == val['adresse']['type_voie']]
-                            new_rpg.street_type = matched_type_voie[0]
-                        if val['adresse'].get('autre'):
-                            new_rpg.street_extra = val['adresse']['autre']
-                        if val['adresse'].get('nom_voie'):
-                            new_rpg.street_name = val['adresse']['nom_voie']
-                        if val['adresse'].get('cp'):
-                            new_rpg.zip_code = val['adresse']['cp']
-                        element_list.append(new_rpg)
-
-                    new_jct = JCTMemberAddress(member=new_member,
-                                               address=new_rpg,
-                                               principal=True)
-                    element_list.append(new_jct)
-
             async with session.begin():
-                session.add_all(element_list)
-                element_list = []
+                session.add_all(lut_tables)
+
+        # init member tables
+        member_tables = []
+        xsldb_lut_member = load_json_file(Path('aj_xls2db/xlsdb_membres.json'))
+        for val in xsldb_lut_member['annuaire']:
+            try:
+                _creation_date = datetime.fromisoformat(val['creation']['date'])
+            except ValueError:
+                continue
+            new_member = Members()
+            member_tables.append(new_member)
+
+            if val.get('pseudo_discord'):
+                new_member.discord_pseudo=MemberDiscordPseudos(discord_pseudo=val['pseudo_discord'])
+
+            if val.get('saison'):
+                if val['saison'].get('asso_role_manuel'):
+                    matched_role = [elt for elt in lut_tables
+                                    if isinstance(elt, MemberRoles) and elt.name == val['saison']['asso_role_manuel']]
+                    new_member.forced_role = matched_role[0]
+
+            if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
+                new_member.credential = MemberCredentials(first_name=val.get('prenom'),
+                                                    last_name=val.get('nom'))
+                if val.get('date_naissance'):
+                    new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
+
+            if val.get('emails'):
+                principal = True
+                for single_rpg in val['emails'].split(';'):
+                    matched_rpg = [elt for elt in member_tables
+                                if isinstance(elt, MemberEmails) and elt.email == single_rpg]
+                    if matched_rpg:
+                        new_rpg = matched_rpg[0]
+                    else:
+                        new_rpg = MemberEmails(email=single_rpg)
+                        member_tables.append(new_rpg)
+                    new_jct = JCTMemberEmail(member=new_member,
+                                            email=new_rpg,
+                                            principal=principal)
+                    principal = False
+                    member_tables.append(new_jct)
+
+            if val.get('telephone'):
+                single_rpg = f"(+33){val['telephone']:9d}"
+                matched_rpg = [elt for elt in member_tables
+                                if isinstance(elt, MemberPhones) and elt.phone_number == single_rpg]
+                if matched_rpg:
+                    new_rpg = matched_rpg[0]
+                else:
+                    new_rpg = MemberPhones(phone_number=single_rpg)
+                    member_tables.append(new_rpg)
+                new_jct = JCTMemberPhone(member=new_member,
+                                        phone=new_rpg,
+                                        principal=True)
+                member_tables.append(new_jct)
+
+            if val.get('adresse'):
+                matched_rpg = False
+                matched_rpg = [elt for elt in member_tables
+                                if     isinstance(elt, MemberAddresses)
+                                and elt.street_num == val['adresse'].get('numero')
+                                and elt.street_name == val['adresse'].get('nom_voie')
+                                and (not elt.street_type
+                                        or elt.street_type.name == val['adresse'].get('type_voie')
+                                        )
+                                and elt.zip_code == val['adresse'].get('cp')
+                                and elt.town == val['adresse'].get('ville')
+                            ]
+                if matched_rpg:
+                    new_rpg = matched_rpg[0]
+                else:
+                    new_rpg = MemberAddresses()
+                    new_rpg.town=val['adresse']['ville']
+                    if val['adresse'].get('numero'):
+                        new_rpg.street_num = val['adresse']['numero']
+                    if val['adresse'].get('type_voie'):
+                        matched_type_voie = [elt for elt in lut_tables
+                                        if isinstance(elt, LUTStreetTypes) and elt.name == val['adresse']['type_voie']]
+                        new_rpg.street_type = matched_type_voie[0]
+                    if val['adresse'].get('autre'):
+                        new_rpg.street_extra = val['adresse']['autre']
+                    if val['adresse'].get('nom_voie'):
+                        new_rpg.street_name = val['adresse']['nom_voie']
+                    if val['adresse'].get('cp'):
+                        new_rpg.zip_code = val['adresse']['cp']
+                    member_tables.append(new_rpg)
+
+                new_jct = JCTMemberAddress(member=new_member,
+                                        address=new_rpg,
+                                        principal=True)
+                member_tables.append(new_jct)
+
+        async with async_session() as session:
+            async with session.begin():
+                session.add_all(member_tables)
+
+        # init membership table
+        membership_tables = []
+        xsldb_events = load_json_file(Path('aj_xls2db/xlsdb_suivi.json'))
+        for val in [event for event in xsldb_events['suivi'] if event['entree']['categorie'] == 'Cotisation']:
+            new_membership = Memberships()
+            membership_tables.append(new_membership)
+            new_membership.membership_date = datetime.fromisoformat(val['date']).date()
+            new_membership.season       = [elt for elt in lut_tables    if isinstance(elt, Seasons        ) and elt.name      == val['entree']['nom']][0]
+            new_membership.member       = [elt for elt in member_tables if isinstance(elt, Members        ) and elt.member_id == val['membre']['id']][0]
+            new_membership.contribution = [elt for elt in lut_tables    if isinstance(elt, LUTContribution) and elt.name      == val['cotisation']][0]
+            if val['membre'].get('prive'):
+                new_membership.statutes_accepted = val['membre']['prive'].get('approbation_statuts', '').lower() == 'oui'
+                new_membership.has_civil_insurance = val['membre']['prive'].get('assurance_resp_civile', '').lower() == 'oui'
+                new_membership.picture_authorized = val['membre']['prive'].get('utilisation_image', '').lower() == 'oui'
+            if val['membre'].get('source_connaissance'):
+                new_membership.know_from = [elt for elt in lut_tables if isinstance(elt, LUTKnowFrom) and elt.name == val['membre']['source_connaissance']][0]
+
+        async with async_session() as session:
+            async with session.begin():
+                session.add_all(membership_tables)
 
         # async with async_session.begin() as session:
         #     query = sa.select(Users).options(orm.selectinload(Users.member_emails)).limit(1)
