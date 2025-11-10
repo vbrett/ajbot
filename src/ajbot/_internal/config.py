@@ -28,16 +28,10 @@ _KEY_ROLE_MEMBER = "role_member"
 _KEY_DB = "db"
 _KEY_DB_HOST = "host"
 _KEY_DB_PORT = "port"
-_KEY_DB_USER = "user"
-_KEY_DB_PASSWORD = "password"
+_KEY_DB_CREDS_USR = "user"
+_KEY_DB_CREDS_PWD = "password"
 _KEY_DB_NAME = "db_name"
-
-_KEY_FILE_ID_DB = "file_id_db"
-_KEY_TABLE_EVENTS = "table_events"
-_KEY_TABLE_ROSTER = "table_roster"
-_KEY_TABLE_ROLE = "table_role"
-_KEY_TABLE_EVENT_TYPE = "table_event_type"
-_KEY_FILE_ID_PRESENCE = "file_id_presence"
+_KEY_DB_ECHO = "db_echo"
 
 
 class AjConfig():
@@ -47,8 +41,8 @@ class AjConfig():
 
     def __init__(self,
                  file_path=_AJ_CONFIG_PATH / _AJ_CONFIG_FILE,
-                 save_on_exit:bool=True,        #TODO: remove this parameter when connection to google is removed
-                 break_if_missing:bool=False):  #TODO: remove this parameter when connection to google is removed
+                 save_on_exit:bool=True,
+                 break_if_missing:bool=False):
         """
             Initializes the AjConfig object.
         Args:
@@ -129,50 +123,14 @@ class AjConfig():
 
     @property
     def db_creds(self):
-        """ Returns the Google Drive credentials from config.
+        """ Returns the DB credentials from config as user, password tuple.
         """
         return self._config_dict[_KEY_DB].get(_KEY_CREDS)
     @db_creds.setter
     def db_creds(self, value):
-        """ Sets the Google Drive credentials in config.
+        """ Sets the DB credentials in config.
         """
         self._config_dict[_KEY_DB][_KEY_CREDS] = value
-
-    @property
-    def file_id_db(self):
-        """ Returns the Google Drive file ID for the database from config.
-        """
-        return self._config_dict[_KEY_DB].get(_KEY_FILE_ID_DB)
-
-    @property
-    def db_table_events(self):
-        """ Returns the database table name for events from config.
-        """
-        return self._config_dict[_KEY_DB].get(_KEY_TABLE_EVENTS)
-
-    @property
-    def db_table_roster(self):
-        """ Returns the database table name for roster from config.
-        """
-        return self._config_dict[_KEY_DB].get(_KEY_TABLE_ROSTER)
-
-    @property
-    def db_table_role(self):
-        """ Returns the database table name for roles from config.
-        """
-        return self._config_dict[_KEY_DB].get(_KEY_TABLE_ROLE)
-
-    @property
-    def db_table_event_type(self):
-        """ Returns the database table name for event types from config.
-        """
-        return self._config_dict[_KEY_DB].get(_KEY_TABLE_EVENT_TYPE)
-
-    @property
-    def file_id_presence(self):
-        """ Returns the Google Drive file ID for presence from config.
-        """
-        return self._config_dict[_KEY_DB].get(_KEY_FILE_ID_PRESENCE)
 
     @property
     def db_connection_string(self):
@@ -180,11 +138,17 @@ class AjConfig():
         """
         host = self._config_dict[_KEY_DB][_KEY_DB_HOST]
         port = self._config_dict[_KEY_DB][_KEY_DB_PORT]
-        user = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_USER])
-        password = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_PASSWORD])
+        user = quote_plus(self.db_creds[_KEY_DB_CREDS_USR])
+        password = quote_plus(self.db_creds[_KEY_DB_CREDS_PWD])
         database = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_NAME])
 
         return user + ':' + password + '@' + host + ':' + str(port) + '/' + database + '?charset=utf8mb4'
+
+    @property
+    def db_echo(self):
+        """ return whether to echo the database queries
+        """
+        return self._config_dict[_KEY_DB].get(_KEY_DB_ECHO, False)
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')
