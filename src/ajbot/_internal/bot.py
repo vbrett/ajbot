@@ -11,7 +11,7 @@ from discord import app_commands
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.ajdb import AjDb #, AjDate, AjEvent
+from ajbot._internal.ajdb import AjDb
 from ajbot._internal.exceptions import OtherException
 from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
 
@@ -77,7 +77,6 @@ class AjBot():
                  intents:discord.Intents):
 
         self.aj_config = aj_config
-        self.aj_db = AjDb()
         self.client = MyDiscordClient(intents=intents,
                                       guild=discord.Object(aj_config.discord_guild))
         self.last_hello_member : discord.User = None
@@ -100,15 +99,6 @@ class AjBot():
                 self.last_hello_member = interaction.user
                 message = f'Bonjour {interaction.user.mention}!'
             await interaction.response.send_message(message, ephemeral=True)
-
-        # TODO: redo this command so it can support longer operations
-        # @self.client.tree.command(name="recharger_db")
-        # @app_commands.check(self._is_manager)
-        # async def reload_db(interaction: discord.Interaction):
-        #     """ Recharge le fichier excel de la base de données depuis Google Drive.
-        #     """
-        #     self.aj_db.load_db()
-        #     await interaction.response.send_message("C'est fait !", ephemeral=True)
 
         @self.client.tree.command(name="membre")
         @app_commands.check(self._is_member)
@@ -171,7 +161,8 @@ class AjBot():
             return
         input_member = input_member[0]
 
-        members = await self.aj_db.members.search(input_member, 50, False)
+        async with AjDb() as aj_db:
+            members = await aj_db.search_member(input_member, 50, False)
 
         if members:
             reply = "\r\n".join(format(member, "full" if self._is_manager(interaction) else "simple") for member in members)
