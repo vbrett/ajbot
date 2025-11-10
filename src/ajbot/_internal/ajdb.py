@@ -5,14 +5,14 @@ sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
 from typing import Optional
-from datetime import datetime, date, time
+from datetime import date #, datetime, time
 
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 from sqlalchemy import orm
 
 from thefuzz import fuzz
-import humanize
+# import humanize
 import discord
 from discord.ext.commands import MemberNotFound
 
@@ -42,6 +42,21 @@ class AjMemberId(int):
     """
     def __str__(self):
         return f"AJ-{str(int(self)).zfill(5)}"
+
+class AjMatchedMember():
+    """ Class to handled AJ member with a match value
+    """
+    def __init__(self, member, match_val):
+        self.member = member
+        self.match_val = match_val
+
+    def __format__(self, format_spec="simple"):
+        """ override format
+        """
+        return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
+
+
+
 
 
 class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
@@ -155,8 +170,8 @@ class Members(Base):
         """ override format
         """
         mbr_id = str(AjMemberId(self.member_id))
-        mbr_creds = self.credential.__format__(format_spec) if self.credential else '(pas de nom)'
-        mbr_disc = self.discord.__format__(format_spec) if self.discord else '@(pas de discord)'
+        mbr_creds = f'{self.credential:{format_spec}}' if self.credential else None
+        mbr_disc = f'{self.discord:{format_spec}}' if self.discord else None
         match format_spec:
             case 'full':
                 name_list = [
@@ -503,226 +518,6 @@ class JCTEventMember(Base):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# AJ_MEMBER_ATTR = {"id": ("id", AjMemberId),
-#                   "creation_date" : ("creation.date", AjDate),
-#                   "last_name" : ("nom", str),
-#                   "first_name" : ("prenom", str),
-#                   "friendly_name" : ("nom_userfriendly", str),
-#                   "discord" : ("pseudo_discord", str),
-#                   "membership_total" : ("stats.cotis.nb", int),
-#                   "membership_last" : ("stats.cotis.derniere", AjDate),
-#                   "last_activity" : ("stats.der_activite", AjDate),
-#                   "presence_total" : ("stats.presence.nb", int),
-#                   "season_presence" : ("saison.presence", int),
-#                   "season_membership" : ("saison.cotis", bool),
-#                   "season_role" : ("saison.asso_role", str),
-#                   "season_photo_authorized" : ("saison.utilisation_image", bool),
-#                  }
-
-# class AjMember():
-#     """ Class defining one member of AJ
-#     """
-#     # pylint: disable=no-member # disable in this class scope
-#     def __init__(self, input_dict):
-#         #Map each input_dict key to an actual variable, converted to proper type
-#         for varname, varinfo in AJ_MEMBER_ATTR.items():
-#             val = input_dict.get(varinfo[0], None)
-#             if val and varinfo[1] and not isinstance(val, varinfo[1]):
-#                 val = varinfo[1](val)
-#             setattr(self, varname, val)
-
-#     def __format__(self, format_spec="simple"):
-#         """ override format
-#         """
-#         match format_spec:
-#             case "full":
-#                 member_info = [f"{self.id}",
-#                                " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
-#                                f"@{self.discord}" if self.discord else None,
-#                               ]
-#                 return " - ".join([x for x in member_info if x])
-
-#             case "simple":
-#                 member_info = [self.first_name if self.first_name else None,
-#                                f"@{self.discord}" if self.discord else None,
-#                               ]
-#                 return " - ".join([x for x in member_info if x])
-
-#             case _:
-#                 return "this format is not supported (yet)"
-
-
-# class AjMatchedMember():
-#     """ Class to handled AJ member with a match value
-#     """
-#     def __init__(self, member, match_val):
-#         self.member = member
-#         self.match_val = match_val
-
-#     def __format__(self, format_spec="simple"):
-#         """ override format
-#         """
-#         return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
-#         # return self.member.__format__(format_spec) + f" (matche à {self.match_val}%)"
-
-
-# class AjMembers(dict):
-#     """ Class handling AJ member roster
-#     """
-#     def __init__(self, input_list):
-#         super().__init__()
-#         self.update({AjMemberId(m["id"]) : AjMember(m) for m in input_list})
-
-#     async def search(self,
-#                      lookup_val = None,
-#                      match_crit = 50,
-#                      break_if_multi_perfect_match = True,):
-#         ''' retrieve list of member ids matching lookup_val which can be
-#                 - discord member object
-#                 - integer = member ID
-#                 - string that is compared to "user friendly name" using fuzzy search
-
-#             for first 2 types, return exact match
-#             for last, return exact match if found, otherwise list of match above match_crit
-#             In case of multiple perfect match, raise exception if asked
-
-#             @return
-#                 [member (if perfect match) or matchedMember (if not perfect match)]
-#         '''
-#         # Check if lookup_val is a discord.Member object
-#         if isinstance(lookup_val, discord.Member):
-#             try:
-#                 return [v for v in self.values()
-#                         if v.discord == lookup_val.name]
-#             except MemberNotFound:
-#                 pass
-
-#         # check if lookup_val is an integer (member ID)
-#         if isinstance(lookup_val, int):
-#             return [v for k, v in self.items()
-#                     if k == lookup_val]
-
-#         if not isinstance(lookup_val, str):
-#             raise AjDbException(f"lookup_val must be discord.Member, int or str, not {type(lookup_val)}")
-
-#         # Fuzz search on friendly name
-#         fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, v.friendly_name))
-#                        for v in self.values()]
-#         fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
-#         fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
-
-#         perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
-#         if perfect_match:
-#             if len(perfect_match) > 1 and break_if_multi_perfect_match:
-#                 raise AjDbException(f"multiple member perfectly match {lookup_val}")
-#             return perfect_match
-
-#         return fuzzy_match
-
-
-
-
-
-
-# AJ_EVENT_ATTR = {"id": ("#support.id", int),
-#                  "date" : ("date", AjDate),
-#                  "in_season": ("#support.saison_en_cours", bool),
-#                  "type": ("entree.categorie", str),
-#                  "name": ("entree.nom", str),
-#                  "detail": ("entree.detail", str),
-#                  "member_id": ("membre.id", AjMemberId),
-#                 #  "": ("membre.asso_role", str),
-#                 #  "": ("compta.compte", None),
-#                 #  "": ("compta.credit", None),
-#                 #  "": ("compta.debit", None),
-#                 #  "": ("commentaire", None),
-#                  "member_friendly_name": ("#support.nom", str),
-#                 #  "": ("#support.nb_in_suivi", None),
-#                 #  "": ("membre.prive.nom", None),
-#                 #  "": ("membre.prive.prenom", None),
-#                 #  "": ("membre.prive.date_naissance", None),
-#                 #  "": ("membre.prive.[emails]", None),
-#                 #  "": ("membre.prive.[telephone]", None),
-#                 #  "": ("membre.prive.adresse.numero", None),
-#                 #  "": ("membre.prive.adresse.type_voie", None),
-#                 #  "": ("membre.prive.adresse.nom_voie", None),
-#                 #  "": ("membre.prive.adresse.autre", None),
-#                 #  "": ("membre.prive.adresse.cpmembre.prive.adresse.ville", None),
-#                 #  "": ("membre.prive.pseudo_discord", str),
-#                 #  "": ("membre.prive.approbation_statuts", None),
-#                 #  "": ("membre.prive.assurance_resp_civile", None),
-#                 #  "": ("membre.prive.utilisation_image", None),
-#                 #  "": ("membre.source_connaissance", None),
-#                 #  "": ("#support.saison#support.evement", None),
-#                 #  "": ("#support.traite_manuel", None),
-#                 #  "": ("#support.traite", None),
-#                 }
-
-# class AjEvent():
-#     """ Class defining one event of AJ
-#     """
-#     # pylint: disable=no-member # disable in this class scope
-#     def __init__(self, input_dict):
-#         #Map each input_dict key to an actual variable, converted to proper type
-#         for varname, varinfo in AJ_EVENT_ATTR.items():
-#             val = input_dict.get(varinfo[0], None)
-#             if val and varinfo[1] and not isinstance(val, varinfo[1]):
-#                 val = varinfo[1](val)
-#             setattr(self, varname, val)
-
-#     EVENT_TYPE_PRESENCE = "Présence"
-#     EVENT_TYPE_EVENT = "Evènement"
-#     EVENT_TYPE_CONTRIBUTION = "Cotisation"
-#     EVENT_TYPE_MEMBER_INFO = "Info Membre"
-#     EVENT_TYPE_MGMT = "Gestion"
-#     EVENT_TYPE_PURCHASE = "Achat"
-
-#     def __format__(self, format_spec=""):
-#         """ override format
-#         """
-#         # match format_spec:
-#         #     case "simple":
-#         #         member_info = [f"{self.id}",
-#         #                        " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
-#         #                        f"@{self.discord}" if self.discord else None,
-#         #                       ]
-#         #         return " - ".join([x for x in member_info if x])
-
-#         #     case _:
-#         return "this format is not supported (yet)"
-
-
-# class AjEvents(list):
-#     """ Class handling AJ events
-#     """
-#     def __init__(self, input_list):
-#         super().__init__()
-#         self.extend(AjEvent(e) for e in input_list)
-
-#     def get_in_season_events(self, event_types = None):
-#         """ returns events of certain type that are in current season
-#         """
-#         if event_types and not isinstance(event_types, list):
-#             event_types = [event_types]
-
-#         return [event for event in self if event.in_season and (not event_types or event.type in [etype for etype in event_types])]
-
-
-
 class AjDb():
     """ Context manager which manage AJ database
         Create DB engine and async session maker on enter, and dispose engine on exit
@@ -731,8 +526,6 @@ class AjDb():
         self.db_engine = None
         self.AsyncSessionMaker = None   #pylint: disable=invalid-name   #variable is a class factory
         self.db_username = None
-        # self.members = AjMembers(self._wb.dict_from_table(self.aj_config.db_table_roster, nested=False, with_ignored=True))
-        # self.events = AjEvents(self._wb.dict_from_table(self.aj_config.db_table_events, nested=False, with_ignored=True))
 
     async def __aenter__(self):
         with AjConfig(save_on_exit=False, break_if_missing=True) as aj_config:
@@ -757,11 +550,79 @@ class AjDb():
         """ recreate database schema
         """
         if self.db_username != 'ajadmin':
-            raise AjDbException(f"this user cannot wipe out DB {self.db_username}")
+            raise AjDbException(f"L'utilisateur {self.db_username} ne peut pas recréer la base de donnée !")
         # create all tables
         async with self.db_engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
+
+    async def search_member(self,
+                     lookup_val = None,
+                     match_crit = 50,
+                     break_if_multi_perfect_match = True,):
+        ''' retrieve list of member ids matching lookup_val which can be
+                - discord member object
+                - integer = member ID
+                - string that is compared to "user friendly name" using fuzzy search
+
+            for first 2 types, return exact match
+            for last, return exact match if found, otherwise list of match above match_crit
+            In case of multiple perfect match, raise exception if asked
+
+            @return
+                [member (if perfect match) or matchedMember (if not perfect match)]
+        '''
+        query = None
+        # Check if lookup_val is a discord.Member object
+        if isinstance(lookup_val, discord.Member):
+            try:
+                query = sa.select(Members).where(Members.discord.pseudo == lookup_val.name)
+            except MemberNotFound as e:
+                raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
+
+        # check if lookup_val is an integer (member ID)
+        elif isinstance(lookup_val, int):
+            query = sa.select(Members).where(Members.member_id == lookup_val)
+
+        elif isinstance(lookup_val, str):
+            query = sa.select(Members).where(Members.credential)
+
+        else:
+            raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
+
+
+        async with self.AsyncSessionMaker() as session:
+            async with session.begin():
+                query_result = await session.execute(query)
+
+        matched_members = query_result.scalars().all()
+
+        if not isinstance(lookup_val, str):
+            return matched_members
+
+        # Fuzz search on friendly name
+        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, f'{v.credential:full}'))
+                       for v in matched_members]
+        fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
+        fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
+
+        perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
+        if perfect_match:
+            if len(perfect_match) > 1 and break_if_multi_perfect_match:
+                raise AjDbException(f"multiple member perfectly match {lookup_val}")
+            return perfect_match
+
+        return fuzzy_match
+
+#     def get_in_season_events(self, event_types = None):
+#         """ returns events of certain type that are in current season
+#         """
+#         if event_types and not isinstance(event_types, list):
+#             event_types = [event_types]
+
+#         return [event for event in self if event.in_season and (not event_types or event.type in [etype for etype in event_types])]
+
+
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')
