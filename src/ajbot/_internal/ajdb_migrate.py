@@ -1,7 +1,4 @@
 """ test deployment of a MariaDB instance
-
-Classes generated using:
-sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 """
 import sys
 import asyncio
@@ -9,9 +6,9 @@ from datetime import datetime
 from pathlib import Path
 
 from vbrpytools.dicjsontools import load_json_file
+
 from ajbot._internal import ajdb
 from ajbot._internal.ajdb import AjDb
-
 
 
 async def _create_db():
@@ -68,7 +65,7 @@ async def _create_db():
             member_tables.append(new_member)
 
             if val.get('pseudo_discord'):
-                new_member.discord_pseudo=ajdb.MemberDiscordPseudos(discord_pseudo=val['pseudo_discord'])
+                new_member.discord=ajdb.MemberDiscords(pseudo=val['pseudo_discord'])
 
             if val.get('saison'):
                 if val['saison'].get('asso_role_manuel'):
@@ -208,14 +205,6 @@ async def _create_db():
         async with aj_db.AsyncSessionMaker() as session:
             async with session.begin():
                 session.add_all(event_tables)
-
-
-        # async with aj_db.AsyncSessionMaker() as session:
-        #     async with session.begin():
-        #         query = sa.select(ajdb.Members).options(orm.selectinload(ajdb.Members.JCT_member_email)).limit(1)
-        #         query_result = await session.execute(query)
-        #         for qr in query_result.scalars():
-        #             print(qr)
 
     return 0
 

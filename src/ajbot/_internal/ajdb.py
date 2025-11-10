@@ -1,4 +1,8 @@
 ''' manage AJ database
+
+Classes generated using:
+sqlacodegen mariadb://user:password@server:port/aj > ./output.py
+then manually reformated
 '''
 from typing import Optional
 from datetime import datetime, date, time
@@ -16,6 +20,28 @@ from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
 
 
+
+# class AjDate(date):
+#     """ class that handles date type for AJ DB
+#     """
+#     def __new__(cls, indate, *args, **kwargs):
+#         #check if first passed argument is already a datetime format
+#         if isinstance(indate, (datetime, date)):
+#             return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
+#         if isinstance(indate, time):
+#             return None
+#         return super().__new__(cls, indate, *args, **kwargs)
+
+#     def __format__(self, _):
+#         humanize.i18n.activate("fr_FR")
+#         return humanize.naturaldate(self)
+
+
+class AjMemberId(int):
+    """ Class that handles AJ member id as integer, and represents it in with correct format
+    """
+    def __str__(self):
+        return f"AJ-{str(int(self)).zfill(5)}"
 
 
 class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
@@ -106,24 +132,49 @@ class Members(Base):
     """
     __tablename__ = 'members'
 
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    member_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.credential_id'), index=True, nullable=True)
-    credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False)
-    discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_discord_pseudos.discord_pseudo_id'), index=True, nullable=True)
-    discord_pseudo: orm.Mapped[Optional['MemberDiscordPseudos']] = orm.relationship('MemberDiscordPseudos', back_populates='member', uselist=False)
+    credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
+    discord_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_discords.pseudo_id'), index=True, nullable=True)
+    discord: orm.Mapped[Optional['MemberDiscords']] = orm.relationship('MemberDiscords', back_populates='member', uselist=False, lazy='selectin')
     forced_role_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_roles.role_id'), index=True, nullable=True,
                                                                    comment='to override role defined by membership rules')
-    forced_role:    orm.Mapped[Optional['MemberRoles']] = orm.relationship('MemberRoles', back_populates='members')
-    JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member')
-    JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member')
-    JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member')
+    forced_role:    orm.Mapped[Optional['MemberRoles']] = orm.relationship('MemberRoles', back_populates='members', lazy='selectin')
+    JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member', lazy='selectin')
+    JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member', lazy='selectin')
+    JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member', lazy='selectin')
 
-    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member')
-    JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='member')
+    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member', lazy='selectin')
+    JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='member', lazy='selectin')
 
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members')
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
+
+    def __format__(self, format_spec='simple'):
+        """ override format
+        """
+        mbr_id = str(AjMemberId(self.member_id))
+        mbr_creds = self.credential.__format__(format_spec) if self.credential else '(pas de nom)'
+        mbr_disc = self.discord.__format__(format_spec) if self.discord else '@(pas de discord)'
+        match format_spec:
+            case 'full':
+                name_list = [
+                             mbr_id,
+                             mbr_creds,
+                             mbr_disc
+                            ]
+
+            case 'simple' | '':
+                name_list = [
+                             mbr_creds,
+                             mbr_disc
+                            ]
+
+            case _:
+                name_list = ['Ce format n\'est pas supporté']
+
+        return ' - '.join([x for x in name_list if x])
 
 
 class Memberships(Base):
@@ -137,7 +188,7 @@ class Memberships(Base):
 
     membership_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     membership_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), index=True, nullable=False)
     season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships')
@@ -239,12 +290,12 @@ class Events(Base):
 #     )
 
 #     log_datetime: orm.Mapped[datetime] = orm.mapped_column(sa.DateTime, primary_key=True)
-#     author: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
+#     author: orm.Mapped[AjMemberId] = orm.mapped_column(sa.Integer, nullable=False)
 #  ?  name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
 #     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 #     updated_event: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 #     updated_membership: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     updated_member: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
+#     updated_member: orm.Mapped[Optional[AjMemberId]] = orm.mapped_column(sa.Integer)
 #     updated_transaction: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 
 #     members: orm.Mapped['Members'] = orm.relationship('Members', foreign_keys=[author], back_populates='log')
@@ -274,6 +325,21 @@ class MemberCredentials(Base):
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     birthdate: orm.Mapped[Optional[date]] = orm.mapped_column(sa.Date)
 
+    def __format__(self, format_spec='simple'):
+        """ override format
+        """
+        match format_spec:
+            case 'full':
+                name_list = [self.first_name, self.last_name]
+
+            case 'simple' | '':
+                name_list = [self.first_name]
+
+            case _:
+                name_list = ['Ce format n\'est pas supporté']
+
+        return " ".join([x for x in name_list if x])
+
 
 class MemberRoles(Base):
     """ user member roles table class
@@ -286,17 +352,27 @@ class MemberRoles(Base):
     members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='forced_role')
 
 
-class MemberDiscordPseudos(Base):
+class MemberDiscords(Base):
     """ user discord pseudo table class
     """
-    __tablename__ = 'member_discord_pseudos'
+    __tablename__ = 'member_discords'
     __table_args__ = (
         {'comment': 'contains RGPD info'}
     )
 
-    discord_pseudo_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
-    discord_pseudo:  orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
-    member:          orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord_pseudo', uselist=False)
+    pseudo_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    pseudo: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord', uselist=False)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case 'full' |'simple' | '':
+                return f'@{self.pseudo}'
+
+            case _:
+                return 'Ce format n\'est pas supporté'
 
 
 class MemberEmails(Base):
@@ -441,231 +517,209 @@ class JCTEventMember(Base):
 
 
 
-class AjDate(date):
-    """ class that handles date type for AJ DB
-    """
-    def __new__(cls, indate, *args, **kwargs):
-        #check if first passed argument is already a datetime format
-        if isinstance(indate, (datetime, date)):
-            return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
-        if isinstance(indate, time):
-            return None
-        return super().__new__(cls, indate, *args, **kwargs)
+# AJ_MEMBER_ATTR = {"id": ("id", AjMemberId),
+#                   "creation_date" : ("creation.date", AjDate),
+#                   "last_name" : ("nom", str),
+#                   "first_name" : ("prenom", str),
+#                   "friendly_name" : ("nom_userfriendly", str),
+#                   "discord" : ("pseudo_discord", str),
+#                   "membership_total" : ("stats.cotis.nb", int),
+#                   "membership_last" : ("stats.cotis.derniere", AjDate),
+#                   "last_activity" : ("stats.der_activite", AjDate),
+#                   "presence_total" : ("stats.presence.nb", int),
+#                   "season_presence" : ("saison.presence", int),
+#                   "season_membership" : ("saison.cotis", bool),
+#                   "season_role" : ("saison.asso_role", str),
+#                   "season_photo_authorized" : ("saison.utilisation_image", bool),
+#                  }
 
-    def __format__(self, _):
-        humanize.i18n.activate("fr_FR")
-        return humanize.naturaldate(self)
+# class AjMember():
+#     """ Class defining one member of AJ
+#     """
+#     # pylint: disable=no-member # disable in this class scope
+#     def __init__(self, input_dict):
+#         #Map each input_dict key to an actual variable, converted to proper type
+#         for varname, varinfo in AJ_MEMBER_ATTR.items():
+#             val = input_dict.get(varinfo[0], None)
+#             if val and varinfo[1] and not isinstance(val, varinfo[1]):
+#                 val = varinfo[1](val)
+#             setattr(self, varname, val)
 
+#     def __format__(self, format_spec="simple"):
+#         """ override format
+#         """
+#         match format_spec:
+#             case "full":
+#                 member_info = [f"{self.id}",
+#                                " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
+#                                f"@{self.discord}" if self.discord else None,
+#                               ]
+#                 return " - ".join([x for x in member_info if x])
 
-class AjMemberId(int):
-    """ Class that handles AJ member id as integer, and represents it in with correct format
-    """
-    def __str__(self):
-        return f"AJ-{str(int(self)).zfill(5)}"
+#             case "simple":
+#                 member_info = [self.first_name if self.first_name else None,
+#                                f"@{self.discord}" if self.discord else None,
+#                               ]
+#                 return " - ".join([x for x in member_info if x])
 
-AJ_MEMBER_ATTR = {"id": ("id", AjMemberId),
-                  "creation_date" : ("creation.date", AjDate),
-                  "last_name" : ("nom", str),
-                  "first_name" : ("prenom", str),
-                  "friendly_name" : ("nom_userfriendly", str),
-                  "discord" : ("pseudo_discord", str),
-                  "membership_total" : ("stats.cotis.nb", int),
-                  "membership_last" : ("stats.cotis.derniere", AjDate),
-                  "last_activity" : ("stats.der_activite", AjDate),
-                  "presence_total" : ("stats.presence.nb", int),
-                  "season_presence" : ("saison.presence", int),
-                  "season_membership" : ("saison.cotis", bool),
-                  "season_role" : ("saison.asso_role", str),
-                  "season_photo_authorized" : ("saison.utilisation_image", bool),
-                 }
-
-class AjMember():
-    """ Class defining one member of AJ
-    """
-    # pylint: disable=no-member # disable in this class scope
-    def __init__(self, input_dict):
-        #Map each input_dict key to an actual variable, converted to proper type
-        for varname, varinfo in AJ_MEMBER_ATTR.items():
-            val = input_dict.get(varinfo[0], None)
-            if val and varinfo[1] and not isinstance(val, varinfo[1]):
-                val = varinfo[1](val)
-            setattr(self, varname, val)
-
-    def __format__(self, format_spec="simple"):
-        """ override format
-        """
-        match format_spec:
-            case "full":
-                member_info = [f"{self.id}",
-                               " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
-                               f"@{self.discord}" if self.discord else None,
-                              ]
-                return " - ".join([x for x in member_info if x])
-
-            case "simple":
-                member_info = [self.first_name if self.first_name else None,
-                               f"@{self.discord}" if self.discord else None,
-                              ]
-                return " - ".join([x for x in member_info if x])
-
-            case _:
-                return "this format is not supported (yet)"
+#             case _:
+#                 return "this format is not supported (yet)"
 
 
-class AjMatchedMember():
-    """ Class to handled AJ member with a match value
-    """
-    def __init__(self, member, match_val):
-        self.member = member
-        self.match_val = match_val
+# class AjMatchedMember():
+#     """ Class to handled AJ member with a match value
+#     """
+#     def __init__(self, member, match_val):
+#         self.member = member
+#         self.match_val = match_val
 
-    def __format__(self, format_spec="simple"):
-        """ override format
-        """
-        return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
-        # return self.member.__format__(format_spec) + f" (matche à {self.match_val}%)"
+#     def __format__(self, format_spec="simple"):
+#         """ override format
+#         """
+#         return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
+#         # return self.member.__format__(format_spec) + f" (matche à {self.match_val}%)"
 
 
-class AjMembers(dict):
-    """ Class handling AJ member roster
-    """
-    def __init__(self, input_list):
-        super().__init__()
-        self.update({AjMemberId(m["id"]) : AjMember(m) for m in input_list})
+# class AjMembers(dict):
+#     """ Class handling AJ member roster
+#     """
+#     def __init__(self, input_list):
+#         super().__init__()
+#         self.update({AjMemberId(m["id"]) : AjMember(m) for m in input_list})
 
-    async def search(self,
-                     lookup_val = None,
-                     match_crit = 50,
-                     break_if_multi_perfect_match = True,):
-        ''' retrieve list of member ids matching lookup_val which can be
-                - discord member object
-                - integer = member ID
-                - string that is compared to "user friendly name" using fuzzy search
+#     async def search(self,
+#                      lookup_val = None,
+#                      match_crit = 50,
+#                      break_if_multi_perfect_match = True,):
+#         ''' retrieve list of member ids matching lookup_val which can be
+#                 - discord member object
+#                 - integer = member ID
+#                 - string that is compared to "user friendly name" using fuzzy search
 
-            for first 2 types, return exact match
-            for last, return exact match if found, otherwise list of match above match_crit
-            In case of multiple perfect match, raise exception if asked
+#             for first 2 types, return exact match
+#             for last, return exact match if found, otherwise list of match above match_crit
+#             In case of multiple perfect match, raise exception if asked
 
-            @return
-                [member (if perfect match) or matchedMember (if not perfect match)]
-        '''
-        # Check if lookup_val is a discord.Member object
-        if isinstance(lookup_val, discord.Member):
-            try:
-                return [v for v in self.values()
-                        if v.discord == lookup_val.name]
-            except MemberNotFound:
-                pass
+#             @return
+#                 [member (if perfect match) or matchedMember (if not perfect match)]
+#         '''
+#         # Check if lookup_val is a discord.Member object
+#         if isinstance(lookup_val, discord.Member):
+#             try:
+#                 return [v for v in self.values()
+#                         if v.discord == lookup_val.name]
+#             except MemberNotFound:
+#                 pass
 
-        # check if lookup_val is an integer (member ID)
-        if isinstance(lookup_val, int):
-            return [v for k, v in self.items()
-                    if k == lookup_val]
+#         # check if lookup_val is an integer (member ID)
+#         if isinstance(lookup_val, int):
+#             return [v for k, v in self.items()
+#                     if k == lookup_val]
 
-        if not isinstance(lookup_val, str):
-            raise AjDbException(f"lookup_val must be discord.Member, int or str, not {type(lookup_val)}")
+#         if not isinstance(lookup_val, str):
+#             raise AjDbException(f"lookup_val must be discord.Member, int or str, not {type(lookup_val)}")
 
-        # Fuzz search on friendly name
-        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, v.friendly_name))
-                       for v in self.values()]
-        fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
-        fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
+#         # Fuzz search on friendly name
+#         fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, v.friendly_name))
+#                        for v in self.values()]
+#         fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
+#         fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
 
-        perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
-        if perfect_match:
-            if len(perfect_match) > 1 and break_if_multi_perfect_match:
-                raise AjDbException(f"multiple member perfectly match {lookup_val}")
-            return perfect_match
+#         perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
+#         if perfect_match:
+#             if len(perfect_match) > 1 and break_if_multi_perfect_match:
+#                 raise AjDbException(f"multiple member perfectly match {lookup_val}")
+#             return perfect_match
 
-        return fuzzy_match
+#         return fuzzy_match
 
 
 
 
 
 
-AJ_EVENT_ATTR = {"id": ("#support.id", int),
-                 "date" : ("date", AjDate),
-                 "in_season": ("#support.saison_en_cours", bool),
-                 "type": ("entree.categorie", str),
-                 "name": ("entree.nom", str),
-                 "detail": ("entree.detail", str),
-                 "member_id": ("membre.id", AjMemberId),
-                #  "": ("membre.asso_role", str),
-                #  "": ("compta.compte", None),
-                #  "": ("compta.credit", None),
-                #  "": ("compta.debit", None),
-                #  "": ("commentaire", None),
-                 "member_friendly_name": ("#support.nom", str),
-                #  "": ("#support.nb_in_suivi", None),
-                #  "": ("membre.prive.nom", None),
-                #  "": ("membre.prive.prenom", None),
-                #  "": ("membre.prive.date_naissance", None),
-                #  "": ("membre.prive.[emails]", None),
-                #  "": ("membre.prive.[telephone]", None),
-                #  "": ("membre.prive.adresse.numero", None),
-                #  "": ("membre.prive.adresse.type_voie", None),
-                #  "": ("membre.prive.adresse.nom_voie", None),
-                #  "": ("membre.prive.adresse.autre", None),
-                #  "": ("membre.prive.adresse.cpmembre.prive.adresse.ville", None),
-                #  "": ("membre.prive.pseudo_discord", str),
-                #  "": ("membre.prive.approbation_statuts", None),
-                #  "": ("membre.prive.assurance_resp_civile", None),
-                #  "": ("membre.prive.utilisation_image", None),
-                #  "": ("membre.source_connaissance", None),
-                #  "": ("#support.saison#support.evement", None),
-                #  "": ("#support.traite_manuel", None),
-                #  "": ("#support.traite", None),
-                }
+# AJ_EVENT_ATTR = {"id": ("#support.id", int),
+#                  "date" : ("date", AjDate),
+#                  "in_season": ("#support.saison_en_cours", bool),
+#                  "type": ("entree.categorie", str),
+#                  "name": ("entree.nom", str),
+#                  "detail": ("entree.detail", str),
+#                  "member_id": ("membre.id", AjMemberId),
+#                 #  "": ("membre.asso_role", str),
+#                 #  "": ("compta.compte", None),
+#                 #  "": ("compta.credit", None),
+#                 #  "": ("compta.debit", None),
+#                 #  "": ("commentaire", None),
+#                  "member_friendly_name": ("#support.nom", str),
+#                 #  "": ("#support.nb_in_suivi", None),
+#                 #  "": ("membre.prive.nom", None),
+#                 #  "": ("membre.prive.prenom", None),
+#                 #  "": ("membre.prive.date_naissance", None),
+#                 #  "": ("membre.prive.[emails]", None),
+#                 #  "": ("membre.prive.[telephone]", None),
+#                 #  "": ("membre.prive.adresse.numero", None),
+#                 #  "": ("membre.prive.adresse.type_voie", None),
+#                 #  "": ("membre.prive.adresse.nom_voie", None),
+#                 #  "": ("membre.prive.adresse.autre", None),
+#                 #  "": ("membre.prive.adresse.cpmembre.prive.adresse.ville", None),
+#                 #  "": ("membre.prive.pseudo_discord", str),
+#                 #  "": ("membre.prive.approbation_statuts", None),
+#                 #  "": ("membre.prive.assurance_resp_civile", None),
+#                 #  "": ("membre.prive.utilisation_image", None),
+#                 #  "": ("membre.source_connaissance", None),
+#                 #  "": ("#support.saison#support.evement", None),
+#                 #  "": ("#support.traite_manuel", None),
+#                 #  "": ("#support.traite", None),
+#                 }
 
-class AjEvent():
-    """ Class defining one event of AJ
-    """
-    # pylint: disable=no-member # disable in this class scope
-    def __init__(self, input_dict):
-        #Map each input_dict key to an actual variable, converted to proper type
-        for varname, varinfo in AJ_EVENT_ATTR.items():
-            val = input_dict.get(varinfo[0], None)
-            if val and varinfo[1] and not isinstance(val, varinfo[1]):
-                val = varinfo[1](val)
-            setattr(self, varname, val)
+# class AjEvent():
+#     """ Class defining one event of AJ
+#     """
+#     # pylint: disable=no-member # disable in this class scope
+#     def __init__(self, input_dict):
+#         #Map each input_dict key to an actual variable, converted to proper type
+#         for varname, varinfo in AJ_EVENT_ATTR.items():
+#             val = input_dict.get(varinfo[0], None)
+#             if val and varinfo[1] and not isinstance(val, varinfo[1]):
+#                 val = varinfo[1](val)
+#             setattr(self, varname, val)
 
-    EVENT_TYPE_PRESENCE = "Présence"
-    EVENT_TYPE_EVENT = "Evènement"
-    EVENT_TYPE_CONTRIBUTION = "Cotisation"
-    EVENT_TYPE_MEMBER_INFO = "Info Membre"
-    EVENT_TYPE_MGMT = "Gestion"
-    EVENT_TYPE_PURCHASE = "Achat"
+#     EVENT_TYPE_PRESENCE = "Présence"
+#     EVENT_TYPE_EVENT = "Evènement"
+#     EVENT_TYPE_CONTRIBUTION = "Cotisation"
+#     EVENT_TYPE_MEMBER_INFO = "Info Membre"
+#     EVENT_TYPE_MGMT = "Gestion"
+#     EVENT_TYPE_PURCHASE = "Achat"
 
-    def __format__(self, format_spec=""):
-        """ override format
-        """
-        # match format_spec:
-        #     case "simple":
-        #         member_info = [f"{self.id}",
-        #                        " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
-        #                        f"@{self.discord}" if self.discord else None,
-        #                       ]
-        #         return " - ".join([x for x in member_info if x])
+#     def __format__(self, format_spec=""):
+#         """ override format
+#         """
+#         # match format_spec:
+#         #     case "simple":
+#         #         member_info = [f"{self.id}",
+#         #                        " ".join([self.first_name, self.last_name]) if self.first_name or self.last_name else None,
+#         #                        f"@{self.discord}" if self.discord else None,
+#         #                       ]
+#         #         return " - ".join([x for x in member_info if x])
 
-        #     case _:
-        return "this format is not supported (yet)"
+#         #     case _:
+#         return "this format is not supported (yet)"
 
 
-class AjEvents(list):
-    """ Class handling AJ events
-    """
-    def __init__(self, input_list):
-        super().__init__()
-        self.extend(AjEvent(e) for e in input_list)
+# class AjEvents(list):
+#     """ Class handling AJ events
+#     """
+#     def __init__(self, input_list):
+#         super().__init__()
+#         self.extend(AjEvent(e) for e in input_list)
 
-    def get_in_season_events(self, event_types = None):
-        """ returns events of certain type that are in current season
-        """
-        if event_types and not isinstance(event_types, list):
-            event_types = [event_types]
+#     def get_in_season_events(self, event_types = None):
+#         """ returns events of certain type that are in current season
+#         """
+#         if event_types and not isinstance(event_types, list):
+#             event_types = [event_types]
 
-        return [event for event in self if event.in_season and (not event_types or event.type in [etype for etype in event_types])]
+#         return [event for event in self if event.in_season and (not event_types or event.type in [etype for etype in event_types])]
 
 
 
@@ -676,14 +730,16 @@ class AjDb():
     def __init__(self):
         self.db_engine = None
         self.AsyncSessionMaker = None   #pylint: disable=invalid-name   #variable is a class factory
+        self.db_username = None
         # self.members = AjMembers(self._wb.dict_from_table(self.aj_config.db_table_roster, nested=False, with_ignored=True))
         # self.events = AjEvents(self._wb.dict_from_table(self.aj_config.db_table_events, nested=False, with_ignored=True))
 
     async def __aenter__(self):
         with AjConfig(save_on_exit=False, break_if_missing=True) as aj_config:
+            self.db_username = aj_config.db_creds['user']
             # Connect to MariaDB Platform
             self.db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + aj_config.db_connection_string,
-                                                    echo=aj_config.db_echo)
+                                                        echo=aj_config.db_echo)
 
         # aio_sa.async_sessionmaker: a factory for new AsyncSession objects
         # expire_on_commit - don't expire objects after transaction commit
@@ -694,10 +750,14 @@ class AjDb():
         # for AsyncEngine created in function scope, close and
         # clean-up pooled connections
         await self.db_engine.dispose()
+        self.db_username = None
+        self.AsyncSessionMaker = None
 
     async def drop_create_schema(self):
         """ recreate database schema
         """
+        if self.db_username != 'ajadmin':
+            raise AjDbException(f"this user cannot wipe out DB {self.db_username}")
         # create all tables
         async with self.db_engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
