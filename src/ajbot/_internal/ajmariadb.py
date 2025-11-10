@@ -97,7 +97,7 @@ class Seasons(Base):
     end: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False)
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='season')
-    # events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='seasons')
+    events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='season')
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='seasons')
 
 
@@ -120,7 +120,7 @@ class Members(Base):
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member')
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member')
-#     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='members')
+    JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='member')
 
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members')
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
@@ -152,23 +152,23 @@ class Memberships(Base):
     contribution: orm.Mapped['LUTContribution'] = orm.relationship('LUTContribution', back_populates='memberships')
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='memberships')
     # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='memberships')
-#
-#
-# class Events(Base):
-#     """ Events table class
-#     """
-#     __tablename__ = 'events'
-#
-#     event_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-#     event_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, index=True)
-#     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), nullable=True, comment='shall be computed based on event_date', index=True)
-#     seasons: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='events')
-#     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
-#     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#
-#     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='events')
-#     transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='events')
-#     log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events')
+
+
+class Events(Base):
+    """ Events table class
+    """
+    __tablename__ = 'events'
+
+    event_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
+    event_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, index=True)
+    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), nullable=True, comment='shall be computed based on event_date', index=True)
+    season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='events')
+    name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
+    description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
+
+    JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='event')
+    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='events')
+    # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events')
 
 
 # class Assets(Base):
@@ -412,26 +412,19 @@ class JCTMemberDiscordRole(Base):
     discord_role: orm.Mapped['LUTDiscordRoles'] = orm.relationship('LUTDiscordRoles', back_populates='JCT_member_discord_role')
 
 
-# class JCTEventMember(Base):
-#     """ Junction table between events and members
-#     """
-#     __tablename__ = 'JCT_event_member'
-#     __table_args__ = (
-#         sa.ForeignKeyConstraint(['event'], ['events.event_id'], name='FK_events_TO_JCT_event_member'),
-#         sa.ForeignKeyConstraint(['member'], ['members.member_id'], name='FK_members_TO_JCT_event_member'),
-#         sa.Index('FK_events_TO_JCT_event_member', 'event'),
-#         sa.Index('FK_members_TO_JCT_event_member', 'member'),
-#         sa.Index('UQ_id', 'id', unique=True)
-#     )
-#
-#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     event: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
-#     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegating vote')
-#     member: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer, comment='Can be null name/id is lost.')
-#     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
-#
-#     events: orm.Mapped['Events'] = orm.relationship('Events', back_populates='JCT_event_member')
-#     members: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member')
+class JCTEventMember(Base):
+    """ Junction table between events and members
+    """
+    __tablename__ = 'JCT_event_member'
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
+    event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.event_id'), index=True, nullable=False)
+    event: orm.Mapped['Events'] = orm.relationship('Events', back_populates='JCT_event_member')
+    member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=True, comment='Can be null name/id is lost.')
+    member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member')
+    presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
+    comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
+
 
 
 
@@ -468,8 +461,9 @@ async def _create_db():
             await conn.run_sync(Base.metadata.create_all)
 
         # Populate all tables
+
+        # fill lookup tables
         lut_tables = []
-        # init lookup tables
         xsldb_lookup_tables = load_json_file(Path('aj_xls2db/xlsdb_LUP.json'))
         for val in xsldb_lookup_tables['saisons']:
             lut_tables.append(Seasons(name=val['nom'],
@@ -500,7 +494,7 @@ async def _create_db():
             async with session.begin():
                 session.add_all(lut_tables)
 
-        # init member tables
+        # Fill member tables
         member_tables = []
         xsldb_lut_member = load_json_file(Path('aj_xls2db/xlsdb_membres.json'))
         for val in xsldb_lut_member['annuaire']:
@@ -508,7 +502,7 @@ async def _create_db():
                 _creation_date = datetime.fromisoformat(val['creation']['date'])
             except ValueError:
                 continue
-            new_member = Members()
+            new_member = Members(member_id=int(val['id']))
             member_tables.append(new_member)
 
             if val.get('pseudo_discord'):
@@ -596,7 +590,7 @@ async def _create_db():
             async with session.begin():
                 session.add_all(member_tables)
 
-        # init membership table
+        # fill membership tables
         membership_tables = []
         xsldb_events = load_json_file(Path('aj_xls2db/xlsdb_suivi.json'))
         for val in [event for event in xsldb_events['suivi'] if event['entree']['categorie'] == 'Cotisation']:
@@ -616,6 +610,43 @@ async def _create_db():
         async with async_session() as session:
             async with session.begin():
                 session.add_all(membership_tables)
+
+        # fill event tables
+        event_tables = []
+        for val in [event for event in xsldb_events['suivi'] if event['entree']['categorie'] == 'Evènement'
+                                                               and not event['entree'].get('detail')]:
+            new_event = Events()
+            event_tables.append(new_event)
+            new_event.event_date = datetime.fromisoformat(val['date']).date()
+            new_event.season     = [elt for elt in lut_tables    if isinstance(elt, Seasons        ) and new_event.event_date >= elt.start
+                                                                                                       and new_event.event_date <= elt.end][0]
+            new_event.name       = val['entree']['nom']
+
+        for val in [event for event in xsldb_events['suivi'] if (event['entree']['categorie'] == 'Evènement'
+                                                               and event['entree'].get('detail') == 'Vote par pouvoir')
+                                                               or(event['entree']['categorie'] == 'Présence')]:
+            new_event = JCTEventMember()
+            event_tables.append(new_event)
+            new_event.presence = val['entree']['categorie'] == 'Présence'
+            matched_event = [elt for elt in event_tables if isinstance(elt, Events) and elt.event_date == datetime.fromisoformat(val['date']).date()]
+            if matched_event:
+                new_event.event = matched_event[0]
+            else:
+                new_event.event = Events()
+                event_tables.append(new_event.event)
+                new_event.event.event_date = datetime.fromisoformat(val['date']).date()
+                new_event.event.season     = [elt for elt in lut_tables    if isinstance(elt, Seasons) and new_event.event.event_date >= elt.start
+                                                                                                       and new_event.event.event_date <= elt.end][0]
+            if val.get('membre'):
+                new_event.member = [elt for elt in member_tables if isinstance(elt, Members        ) and elt.member_id == val['membre']['id']][0]
+
+            if val.get('commentaire_old'):
+                new_event.comment = val['commentaire_old']
+
+        async with async_session() as session:
+            async with session.begin():
+                session.add_all(event_tables)
+
 
         # async with async_session.begin() as session:
         #     query = sa.select(Users).options(orm.selectinload(Users.member_emails)).limit(1)
