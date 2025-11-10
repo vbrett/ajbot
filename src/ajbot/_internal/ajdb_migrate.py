@@ -120,7 +120,7 @@ async def _create_db():
                                         )
                                 and elt.zip_code == val['adresse'].get('cp')
                                 and elt.town == val['adresse'].get('ville')
-                            ]
+                              ]
                 if matched_rpg:
                     new_rpg = matched_rpg[0]
                 else:
