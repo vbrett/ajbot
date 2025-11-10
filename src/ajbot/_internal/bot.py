@@ -77,7 +77,7 @@ class AjBot():
                  intents:discord.Intents):
 
         self.aj_config = aj_config
-        self.aj_db = AjDb(aj_config)
+        self.aj_db = AjDb()
         self.client = MyDiscordClient(intents=intents,
                                       guild=discord.Object(aj_config.discord_guild))
         self.last_hello_member : discord.User = None

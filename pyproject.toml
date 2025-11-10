@@ -19,9 +19,6 @@ name = 'ajbot'
 dynamic = ['version']
 dependencies = ['discord.py',
                 'sqlalchemy[asyncio]', 'aiomysql',
-                'google-api-python-client',
-                'google-auth-httplib2',
-                'google-auth-oauthlib',
                 'vbrpytools >= 3.8.0',
                 'humanize',
                 'dateparser',
@@ -32,7 +29,7 @@ description = 'Discord for personal use'
 readme = 'README.md'
 requires-python = '>=3.13'
 license = {file = 'LICENSE'}
-keywords = ['tools', 'discord','personal']
+keywords = ['tools', 'discord','personal', 'mariaDB', 'bot']
 authors = [
   { name='Vincent Brettnacher', email='vincent.brettnacher@veoneer.com' },
 ]

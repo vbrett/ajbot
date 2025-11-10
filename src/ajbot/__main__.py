@@ -4,7 +4,6 @@ import sys
 
 from discord import Intents, errors
 
-from ajbot import credentials
 from ajbot._internal.bot import AjBot
 from ajbot._internal.exceptions import CredsException
 from ajbot._internal.config import AjConfig
@@ -22,15 +21,12 @@ def _main():
 
         aj_bot = AjBot(aj_config, intents)
 
-        token = credentials.get_set_discord(aj_config, prompt_if_present=False)
+        token = aj_config.discord_token
 
-        # ensure any changes are saved before running
-        aj_config.save()  #TODO: change class to non context mgr?
-
-        try:
-            aj_bot.client.run(token)
-        except (errors.LoginFailure, CredsException):
-            print("Token invalide ou manquant. Veuillez le définir en utilisant 'aj_creds'.")
+    try:
+        aj_bot.client.run(token)
+    except (errors.LoginFailure, CredsException):
+        print("Token invalide ou manquant. Veuillez le définir en utilisant 'aj_creds'.")
 
     print("Le Bot a été arrêté.")
     return 0

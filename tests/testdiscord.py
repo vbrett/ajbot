@@ -297,8 +297,7 @@ def _main():
         #     await log_channel.send(embed=embed, view=url_view)
 
 
-        token = credentials.get_set_discord(aj_config,
-                                            prompt_if_present=False)
+        token = aj_config.discord_token
 
         aj_config.save()  # ensure any changes are saved before running #TODO: change class to non context mgr?
         try:
