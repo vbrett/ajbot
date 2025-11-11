@@ -8,9 +8,9 @@ import discord
 from discord import app_commands
 
 from ajbot import credentials
-from ajbot._internal.ajdb import AjDb, AjDate, AjEvent
+from ajbot._internal.ajdb import AjDb
 from ajbot._internal.exceptions import CredsException
-from ajbot._internal.config import DATEPARSER_CONFIG, AjConfig
+from ajbot._internal.config import AjConfig
 
 
 class MyClient(discord.Client):
@@ -59,8 +59,6 @@ class MyAppEventsAndCommands():
 
         self.aj_config = aj_config
 
-        self.aj_db = AjDb(aj_config)
-
         self.last_hello_member : discord.User = None
 
         self.client = MyClient(intents=intents,
@@ -84,14 +82,6 @@ class MyAppEventsAndCommands():
                 self.last_hello_member = interaction.user
                 message = f'Bonjour {interaction.user.mention}!'
             await interaction.response.send_message(message)
-
-        # @MyClient.tree.command(name="recharger_db")
-        # @app_commands.check(self._is_manager)
-        # async def reload_db(interaction: discord.Interaction):
-        #     """ Recharge le fichier excel de la base de données depuis Google Drive.
-        #     """
-        #     self.aj_db.load_db()
-        #     await interaction.response.send_message("C'est fait !", ephemeral=True)
 
 
         # # List of context menu commands for the bot

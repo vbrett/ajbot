@@ -17,7 +17,7 @@ import discord
 from discord.ext.commands import MemberNotFound
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import AjConfig
+from ajbot._internal.config import AjConfig, _AJ_ID_PREFIX
 
 
 
@@ -37,23 +37,26 @@ from ajbot._internal.config import AjConfig
 #         return humanize.naturaldate(self)
 
 
-class AjMemberId(int):
-    """ Class that handles AJ member id as integer, and represents it in with correct format
+class MemberId(int):
+    """ Class that handles member id as integer, and represents it in with correct format
     """
     def __str__(self):
-        return f"AJ-{str(int(self)).zfill(5)}"
+        return f"{_AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
 
-class AjMatchedMember():
-    """ Class to handled AJ member with a match value
+class FuzzMatchedMember():
+    """ Class to handle member with a fuzzy match value
     """
     def __init__(self, member, match_val):
         self.member = member
         self.match_val = match_val
 
-    def __format__(self, format_spec="simple"):
+    def __str__(self):
+        return format(self, '')
+
+    def __format__(self, format_spec):
         """ override format
         """
-        return f"{self.member:{format_spec}} (matche à {self.match_val}%)"
+        return f"{self.member:{format_spec}} ({self.match_val}% de correspondance)"
 
 
 
@@ -147,7 +150,7 @@ class Members(Base):
     """
     __tablename__ = 'members'
 
-    member_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    member_id: orm.Mapped[MemberId] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.credential_id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
@@ -166,28 +169,29 @@ class Members(Base):
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members')
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
 
-    def __format__(self, format_spec='simple'):
+    def __str__(self):
+        return format(self, '')
+
+
+    def __format__(self, format_spec):
         """ override format
         """
-        mbr_id = str(AjMemberId(self.member_id))
+        mbr_id = str(MemberId(self.member_id))
         mbr_creds = f'{self.credential:{format_spec}}' if self.credential else None
         mbr_disc = f'{self.discord:{format_spec}}' if self.discord else None
+        name_list = [
+                        mbr_creds,
+                        mbr_disc
+                    ]
         match format_spec:
             case 'full':
-                name_list = [
-                             mbr_id,
-                             mbr_creds,
-                             mbr_disc
-                            ]
+                name_list = [mbr_id] + name_list
 
             case 'simple' | '':
-                name_list = [
-                             mbr_creds,
-                             mbr_disc
-                            ]
+                pass
 
             case _:
-                name_list = ['Ce format n\'est pas supporté']
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
         return ' - '.join([x for x in name_list if x])
 
@@ -203,7 +207,7 @@ class Memberships(Base):
 
     membership_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     membership_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-    member_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member_id: orm.Mapped[MemberId] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), index=True, nullable=False)
     season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships')
@@ -340,7 +344,10 @@ class MemberCredentials(Base):
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     birthdate: orm.Mapped[Optional[date]] = orm.mapped_column(sa.Date)
 
-    def __format__(self, format_spec='simple'):
+    def __str__(self):
+        return format(self, '')
+
+    def __format__(self, format_spec):
         """ override format
         """
         match format_spec:
@@ -351,9 +358,9 @@ class MemberCredentials(Base):
                 name_list = [self.first_name]
 
             case _:
-                name_list = ['Ce format n\'est pas supporté']
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
-        return " ".join([x for x in name_list if x])
+        return ' '.join([x for x in name_list if x])
 
 
 class MemberRoles(Base):
@@ -601,7 +608,7 @@ class AjDb():
             return matched_members
 
         # Fuzz search on friendly name
-        fuzzy_match = [AjMatchedMember(v, fuzz.token_sort_ratio(lookup_val, f'{v.credential:full}'))
+        fuzzy_match = [FuzzMatchedMember(v, fuzz.token_sort_ratio(lookup_val, f'{v.credential:full}'))
                        for v in matched_members]
         fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
         fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)

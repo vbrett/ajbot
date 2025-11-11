@@ -7,12 +7,7 @@ from vbrpytools.dicjsontools import load_json_file, save_json_file
 
 from ajbot._internal.exceptions import OtherException
 
-
-DATEPARSER_CONFIG = {'DATE_ORDER': 'DMY', 'DEFAULT_LANGUAGES': ["fr"]}
-
-# Google credential needed scope (If modifying these scopes, delete the file token.json.)
-AJ_DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive"]
-
+_AJ_ID_PREFIX = "AJ-"
 
 _AJ_CONFIG_PATH = Path(".env")
 _AJ_CONFIG_FILE = "ajbot"
