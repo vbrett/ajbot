@@ -144,6 +144,11 @@ class AjBot():
         async def show_name(interaction: discord.Interaction, member: discord.Member):
             await self.send_member_info(interaction=interaction, disc_member=member)
 
+        @self.client.tree.error
+        async def error_report(interaction: discord.Interaction, exception):
+            await interaction.response.send_message(f"Houla! Un truc chelou c'est passé:\r\n{exception}", ephemeral=True)
+
+
     # # Support functions
     # # ========================================================
 
