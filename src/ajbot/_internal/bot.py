@@ -11,7 +11,7 @@ from discord import app_commands
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.ajdb import AjDb
+from ajbot._internal.ajdb import AjDb, MemberId
 from ajbot._internal.exceptions import OtherException
 from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
 
@@ -146,7 +146,7 @@ class AjBot():
 
         @self.client.tree.error
         async def error_report(interaction: discord.Interaction, exception):
-            await interaction.response.send_message(f"Houla! Un truc chelou c'est passé:\r\n{exception}", ephemeral=True)
+            await interaction.response.send_message(f"Houla... un truc chelou c'est passé:\r\n{exception}", ephemeral=True)
 
 
     # # Support functions
@@ -169,12 +169,30 @@ class AjBot():
         async with AjDb() as aj_db:
             members = await aj_db.search_member(input_member, 50, False)
 
+        embed = None
+        reply = f"Je ne connais pas ton ou ta {input_member}."
         if members:
-            reply = "\r\n".join(format(member, "full" if self._is_manager(interaction) else "simple") for member in members)
-        else:
-            reply = f"Je ne connais pas ton ou ta {input_member}."
+            embed = discord.Embed(color=discord.Color.orange())
+            format_style = "full" if self._is_manager(interaction) else "simple"
+            embed.add_field(name = 'id', inline=True,
+                            value = '\n'.join(str(m.member_id) for m in members)
+                        )
+            embed.add_field(name = 'Discord', inline=True,
+                            value = '\n'.join(('@' + str(m.discord.pseudo)) if m.discord else '' for m in members)
+                           )
+            if members[0].match_val:
+                embed.add_field(name = 'Nom (% match)', inline=True,
+                                value = '\n'.join(' '.join([f'{m.credential:{format_style}}' if m.credential else '',
+                                                            f'({m.match_val}%)' if m.match_val else '(100%)']) for m in members)
+                            )
+            else:
+                embed.add_field(name = 'Nom', inline=True,
+                                value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '' for m in members)
+                            )
 
-        await interaction.response.send_message(reply, ephemeral=True, delete_after=delete_after)
+            reply = "Voilà ce que j'ai trouvé:"
+
+        await interaction.response.send_message(reply, embed=embed, ephemeral=True, delete_after=delete_after)
 
 
     # List of checks that can be used with app commands
@@ -190,39 +208,6 @@ class AjBot():
     def _is_manager(self, interaction: discord.Interaction) -> bool:
         """A check which only allows managers to use the command."""
         return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
-
-
-# def needs_manage_role(func):
-#     """ A decorator to protect commands that require manage role permission. """
-#     @wraps(func)
-#     async def wrapper(self, ctx, *args, **kwargs):
-#         if not ctx.author.guild_permissions.manage_roles:
-#             await ctx.reply("Tu dois avoir la permission 'Gérer les rôles' pour pouvoir utiliser cette commande.")
-#             return
-#         return await func(self, ctx, *args, **kwargs)
-#     return wrapper
-
-# def needs_administrator(func):
-#     """ A decorator to protect commands that require administrator permissions. """
-#     @wraps(func)
-#     async def wrapper(self, ctx, *args, **kwargs):
-#         if not ctx.author.guild_permissions.administrator:
-#             await ctx.reply("Tu dois être administrateur pour pouvoir utiliser cette commande.")
-#             return
-#         return await func(self, ctx, *args, **kwargs)
-#     return wrapper
-
-# def needs_aj_manage_role(func):
-#     """ A decorator to protect commands that require manage role permission on the AJ server. """
-#     @wraps(func)
-#     @needs_manage_role
-#     async def wrapper(self, ctx, *args, **kwargs):
-#         #FIXME replace with proper call
-#         if ctx.guild.id != self.aj_config.discord_guild:
-#             await ctx.reply("Cette commande n'est pas possible depuis ce serveur.")
-#             return
-#         return await func(self, ctx, *args, **kwargs)
-#     return wrapper
 
 
 # class MyCommandsAndEvents(commands.Cog):
@@ -248,30 +233,6 @@ class AjBot():
 #         if self.export_members:
 #             save_json_file(get_member_dict(discord_client=self.bot), self.export_members, preserve=False)
 
-
-#     @commands.command(name='hello')
-#     async def _hello(self, ctx):
-#         """ Dis bonjour à l'utilisateur. """
-#         if ctx.author == self.last_hello_member:
-#             message = "Toi encore ?\r\nT'as rien de mieux à faire ?"
-#         else:
-#             self.last_hello_member = ctx.author
-#             message = f'Bonjour {ctx.author.display_name}!'
-
-#         await ctx.reply(message)
-
-#     @commands.command(name='test')
-#     @needs_administrator
-#     async def _test(self, ctx, *args):
-#         """ (Réservé aux admin) Commande de test qui renvoie les arguments. """
-#         await ctx.reply(" - ".join(args))
-
-#     @commands.command(name='bye')
-#     @needs_administrator
-#     async def _bye(self, ctx):
-#         """ (Réservé aux admin) Déconnecte le bot. """
-#         await ctx.reply("J'me déconnecte. Bye!")
-#         await self.bot.close()
 
 #     @commands.command(name='roles')
 #     @needs_manage_role

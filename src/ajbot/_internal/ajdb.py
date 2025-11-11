@@ -43,24 +43,6 @@ class MemberId(int):
     def __str__(self):
         return f"{_AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
 
-class FuzzMatchedMember():
-    """ Class to handle member with a fuzzy match value
-    """
-    def __init__(self, member, match_val):
-        self.member = member
-        self.match_val = match_val
-
-    def __str__(self):
-        return format(self, '')
-
-    def __format__(self, format_spec):
-        """ override format
-        """
-        return f"{self.member:{format_spec}} ({self.match_val}% de correspondance)"
-
-
-
-
 
 class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
     """ Base ORM class
@@ -150,7 +132,7 @@ class Members(Base):
     """
     __tablename__ = 'members'
 
-    member_id: orm.Mapped[MemberId] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.credential_id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
@@ -158,7 +140,7 @@ class Members(Base):
     discord: orm.Mapped[Optional['MemberDiscords']] = orm.relationship('MemberDiscords', back_populates='member', uselist=False, lazy='selectin')
     forced_role_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_roles.role_id'), index=True, nullable=True,
                                                                    comment='to override role defined by membership rules')
-    forced_role:    orm.Mapped[Optional['MemberRoles']] = orm.relationship('MemberRoles', back_populates='members', lazy='selectin')
+    forced_role: orm.Mapped[Optional['MemberRoles']] = orm.relationship('MemberRoles', back_populates='members', lazy='selectin')
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member', lazy='selectin')
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member', lazy='selectin')
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member', lazy='selectin')
@@ -169,6 +151,17 @@ class Members(Base):
 #     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members')
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_')
 
+    @orm.reconstructor
+    def __init__(self):
+        self.match_val = None
+        self.member_id = MemberId(self.member_id)
+
+    def set_match(self, match_val):
+        """ Set matching value (percentage) and return updated self
+        """
+        self.match_val = match_val
+        return self
+
     def __str__(self):
         return format(self, '')
 
@@ -176,12 +169,14 @@ class Members(Base):
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_id = str(MemberId(self.member_id))
+        mbr_id = str(self.member_id)
         mbr_creds = f'{self.credential:{format_spec}}' if self.credential else None
         mbr_disc = f'{self.discord:{format_spec}}' if self.discord else None
+        mbr_match = f'({self.match_val}% de correspondance)' if self.match_val else None
         name_list = [
                         mbr_creds,
-                        mbr_disc
+                        mbr_disc,
+                        mbr_match,
                     ]
         match format_spec:
             case 'full':
@@ -607,13 +602,13 @@ class AjDb():
         if not isinstance(lookup_val, str):
             return matched_members
 
-        # Fuzz search on friendly name
-        fuzzy_match = [FuzzMatchedMember(v, fuzz.token_sort_ratio(lookup_val, f'{v.credential:full}'))
+        # Fuzz search on credential
+        fuzzy_match = [v.set_match(fuzz.token_sort_ratio(lookup_val, f'{v.credential:full}'))
                        for v in matched_members]
         fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
         fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
 
-        perfect_match = [v.member for v in fuzzy_match if v.match_val == 100]
+        perfect_match = [v.set_match(None) for v in fuzzy_match if v.match_val == 100]
         if perfect_match:
             if len(perfect_match) > 1 and break_if_multi_perfect_match:
                 raise AjDbException(f"multiple member perfectly match {lookup_val}")
