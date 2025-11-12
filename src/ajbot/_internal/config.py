@@ -2,6 +2,7 @@
 '''
 from pathlib import Path
 from urllib.parse import quote_plus
+from dataclasses import dataclass
 
 from vbrpytools.dicjsontools import load_json_file, save_json_file
 
@@ -27,6 +28,14 @@ _KEY_DB_CREDS_USR = "user"
 _KEY_DB_CREDS_PWD = "password"
 _KEY_DB_NAME = "db_name"
 _KEY_DB_ECHO = "db_echo"
+
+@dataclass
+class FormatTypes():
+    """ supported format types
+    """
+    RESTRICTED = 'restricted'
+    FULLSIMPLE = 'full_simple'
+    FULLCOMPLETE = 'full_complete'
 
 
 class AjConfig():

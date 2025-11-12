@@ -72,23 +72,17 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
             _creation_date = datetime.fromisoformat(val['creation']['date'])
         except ValueError:
             continue
-        new_member = ajdb.Members(member_id=int(val['id']))
+        new_member = ajdb.Members()
         member_tables.append(new_member)
 
-        if val.get('pseudo_discord'):
-            new_member.discord_pseudo=ajdb.DiscordPseudos(pseudo=val['pseudo_discord'])
+        new_member.id=int(val['id'])
 
-        if val.get('saison'):
-            if val['saison'].get('asso_role_manuel'):
-                matched_role = [elt for elt in lut_tables
-                                if isinstance(elt, ajdb.AssoRoles) and elt.name == val['saison']['asso_role_manuel']]
-                new_jct = ajdb.JCTMemberAssoRole(member=new_member,
-                                                 asso_role=matched_role[0])
-                member_tables.append(new_jct)
+        if val.get('pseudo_discord'):
+            new_member.discord_pseudo=ajdb.DiscordPseudos(name=val['pseudo_discord'])
 
         if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
             new_member.credential = ajdb.MemberCredentials(first_name=val.get('prenom'),
-                                                last_name=val.get('nom'))
+                                                           last_name=val.get('nom'))
             if val.get('date_naissance'):
                 new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
 
@@ -100,11 +94,11 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
                 if matched_rpg:
                     new_rpg = matched_rpg[0]
                 else:
-                    new_rpg = ajdb.MemberEmails(email=single_rpg)
+                    new_rpg = ajdb.MemberEmails(address=single_rpg)
                     member_tables.append(new_rpg)
                 new_jct = ajdb.JCTMemberEmail(member=new_member,
-                                        email=new_rpg,
-                                        principal=principal)
+                                              email=new_rpg,
+                                              principal=principal)
                 principal = False
                 member_tables.append(new_jct)
 
@@ -115,11 +109,11 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
             if matched_rpg:
                 new_rpg = matched_rpg[0]
             else:
-                new_rpg = ajdb.MemberPhones(phone_number=single_rpg)
+                new_rpg = ajdb.MemberPhones(number=single_rpg)
                 member_tables.append(new_rpg)
             new_jct = ajdb.JCTMemberPhone(member=new_member,
-                                    phone=new_rpg,
-                                    principal=True)
+                                          phone=new_rpg,
+                                          principal=True)
             member_tables.append(new_jct)
 
         if val.get('adresse'):
@@ -154,76 +148,91 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
                 member_tables.append(new_rpg)
 
             new_jct = ajdb.JCTMemberAddress(member=new_member,
-                                    address=new_rpg,
-                                    principal=True)
+                                            address=new_rpg,
+                                            principal=True)
             member_tables.append(new_jct)
 
     async with aj_db.AsyncSessionMaker() as session:
         async with session.begin():
             session.add_all(member_tables)
 
+    return member_tables
 
-async def _populate_membership_tables(aj_db:AjDb, lut_tables, member_tables):
-    """ Populate membership tables
+async def _populate_events_tables(aj_db:AjDb, lut_tables, member_tables):
+    """ Populate all event related tables
     """
     try:
         xsldb_events = load_json_file(Path('aj_xls2db/xlsdb_suivi.json'))
     except FileNotFoundError:
-        return None
+        return
 
     membership_tables = []
-    for val in [event for event in xsldb_events['suivi'] if event['entree']['categorie'] == 'Cotisation']:
-        new_membership = ajdb.Memberships()
-        membership_tables.append(new_membership)
-        new_membership.date = datetime.fromisoformat(val['date']).date()
-        new_membership.season       = [elt for elt in lut_tables    if isinstance(elt, ajdb.Seasons        ) and elt.name      == val['entree']['nom']][0]
-        new_membership.member       = [elt for elt in member_tables if isinstance(elt, ajdb.Members        ) and elt.id == val['membre']['id']][0]
-        new_membership.contribution = [elt for elt in lut_tables    if isinstance(elt, ajdb.LUTContribution) and elt.name      == val['cotisation']][0]
-        if val['membre'].get('prive'):
-            new_membership.statutes_accepted = val['membre']['prive'].get('approbation_statuts', '').lower() == 'oui'
-            new_membership.has_civil_insurance = val['membre']['prive'].get('assurance_resp_civile', '').lower() == 'oui'
-            new_membership.picture_authorized = val['membre']['prive'].get('utilisation_image', '').lower() == 'oui'
-        if val['membre'].get('source_connaissance'):
-            new_membership.know_from = [elt for elt in lut_tables if isinstance(elt, ajdb.LUTKnowFrom) and elt.name == val['membre']['source_connaissance']][0]
+    event_tables = []
+
+    for val in xsldb_events['suivi']:
+        # Membership
+        if val['entree']['categorie'] == 'Cotisation':
+            new_membership = ajdb.Memberships()
+            membership_tables.append(new_membership)
+            new_membership.date = datetime.fromisoformat(val['date']).date()
+            new_membership.season       = [elt for elt in lut_tables    if isinstance(elt, ajdb.Seasons        ) and elt.name == val['entree']['nom']][0]
+            new_membership.member       = [elt for elt in member_tables if isinstance(elt, ajdb.Members        ) and elt.id   == val['membre']['id']][0]
+            new_membership.contribution = [elt for elt in lut_tables    if isinstance(elt, ajdb.LUTContribution) and elt.name == val['cotisation']][0]
+            if val['membre'].get('prive'):
+                new_membership.statutes_accepted   = val['membre']['prive'].get('approbation_statuts', '').lower() == 'oui'
+                new_membership.has_civil_insurance = val['membre']['prive'].get('assurance_resp_civile', '').lower() == 'oui'
+                new_membership.picture_authorized  = val['membre']['prive'].get('utilisation_image', '').lower() == 'oui'
+            if val['membre'].get('source_connaissance'):
+                new_membership.know_from = [elt for elt in lut_tables if isinstance(elt, ajdb.LUTKnowFrom) and elt.name == val['membre']['source_connaissance']][0]
+
+        # Events
+        if val['entree']['categorie'] == 'Evènement' and not val['entree'].get('detail'):
+            new_event = ajdb.Events()
+            event_tables.append(new_event)
+            new_event.date   = datetime.fromisoformat(val['date']).date()
+            new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb.Seasons) and new_event.date >= elt.start
+                                                                                           and new_event.date <= elt.end][0]
+            new_event.name   = val['entree']['nom']
+
+        # Event - Member
+        if (   (    val['entree']['categorie'] == 'Evènement'
+                and val['entree'].get('detail') == 'Vote par pouvoir')
+            or (val['entree']['categorie'] == 'Présence')):
+
+            new_event = ajdb.JCTEventMember()
+            event_tables.append(new_event)
+            new_event.presence = val['entree']['categorie'] == 'Présence'
+            matched_event = [elt for elt in event_tables if isinstance(elt, ajdb.Events) and elt.date == datetime.fromisoformat(val['date']).date()]
+            if matched_event:
+                new_event.event = matched_event[0]
+            else:
+                new_event.event = ajdb.Events()
+                event_tables.append(new_event.event)
+                new_event.event.date = datetime.fromisoformat(val['date']).date()
+                new_event.event.season = [elt for elt in lut_tables if isinstance(elt, ajdb.Seasons) and new_event.event.date >= elt.start
+                                                                                                     and new_event.event.date <= elt.end][0]
+            if val.get('membre'):
+                new_event.member = [elt for elt in member_tables if isinstance(elt, ajdb.Members) and elt.id == val['membre']['id']][0]
+
+            if val.get('commentaire_old'):
+                new_event.comment = val['commentaire_old']
+
+        # Member - Asso role
+        if val['entree']['categorie'] == 'Info Membre' and val.get('membre') and val['membre'].get('asso_role'):
+            timestamp = datetime.fromisoformat(val['date']).date()
+            member_id = val['membre']['id']
+            matched_role = [elt for elt in lut_tables if isinstance(elt, ajdb.AssoRoles) and elt.name == val['membre']['asso_role']]
+            if len([elt for elt in event_tables if isinstance(elt, ajdb.JCTMemberAssoRole)
+                                                   and elt.member_id == member_id
+                                                   and elt.asso_role == matched_role[0]]) == 0:
+                new_event = ajdb.JCTMemberAssoRole(member_id = member_id,
+                                                   asso_role = matched_role[0],
+                                                   start = timestamp)
+                event_tables.append(new_event)
 
     async with aj_db.AsyncSessionMaker() as session:
         async with session.begin():
             session.add_all(membership_tables)
-
-    # fill event tables
-    event_tables = []
-    for val in [event for event in xsldb_events['suivi'] if event['entree']['categorie'] == 'Evènement'
-                                                        and not event['entree'].get('detail')]:
-        new_event = ajdb.Events()
-        event_tables.append(new_event)
-        new_event.date = datetime.fromisoformat(val['date']).date()
-        new_event.season     = [elt for elt in lut_tables    if isinstance(elt, ajdb.Seasons        ) and new_event.date >= elt.start
-                                                                                                and new_event.date <= elt.end][0]
-        new_event.name       = val['entree']['nom']
-
-    for val in [event for event in xsldb_events['suivi'] if (event['entree']['categorie'] == 'Evènement'
-                                                        and event['entree'].get('detail') == 'Vote par pouvoir')
-                                                        or(event['entree']['categorie'] == 'Présence')]:
-        new_event = ajdb.JCTEventMember()
-        event_tables.append(new_event)
-        new_event.presence = val['entree']['categorie'] == 'Présence'
-        matched_event = [elt for elt in event_tables if isinstance(elt, ajdb.Events) and elt.date == datetime.fromisoformat(val['date']).date()]
-        if matched_event:
-            new_event.event = matched_event[0]
-        else:
-            new_event.event = ajdb.Events()
-            event_tables.append(new_event.event)
-            new_event.event.date = datetime.fromisoformat(val['date']).date()
-            new_event.event.season     = [elt for elt in lut_tables    if isinstance(elt, ajdb.Seasons) and new_event.event.date >= elt.start
-                                                                                                and new_event.event.date <= elt.end][0]
-        if val.get('membre'):
-            new_event.member = [elt for elt in member_tables if isinstance(elt, ajdb.Members        ) and elt.id == val['membre']['id']][0]
-
-        if val.get('commentaire_old'):
-            new_event.comment = val['commentaire_old']
-
-    async with aj_db.AsyncSessionMaker() as session:
-        async with session.begin():
             session.add_all(event_tables)
 
 
@@ -249,7 +258,7 @@ async def _main():
             member_tables = await _populate_member_tables(aj_db=aj_db, lut_tables=lut_tables)
             if member_tables:
                 # membership tables
-                _membership_tables = await _populate_membership_tables(aj_db=aj_db, lut_tables=lut_tables, member_tables=member_tables)
+                await _populate_events_tables(aj_db=aj_db, lut_tables=lut_tables, member_tables=member_tables)
 
     return 0
 

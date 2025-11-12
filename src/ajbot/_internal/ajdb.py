@@ -12,36 +12,58 @@ from sqlalchemy.ext import asyncio as aio_sa
 from sqlalchemy import orm
 
 from thefuzz import fuzz
-# import humanize
+import humanize
 import discord
 from discord.ext.commands import MemberNotFound
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import AjConfig, _AJ_ID_PREFIX
+from ajbot._internal.config import AjConfig, _AJ_ID_PREFIX, FormatTypes
 
 
+class AjDate(datetime.date):
+    """ class that handles date type for AJ DB
+    """
+    def __new__(cls, indate, *args, **kwargs):
+        #check if first passed argument is already a datetime format
+        if isinstance(indate, (datetime.datetime, datetime.date)):
+            return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
+        if isinstance(indate, datetime.time):
+            return None
+        return super().__new__(cls, indate, *args, **kwargs)
 
-# class AjDate(datetime.date):
-#     """ class that handles date type for AJ DB
-#     """
-#     def __new__(cls, indate, *args, **kwargs):
-#         #check if first passed argument is already a datetime format
-#         if isinstance(indate, (datetime.datetime, datetime.date)):
-#             return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
-#         if isinstance(indate, time):
-#             return None
-#         return super().__new__(cls, indate, *args, **kwargs)
-
-#     def __format__(self, _):
-#         humanize.i18n.activate("fr_FR")
-#         return humanize.naturaldate(self)
+    def __str__(self):
+        humanize.i18n.activate("fr_FR")
+        return humanize.naturaldate(self)
 
 
-class MemberId(int):
+class AjMemberId(int):
     """ Class that handles member id as integer, and represents it in with correct format
     """
     def __str__(self):
         return f"{_AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
+
+class SaMemberId(sa.types.TypeDecorator):
+    """ SqlAlchemy class to report member id using specific class
+    """
+    impl = sa.Integer
+    cache_ok = True
+    _default_type = sa.Integer
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, AjMemberId):
+            value = AjMemberId(value)
+        return int(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, AjMemberId):
+            value = AjMemberId(value)
+        return value
 
 
 class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
@@ -121,7 +143,7 @@ class Members(Base):
     """
     __tablename__ = 'members'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    id: orm.Mapped[AjMemberId] = orm.mapped_column(SaMemberId, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
@@ -141,7 +163,6 @@ class Members(Base):
     @orm.reconstructor
     def __init__(self):
         self.fuzz_match = None
-        self.id = MemberId(self.id)
 
     def set_match(self, match_val):
         """ Set matching value (percentage) and return updated self
@@ -166,10 +187,10 @@ class Members(Base):
                         mbr_match,
                     ]
         match format_spec:
-            case 'full':
+            case FormatTypes.FULLSIMPLE:
                 name_list = [mbr_id] + name_list
 
-            case 'restricted' | '':
+            case FormatTypes.RESTRICTED | '':
                 pass
 
             case _:
@@ -186,7 +207,6 @@ class AssoRoles(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
     JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='asso_role')
-    members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='asso_role')
     JCT_member_asso_role: orm.Mapped[list['JCTMemberAssoRole']] = orm.relationship('JCTMemberAssoRole', back_populates='asso_role', lazy='selectin')
 
 
@@ -201,7 +221,7 @@ class Memberships(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-    member_id: orm.Mapped[MemberId] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), index=True, nullable=False)
     season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships')
@@ -346,7 +366,7 @@ class DiscordPseudos(Base):
         """ override format
         """
         match format_spec:
-            case 'full' |'restricted' | '':
+            case FormatTypes.FULLSIMPLE | FormatTypes.RESTRICTED | '':
                 return f'@{self.name}'
 
             case _:
@@ -380,14 +400,14 @@ class MemberCredentials(Base):
         """ override format
         """
         match format_spec:
-            case 'fullname':
+            case FormatTypes.RESTRICTED | '':
+                name_list = [self.first_name]
+
+            case FormatTypes.FULLSIMPLE:
                 name_list = [self.first_name, self.last_name]
 
-            case 'full':
-                name_list = [self.first_name, self.last_name, self.birthdate]
-
-            case 'restricted' | '':
-                name_list = [self.first_name]
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.first_name, self.last_name, f"({AjDate(self.birthdate)})"]
 
             case _:
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
@@ -498,7 +518,7 @@ class JCTMemberAddress(Base):
 
 class JCTMemberAssoRole(Base):
     """ Junction table between members and asso roles
-    """ 
+    """
     __tablename__ = 'JCT_member_asso_role'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
@@ -623,7 +643,7 @@ class AjDb():
             return matched_members
 
         # Fuzz search on credential
-        fuzzy_match = [v.set_match(fuzz.token_sort_ratio(lookup_val, f'{v.credential:fullname}'))
+        fuzzy_match = [v.set_match(fuzz.token_sort_ratio(lookup_val, f'{v.credential:{FormatTypes.FULLSIMPLE}}'))
                        for v in matched_members]
         fuzzy_match = [v for v in fuzzy_match if v.fuzz_match > match_crit]
         fuzzy_match.sort(key=lambda x: x.fuzz_match, reverse=True)

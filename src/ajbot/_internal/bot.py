@@ -11,9 +11,9 @@ from discord import app_commands
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.ajdb import AjDb, MemberId
+from ajbot._internal.ajdb import AjDb
 from ajbot._internal.exceptions import OtherException
-from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
+from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 
 def get_member_dict(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.
@@ -173,7 +173,7 @@ class AjBot():
         reply = f"Je ne connais pas ton ou ta {input_member}."
         if members:
             embed = discord.Embed(color=discord.Color.orange())
-            format_style = "full" if self._is_manager(interaction) else "restricted"
+            format_style = FormatTypes.FULLSIMPLE if self._is_manager(interaction) else FormatTypes.RESTRICTED
             embed.add_field(name = 'id', inline=True,
                             value = '\n'.join(str(m.id) for m in members)
                         )
@@ -208,30 +208,6 @@ class AjBot():
     def _is_manager(self, interaction: discord.Interaction) -> bool:
         """A check which only allows managers to use the command."""
         return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
-
-
-# class MyCommandsAndEvents(commands.Cog):
-#     """ A class to hold bot commands. """
-#     def __init__(self, bot,
-#                  aj_config:AjConfig,
-#                  export_members = None):
-#         self.bot = bot
-#         self.aj_config = aj_config  #TODO: maybe remove
-#         self.last_hello_member = None
-#         self.export_members = export_members
-#         self._gdrive = GoogleDrive(aj_config)
-#         aj_file = self._gdrive.get_file(aj_config.file_id_db)
-#         self.ajdb = AjDb(aj_config, aj_file)
-
-#     @commands.Cog.listener()
-#     async def on_ready(self):
-#         """ Appelé lors de la connexion du bot. """
-#         print(f'We have logged in as {self.bot.user}')
-#         brett_server, *_ = [guild for guild in self.bot.guilds if guild.name == "Brett"]
-#         general_channel, *_ = [channel for channel in brett_server.channels if channel.name == "général"]
-#         await general_channel.send("Bonjour, je suis en ligne.\r\nEnvoie '$help' pour savoir ce que je peux faire!")
-#         if self.export_members:
-#             save_json_file(get_member_dict(discord_client=self.bot), self.export_members, preserve=False)
 
 
 #     @commands.command(name='roles')
@@ -312,7 +288,7 @@ class AjBot():
 #         members = await self.ajdb.members.search(in_member, ctx, 50, False)
 
 #         if members:
-#             reply = "\r\n".join([f"{member:full}" for member in members])
+#             reply = "\r\n".join([f"{member:{FORMAT_FULL}}" for member in members])
 #         else:
 #             reply = f"Je connais pas ton {in_member}."
 
