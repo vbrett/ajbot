@@ -127,8 +127,7 @@ class Members(Base):
     credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
     discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discord_pseudos.id'), index=True, nullable=True)
     discord_pseudo: orm.Mapped[Optional['DiscordPseudos']] = orm.relationship('DiscordPseudos', back_populates='member', uselist=False, lazy='selectin')
-    asso_role_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=True, comment='to override role defined by membership rules')
-    asso_role: orm.Mapped[Optional['AssoRoles']] = orm.relationship('AssoRoles', back_populates='members', lazy='selectin')
+    JCT_member_asso_role: orm.Mapped[list['JCTMemberAssoRole']] = orm.relationship('JCTMemberAssoRole', back_populates='member', lazy='selectin')
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member', lazy='selectin')
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member', lazy='selectin')
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member', lazy='selectin')
@@ -188,6 +187,7 @@ class AssoRoles(Base):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
     JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='asso_role')
     members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='asso_role')
+    JCT_member_asso_role: orm.Mapped[list['JCTMemberAssoRole']] = orm.relationship('JCTMemberAssoRole', back_populates='asso_role', lazy='selectin')
 
 
 class Memberships(Base):
@@ -274,7 +274,7 @@ class Events(Base):
 #     details: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
 #     credit: orm.Mapped[Optional[float]] = orm.mapped_column(sa.Float)
 #     debit: orm.Mapped[Optional[float]] = orm.mapped_column(sa.Float)
-#     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
+#     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
 #     LUT_accounts: orm.Mapped['LUTAccounts'] = orm.relationship('LUTAccounts', back_populates='transactions')
 #     assets: orm.Mapped[Optional['Assets']] = orm.relationship('Assets', back_populates='transactions')
@@ -496,6 +496,21 @@ class JCTMemberAddress(Base):
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
+class JCTMemberAssoRole(Base):
+    """ Junction table between members and asso roles
+    """ 
+    __tablename__ = 'JCT_member_asso_role'
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_asso_role')
+    asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
+    asso_role: orm.Mapped['AssoRoles'] = orm.relationship('AssoRoles', back_populates='JCT_member_asso_role')
+    start: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
+    end: orm.Mapped[Optional[datetime.date]] = orm.mapped_column(sa.Date, nullable=True)
+    comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
+
+
 class JCTAssoDiscordRole(Base):
     """ Junction table between Asso and Discord roles
     """
@@ -519,10 +534,7 @@ class JCTEventMember(Base):
     member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')
     member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
-    comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
-
-
-
+    comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
 
 

@@ -38,6 +38,7 @@ async def _populate_lut_tables(aj_db:AjDb):
         lut_tables.append(ajdb.LUTAccounts(name=val['val']))
     for val in xsldb_lookup_tables['type_voie']:
         lut_tables.append(ajdb.LUTStreetTypes(name=val['val']))
+
     for val in xsldb_lookup_tables['discord_role']:
         lut_tables.append(ajdb.DiscordRoles(name=val['val'], id=int(val['id']),))
     for val in xsldb_lookup_tables['roles']:
@@ -81,7 +82,9 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
             if val['saison'].get('asso_role_manuel'):
                 matched_role = [elt for elt in lut_tables
                                 if isinstance(elt, ajdb.AssoRoles) and elt.name == val['saison']['asso_role_manuel']]
-                new_member.asso_role = matched_role[0]
+                new_jct = ajdb.JCTMemberAssoRole(member=new_member,
+                                                 asso_role=matched_role[0])
+                member_tables.append(new_jct)
 
         if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
             new_member.credential = ajdb.MemberCredentials(first_name=val.get('prenom'),
