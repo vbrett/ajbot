@@ -5,7 +5,7 @@ sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
 from typing import Optional
-from datetime import date #, datetime, time
+import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
@@ -21,12 +21,12 @@ from ajbot._internal.config import AjConfig, _AJ_ID_PREFIX
 
 
 
-# class AjDate(date):
+# class AjDate(datetime.date):
 #     """ class that handles date type for AJ DB
 #     """
 #     def __new__(cls, indate, *args, **kwargs):
 #         #check if first passed argument is already a datetime format
-#         if isinstance(indate, (datetime, date)):
+#         if isinstance(indate, (datetime.datetime, datetime.date)):
 #             return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
 #         if isinstance(indate, time):
 #             return None
@@ -64,15 +64,15 @@ class LUTStreetTypes(Base):
     member_addresses: orm.Mapped[list['MemberAddresses']] = orm.relationship('MemberAddresses', back_populates='street_type')
 
 
-class LUTDiscordRoles(Base):
+class DiscordRoles(Base):
     """ List of supported Discord roles
     """
-    __tablename__ = 'LUT_discord_roles'
+    __tablename__ = 'discord_roles'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    JCT_member_discord_role: orm.Mapped[list['JCTMemberDiscordRole']] = orm.relationship('JCTMemberDiscordRole', back_populates='discord_role')
+    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='discord_role')
 
 
 class LUTContribution(Base):
@@ -117,10 +117,10 @@ class Seasons(Base):
     """
     __tablename__ = 'seasons'
 
-    season_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(10), nullable=False, index=True)
-    start: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False)
-    end: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False)
+    start: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
+    end: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='season')
     events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='season')
@@ -132,15 +132,14 @@ class Members(Base):
     """
     __tablename__ = 'members'
 
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
 
-    credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.credential_id'), index=True, nullable=True)
+    credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
-    discord_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_discords.pseudo_id'), index=True, nullable=True)
-    discord: orm.Mapped[Optional['MemberDiscords']] = orm.relationship('MemberDiscords', back_populates='member', uselist=False, lazy='selectin')
-    forced_role_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_roles.role_id'), index=True, nullable=True,
-                                                                   comment='to override role defined by membership rules')
-    forced_role: orm.Mapped[Optional['MemberRoles']] = orm.relationship('MemberRoles', back_populates='members', lazy='selectin')
+    discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discord_pseudos.id'), index=True, nullable=True)
+    discord_pseudo: orm.Mapped[Optional['DiscordPseudos']] = orm.relationship('DiscordPseudos', back_populates='member', uselist=False, lazy='selectin')
+    asso_role_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=True, comment='to override role defined by membership rules')
+    asso_role: orm.Mapped[Optional['AssoRoles']] = orm.relationship('AssoRoles', back_populates='members', lazy='selectin')
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member', lazy='selectin')
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member', lazy='selectin')
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member', lazy='selectin')
@@ -153,13 +152,13 @@ class Members(Base):
 
     @orm.reconstructor
     def __init__(self):
-        self.match_val = None
-        self.member_id = MemberId(self.member_id)
+        self.fuzz_match = None
+        self.id = MemberId(self.id)
 
     def set_match(self, match_val):
         """ Set matching value (percentage) and return updated self
         """
-        self.match_val = match_val
+        self.fuzz_match = match_val
         return self
 
     def __str__(self):
@@ -169,10 +168,10 @@ class Members(Base):
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_id = str(self.member_id)
+        mbr_id = str(self.id)
         mbr_creds = f'{self.credential:{format_spec}}' if self.credential else None
-        mbr_disc = f'{self.discord:{format_spec}}' if self.discord else None
-        mbr_match = f'({self.match_val}% de correspondance)' if self.match_val else None
+        mbr_disc = f'{self.discord_pseudo:{format_spec}}' if self.discord_pseudo else None
+        mbr_match = f'({self.fuzz_match}% de correspondance)' if self.fuzz_match else None
         name_list = [
                         mbr_creds,
                         mbr_disc,
@@ -182,7 +181,7 @@ class Members(Base):
             case 'full':
                 name_list = [mbr_id] + name_list
 
-            case 'simple' | '':
+            case 'restricted' | '':
                 pass
 
             case _:
@@ -200,11 +199,11 @@ class Memberships(Base):
                             comment='each member can have only one membership per season'),
     )
 
-    membership_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
-    membership_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
-    member_id: orm.Mapped[MemberId] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
+    member_id: orm.Mapped[MemberId] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships')
-    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), index=True, nullable=False)
+    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), index=True, nullable=False)
     season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships')
 
     statutes_accepted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
@@ -224,9 +223,9 @@ class Events(Base):
     """
     __tablename__ = 'events'
 
-    event_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    event_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False, index=True)
-    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), nullable=True, comment='shall be computed based on event_date', index=True)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
+    date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False, index=True)
+    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=True, index=True)
     season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='events')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
@@ -241,7 +240,7 @@ class Events(Base):
 #     """
 #     __tablename__ = 'assets'
 #
-#     asset_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
 #     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 #     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 #
@@ -254,9 +253,9 @@ class Events(Base):
 #     __tablename__ = 'transaction'
 #     __table_args__ = (
 #         sa.ForeignKeyConstraint(['account'], ['LUT_accounts.id'], name='FK_LUT_accounts_TO_transaction'),
-#         sa.ForeignKeyConstraint(['associated_asset'], ['assets.asset_id'], name='FK_assets_TO_transaction'),
-#         sa.ForeignKeyConstraint(['associated_event'], ['events.event_id'], name='FK_events_TO_transaction'),
-#         sa.ForeignKeyConstraint(['associated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_transaction'),
+#         sa.ForeignKeyConstraint(['associated_asset'], ['assets.id'], name='FK_assets_TO_transaction'),
+#         sa.ForeignKeyConstraint(['associated_event'], ['events.id'], name='FK_events_TO_transaction'),
+#         sa.ForeignKeyConstraint(['associated_membership'], ['memberships.id'], name='FK_memberships_TO_transaction'),
 #         sa.Index('FK_LUT_accounts_TO_transaction', 'account'),
 #         sa.Index('FK_assets_TO_transaction', 'associated_asset'),
 #         sa.Index('FK_events_TO_transaction', 'associated_event'),
@@ -264,9 +263,9 @@ class Events(Base):
 #         sa.Index('UQ_transaction_id', 'transaction_id', unique=True)
 #     )
 
-#     transaction_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     transaction_date: orm.Mapped[date] = orm.mapped_column(sa.Date, nullable=False)
-#     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.season_id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
+#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
+#     date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
+#     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
 #     account: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
 #     associated_event: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 #     associated_asset: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
@@ -290,33 +289,38 @@ class Events(Base):
 #     """
 #     __tablename__ = 'log'
 #     __table_args__ = (
-#         sa.ForeignKeyConstraint(['author'], ['members.member_id'], name='FK_members_TO_log1'),
-#         sa.ForeignKeyConstraint(['updated_event'], ['events.event_id'], name='FK_events_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_member'], ['members.member_id'], name='FK_members_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_membership'], ['memberships.membership_id'], name='FK_memberships_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_transaction'], ['transaction.transaction_id'], name='FK_transaction_TO_log'),
-#         sa.Index('FK_events_TO_log', 'updated_event'),
-#         sa.Index('FK_members_TO_log', 'updated_member'),
-#         sa.Index('FK_members_TO_log1', 'author'),
-#         sa.Index('FK_memberships_TO_log', 'updated_membership'),
-#         sa.Index('FK_transaction_TO_log', 'updated_transaction'),
+#         sa.ForeignKeyConstraint(['author_id'], ['members.id'], name='FK_members_TO_log1'),
+#         sa.ForeignKeyConstraint(['updated_event_id'], ['events.id'], name='FK_events_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_member_id'], ['members.id'], name='FK_members_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_membership_id'], ['memberships.id'], name='FK_memberships_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_transaction_id'], ['transaction.id'], name='FK_transaction_TO_log'),
+#         sa.Index('FK_events_TO_log', 'updated_event_id'),
+#         sa.Index('FK_members_TO_log', 'updated_member_id'),
+#         sa.Index('FK_members_TO_log1', 'author_id'),
+#         sa.Index('FK_memberships_TO_log', 'updated_membership_id'),
+#         sa.Index('FK_transaction_TO_log', 'updated_transaction_id'),
 #         sa.Index('UQ_datetime', 'log_datetime', unique=True)
 #     )
 
-#     log_datetime: orm.Mapped[datetime] = orm.mapped_column(sa.DateTime, primary_key=True)
-#     author: orm.Mapped[AjMemberId] = orm.mapped_column(sa.Integer, nullable=False)
+#     log_datetime: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime, primary_key=True)
+#     author_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.Integer, nullable=False)
 #  ?  name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
 #     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#     updated_event: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     updated_membership: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     updated_member: orm.Mapped[Optional[AjMemberId]] = orm.mapped_column(sa.Integer)
-#     updated_transaction: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
+#     updated_event_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
+#     updated_membership_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
+#     updated_member_id: orm.Mapped[Optional[AjMemberId]] = orm.mapped_column(sa.Integer)
+#     updated_transaction_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 
 #     members: orm.Mapped['Members'] = orm.relationship('Members', foreign_keys=[author], back_populates='log')
 #     events: orm.Mapped[Optional['Events']] = orm.relationship('Events', back_populates='log')
 #     members_: orm.Mapped[Optional['Members']] = orm.relationship('Members', foreign_keys=[updated_member], back_populates='log_')
 #     memberships: orm.Mapped[Optional['Memberships']] = orm.relationship('Memberships', back_populates='log')
 #     transactions: orm.Mapped[Optional['Transactions']] = orm.relationship('Transactions', back_populates='log')
+
+
+
+# Asso tables
+#########################################
 
 
 
@@ -333,11 +337,11 @@ class MemberCredentials(Base):
                       {'comment': 'contains RGPD info'},
                      )
 
-    credential_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='credential', uselist=False)
     first_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
-    birthdate: orm.Mapped[Optional[date]] = orm.mapped_column(sa.Date)
+    birthdate: orm.Mapped[Optional[datetime.date]] = orm.mapped_column(sa.Date)
 
     def __str__(self):
         return format(self, '')
@@ -346,10 +350,13 @@ class MemberCredentials(Base):
         """ override format
         """
         match format_spec:
-            case 'full':
+            case 'fullname':
                 name_list = [self.first_name, self.last_name]
 
-            case 'simple' | '':
+            case 'full':
+                name_list = [self.first_name, self.last_name, self.birthdate]
+
+            case 'restricted' | '':
                 name_list = [self.first_name]
 
             case _:
@@ -358,35 +365,32 @@ class MemberCredentials(Base):
         return ' '.join([x for x in name_list if x])
 
 
-class MemberRoles(Base):
+class AssoRoles(Base):
     """ user member roles table class
     """
-    __tablename__ = 'member_roles'
+    __tablename__ = 'asso_roles'
 
-    role_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
-    JCT_member_discord_role: orm.Mapped[list['JCTMemberDiscordRole']] = orm.relationship('JCTMemberDiscordRole', back_populates='member_role')
-    members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='forced_role')
+    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='asso_role')
+    members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='asso_role')
 
 
-class MemberDiscords(Base):
+class DiscordPseudos(Base):
     """ user discord pseudo table class
     """
-    __tablename__ = 'member_discords'
-    __table_args__ = (
-        {'comment': 'contains RGPD info'}
-    )
+    __tablename__ = 'discord_pseudos'
 
-    pseudo_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
-    pseudo: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord', uselist=False)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord_pseudo', uselist=False)
 
     def __format__(self, format_spec):
         """ override format
         """
         match format_spec:
-            case 'full' |'simple' | '':
-                return f'@{self.pseudo}'
+            case 'full' |'restricted' | '':
+                return f'@{self.name}'
 
             case _:
                 return 'Ce format n\'est pas supporté'
@@ -400,8 +404,8 @@ class MemberEmails(Base):
         {'comment': 'contains RGPD info'}
     )
 
-    email_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
-    email: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, unique=True, index=True)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    address: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, unique=True, index=True)
 
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='email')
 
@@ -414,8 +418,8 @@ class MemberPhones(Base):
         {'comment': 'contains RGPD info'}
     )
 
-    phone_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
-    phone_number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
 
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='phone')
 
@@ -429,7 +433,7 @@ class MemberAddresses(Base):
         {'comment': 'contains RGPD info'}
     )
 
-    address_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     street_num: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50), nullable=True)
     street_type_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_street_types.id'), index=True, nullable=True)
     street_type: orm.Mapped[Optional['LUTStreetTypes']] = orm.relationship('LUTStreetTypes', back_populates='member_addresses')
@@ -454,9 +458,9 @@ class JCTMemberEmail(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_email')
-    email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_emails.email_id'), index=True, nullable=False)
+    email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_emails.id'), index=True, nullable=False)
     email: orm.Mapped['MemberEmails'] = orm.relationship('MemberEmails', back_populates='JCT_member_email')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
@@ -470,9 +474,9 @@ class JCTMemberPhone(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_phone')
-    phone_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_phones.phone_id'), index=True, nullable=False)
+    phone_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_phones.id'), index=True, nullable=False)
     phone: orm.Mapped['MemberPhones'] = orm.relationship('MemberPhones', back_populates='JCT_member_phone')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
@@ -486,23 +490,23 @@ class JCTMemberAddress(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=False)
+    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_address')
-    address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_addresses.address_id'), index=True, nullable=False)
+    address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_addresses.id'), index=True, nullable=False)
     address: orm.Mapped['MemberAddresses'] = orm.relationship('MemberAddresses', back_populates='JCT_member_address')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
-class JCTMemberDiscordRole(Base):
-    """ Junction table between members and Discord roles
+class JCTAssoDiscordRole(Base):
+    """ Junction table between Asso and Discord roles
     """
-    __tablename__ = 'JCT_member_discord_role'
+    __tablename__ = 'JCT_asso_discord_role'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
-    member_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_roles.role_id'), index=True, nullable=False)
-    member_role: orm.Mapped['MemberRoles'] = orm.relationship('MemberRoles', back_populates='JCT_member_discord_role')
-    discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_discord_roles.id'), index=True, nullable=False)
-    discord_role: orm.Mapped['LUTDiscordRoles'] = orm.relationship('LUTDiscordRoles', back_populates='JCT_member_discord_role')
+    asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
+    asso_role: orm.Mapped['AssoRoles'] = orm.relationship('AssoRoles', back_populates='JCT_asso_discord_role')
+    discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
+    discord_role: orm.Mapped['DiscordRoles'] = orm.relationship('DiscordRoles', back_populates='JCT_asso_discord_role')
 
 
 class JCTEventMember(Base):
@@ -511,9 +515,9 @@ class JCTEventMember(Base):
     __tablename__ = 'JCT_event_member'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
-    event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.event_id'), index=True, nullable=False)
+    event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.id'), index=True, nullable=False)
     event: orm.Mapped['Events'] = orm.relationship('Events', back_populates='JCT_event_member')
-    member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.member_id'), index=True, nullable=True, comment='Can be null name/id is lost.')
+    member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')
     member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
@@ -578,13 +582,13 @@ class AjDb():
         # Check if lookup_val is a discord.Member object
         if isinstance(lookup_val, discord.Member):
             try:
-                query = sa.select(Members).join(Members.discord).where(MemberDiscords.pseudo == lookup_val.name)
+                query = sa.select(Members).join(Members.discord_pseudo).where(DiscordPseudos.name == lookup_val.name)
             except MemberNotFound as e:
                 raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
 
         # check if lookup_val is an integer (member ID)
         elif isinstance(lookup_val, int):
-            query = sa.select(Members).where(Members.member_id == lookup_val)
+            query = sa.select(Members).where(Members.id == lookup_val)
 
         elif isinstance(lookup_val, str):
             query = sa.select(Members).where(Members.credential)
@@ -603,12 +607,12 @@ class AjDb():
             return matched_members
 
         # Fuzz search on credential
-        fuzzy_match = [v.set_match(fuzz.token_sort_ratio(lookup_val, f'{v.credential:full}'))
+        fuzzy_match = [v.set_match(fuzz.token_sort_ratio(lookup_val, f'{v.credential:fullname}'))
                        for v in matched_members]
-        fuzzy_match = [v for v in fuzzy_match if v.match_val > match_crit]
-        fuzzy_match.sort(key=lambda x: x.match_val, reverse=True)
+        fuzzy_match = [v for v in fuzzy_match if v.fuzz_match > match_crit]
+        fuzzy_match.sort(key=lambda x: x.fuzz_match, reverse=True)
 
-        perfect_match = [v.set_match(None) for v in fuzzy_match if v.match_val == 100]
+        perfect_match = [v.set_match(None) for v in fuzzy_match if v.fuzz_match == 100]
         if perfect_match:
             if len(perfect_match) > 1 and break_if_multi_perfect_match:
                 raise AjDbException(f"multiple member perfectly match {lookup_val}")

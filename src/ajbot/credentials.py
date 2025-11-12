@@ -62,7 +62,7 @@ def check_set_db(aj_config:AjConfig):
 
 
 def _main():
-    """ Simple command line interface to set or update the passwords & credentials in config file. """
+    """ Command line interface to set or update the passwords & credentials in config file. """
     with AjConfig(break_if_missing=False, save_on_exit=True) as aj_config:
         _ = check_set_discord(aj_config)
         _ = check_set_db(aj_config)

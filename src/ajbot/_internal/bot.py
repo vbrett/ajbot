@@ -173,17 +173,17 @@ class AjBot():
         reply = f"Je ne connais pas ton ou ta {input_member}."
         if members:
             embed = discord.Embed(color=discord.Color.orange())
-            format_style = "full" if self._is_manager(interaction) else "simple"
+            format_style = "full" if self._is_manager(interaction) else "restricted"
             embed.add_field(name = 'id', inline=True,
-                            value = '\n'.join(str(m.member_id) for m in members)
+                            value = '\n'.join(str(m.id) for m in members)
                         )
             embed.add_field(name = 'Discord', inline=True,
-                            value = '\n'.join(('@' + str(m.discord.pseudo)) if m.discord else '' for m in members)
+                            value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '' for m in members)
                            )
-            if members[0].match_val:
+            if members[0].fuzz_match:
                 embed.add_field(name = 'Nom (% match)', inline=True,
                                 value = '\n'.join(' '.join([f'{m.credential:{format_style}}' if m.credential else '',
-                                                            f'({m.match_val}%)' if m.match_val else '(100%)']) for m in members)
+                                                            f'({m.fuzz_match}%)' if m.fuzz_match else '(100%)']) for m in members)
                             )
             else:
                 embed.add_field(name = 'Nom', inline=True,

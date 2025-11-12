@@ -12,7 +12,7 @@ async def _read_db():
         query_result = await aj_db.search_member('vincent')
 
     for qr in query_result:
-        print(f'{qr:simple}', '-----', f'{qr:full}')
+        print(f'{qr:restricted}', '-----', f'{qr:full}')
 
 
     return 0
