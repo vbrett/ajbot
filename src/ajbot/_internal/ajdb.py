@@ -64,17 +64,6 @@ class LUTStreetTypes(Base):
     member_addresses: orm.Mapped[list['MemberAddresses']] = orm.relationship('MemberAddresses', back_populates='street_type')
 
 
-class DiscordRoles(Base):
-    """ List of supported Discord roles
-    """
-    __tablename__ = 'discord_roles'
-
-    id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
-    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
-
-    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='discord_role')
-
-
 class LUTContribution(Base):
     """ List of supported contribution levels
     """
@@ -188,6 +177,17 @@ class Members(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
         return ' - '.join([x for x in name_list if x])
+
+
+class AssoRoles(Base):
+    """ user member roles table class
+    """
+    __tablename__ = 'asso_roles'
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
+    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
+    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='asso_role')
+    members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='asso_role')
 
 
 class Memberships(Base):
@@ -319,8 +319,38 @@ class Events(Base):
 
 
 
-# Asso tables
+# Discord tables
 #########################################
+
+class DiscordRoles(Base):
+    """ List of supported Discord roles
+    """
+    __tablename__ = 'discord_roles'
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
+    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
+
+    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='discord_role')
+
+
+class DiscordPseudos(Base):
+    """ user discord pseudo table class
+    """
+    __tablename__ = 'discord_pseudos'
+
+    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
+    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
+    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord_pseudo', uselist=False)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case 'full' |'restricted' | '':
+                return f'@{self.name}'
+
+            case _:
+                return 'Ce format n\'est pas supporté'
 
 
 
@@ -363,37 +393,6 @@ class MemberCredentials(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
         return ' '.join([x for x in name_list if x])
-
-
-class AssoRoles(Base):
-    """ user member roles table class
-    """
-    __tablename__ = 'asso_roles'
-
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
-    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
-    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='asso_role')
-    members: orm.Mapped[list['Members']] = orm.relationship('Members', back_populates='asso_role')
-
-
-class DiscordPseudos(Base):
-    """ user discord pseudo table class
-    """
-    __tablename__ = 'discord_pseudos'
-
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
-    name: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord_pseudo', uselist=False)
-
-    def __format__(self, format_spec):
-        """ override format
-        """
-        match format_spec:
-            case 'full' |'restricted' | '':
-                return f'@{self.name}'
-
-            case _:
-                return 'Ce format n\'est pas supporté'
 
 
 class MemberEmails(Base):
@@ -521,6 +520,11 @@ class JCTEventMember(Base):
     member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(100))
+
+
+
+
+
 
 
 
