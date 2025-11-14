@@ -9,6 +9,7 @@ import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import orm
 
 from thefuzz import fuzz
@@ -137,6 +138,25 @@ class Seasons(Base):
     events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='season')
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='seasons')
 
+    @hybrid_property
+    def is_current_season(self):
+        """ return true if item is current season
+        """
+        return (    datetime.datetime.now().date() >= self.start
+                and datetime.datetime.now().date() <= self.end)
+
+    @is_current_season.expression
+    def is_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
+        """ SQL version
+        """
+        return  sa.select(
+                    sa.case((sa.exists().where(
+                    sa.and_(
+                        datetime.datetime.now().date() >= cls.start,
+                        datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
+                    ).label("is_current_season")
+                )
+
 
 class Members(Base):
     """ Member table class
@@ -198,6 +218,42 @@ class Members(Base):
 
         return ' - '.join([x for x in name_list if x])
 
+    @hybrid_property
+    def is_current_subscriber(self):
+        """ return true if member has subscribed to current season 
+        """
+        return any(m.is_in_current_season for m in self.memberships)
+
+    @is_current_subscriber.expression
+    def is_current_subscriber(cls):      #pylint: disable=no-self-argument   #function is a class factory
+        """ SQL version
+        """
+        return  sa.select(
+                    sa.case((sa.exists().where(
+                    sa.and_(
+                        Memberships.member_id == cls.id,
+                        Memberships.is_in_current_season)).correlate(cls), True), else_=False,
+                    ).label("is_current_season")
+                )
+
+    # @hybrid_property
+    # def current_asso_role(self):
+    #     """ return the current role, based on membership and manually assigned role
+    #     """
+    #     return self.season.is_current_season
+
+    # @current_asso_role.expression
+    # def current_asso_role(cls):      #pylint: disable=no-self-argument   #function is a class factory
+    #     """ SQL version
+    #     """
+    #     return  sa.select(
+    #                 sa.case((sa.exists().where(
+    #                 sa.and_(
+    #                     Seasons.id == cls.season_id,
+    #                     Seasons.is_current_season)).correlate(cls), True), else_=False,
+    #                 ).label("current_asso_role")
+    #             )
+
 
 class AssoRoles(Base):
     """ user member roles table class
@@ -237,6 +293,24 @@ class Memberships(Base):
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='memberships')
     # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='memberships')
 
+    @hybrid_property
+    def is_in_current_season(self):
+        """ return true if item belongs to current season
+        """
+        return self.season.is_current_season
+
+    @is_in_current_season.expression
+    def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
+        """ SQL version
+        """
+        return  sa.select(
+                    sa.case((sa.exists().where(
+                    sa.and_(
+                        Seasons.id == cls.season_id,
+                        Seasons.is_current_season)).correlate(cls), True), else_=False,
+                    ).label("is_in_current_season")
+                )
+
 
 class Events(Base):
     """ Events table class
@@ -254,6 +328,28 @@ class Events(Base):
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='events')
     # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events')
 
+    def __str__(self):
+        disp_date = AjDate(self.date)   #TODO: handle AjDate type for natively, like MemberId
+        disp_name = self.name if self.name else 'Soirée vendredi'
+        return f'{disp_date} - {disp_name}'
+
+    @hybrid_property
+    def is_in_current_season(self):
+        """ return true if item belongs to current season
+        """
+        return self.season.is_current_season
+
+    @is_in_current_season.expression
+    def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
+        """ SQL version
+        """
+        return  sa.select(
+                    sa.case((sa.exists().where(
+                    sa.and_(
+                        Seasons.id == cls.season_id,
+                        Seasons.is_current_season)).correlate(cls), True), else_=False,
+                    ).label("is_in_current_season")
+                )
 
 # class Assets(Base):
 #     """ Assets table class
