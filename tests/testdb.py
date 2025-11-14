@@ -15,7 +15,6 @@ async def _read_db():
 
         for qr in query_result:
             print(f'{qr:{FormatTypes.RESTRICTED}}', '-----', f'{qr:{FormatTypes.FULLSIMPLE}}')
-        print(len(query_result))
         print('-------------------')
 
         query = sa.select(ajdb.Events).filter(ajdb.Events.is_in_current_season)
