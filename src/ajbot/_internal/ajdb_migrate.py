@@ -126,13 +126,13 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
                                  or elt.street_type.name == val['adresse'].get('type_voie')
                                 )
                             and elt.zip_code == val['adresse'].get('cp')
-                            and elt.town == val['adresse'].get('ville')
+                            and elt.city == val['adresse'].get('ville')
                             ]
             if matched_rpg:
                 new_rpg = matched_rpg[0]
             else:
                 new_rpg = ajdb.MemberAddresses()
-                new_rpg.town=val['adresse']['ville']
+                new_rpg.city=val['adresse']['ville']
                 if val['adresse'].get('numero'):
                     new_rpg.street_num = val['adresse']['numero']
                 if val['adresse'].get('type_voie'):
@@ -140,7 +140,7 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
                                     if isinstance(elt, ajdb.LUTStreetTypes) and elt.name == val['adresse']['type_voie']]
                     new_rpg.street_type = matched_type_voie[0]
                 if val['adresse'].get('autre'):
-                    new_rpg.street_extra = val['adresse']['autre']
+                    new_rpg.extra = val['adresse']['autre']
                 if val['adresse'].get('nom_voie'):
                     new_rpg.street_name = val['adresse']['nom_voie']
                 if val['adresse'].get('cp'):

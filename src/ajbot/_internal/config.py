@@ -33,7 +33,7 @@ _KEY_DB_ECHO = "db_echo"
 class FormatTypes():
     """ supported format types
     """
-    RESTRICTED = 'restricted'
+    RESTRICTED = ''     # since f'{xxx}' is equivalent to format(xxx, ''), defining RESTRICTED to '' enforces f'' string woth no format to be same as restricted
     FULLSIMPLE = 'full_simple'
     FULLCOMPLETE = 'full_complete'
 

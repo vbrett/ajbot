@@ -180,10 +180,10 @@ class AjBot():
             embed.add_field(name = 'Discord', inline=True,
                             value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '' for m in members)
                            )
-            if members[0].fuzz_match:
+            if members[0].fuzzy_match:
                 embed.add_field(name = 'Nom (% match)', inline=True,
                                 value = '\n'.join(' '.join([f'{m.credential:{format_style}}' if m.credential else '',
-                                                            f'({m.fuzz_match}%)' if m.fuzz_match else '(100%)']) for m in members)
+                                                            f'({m.fuzzy_match}%)' if m.fuzzy_match else '(100%)']) for m in members)
                             )
             else:
                 embed.add_field(name = 'Nom', inline=True,

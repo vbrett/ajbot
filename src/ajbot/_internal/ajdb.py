@@ -21,29 +21,63 @@ from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig, _AJ_ID_PREFIX, FormatTypes
 
 
-class AjDate(datetime.date):
+class HumanizedDate(datetime.date):
     """ class that handles date type for AJ DB
     """
     def __new__(cls, indate, *args, **kwargs):
         #check if first passed argument is already a datetime format
-        if isinstance(indate, (datetime.datetime, datetime.date)):
-            return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
-        if isinstance(indate, datetime.time):
-            return None
-        return super().__new__(cls, indate, *args, **kwargs)
+        if not isinstance(indate, datetime.date):
+            raise AjDbException(f'Incorrect format: {type(cls)}')
+
+        return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
 
     def __str__(self):
-        humanize.i18n.activate("fr_FR")
-        return humanize.naturaldate(self)
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        humanize.i18n.activate("fr")
+        humanized_date = humanize.naturaldate(self)
+        humanize.i18n.deactivate()
+        return humanized_date
+
+class SaHumanizedDate(sa.types.TypeDecorator):          #pylint: disable=abstract-method,abstract-method
+    """ SqlAlchemy class to report date using specific class
+    """
+    impl = sa.Date
+    cache_ok = True
+    _default_type = sa.Date
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, HumanizedDate):
+            value = HumanizedDate(value)
+        return datetime.date(value.year, value.month, value.day)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, HumanizedDate):
+            value = HumanizedDate(value)
+        return value
 
 
 class AjMemberId(int):
     """ Class that handles member id as integer, and represents it in with correct format
     """
     def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
         return f"{_AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
 
-class SaMemberId(sa.types.TypeDecorator):
+class SaAjMemberId(sa.types.TypeDecorator):   #pylint: disable=abstract-method,abstract-method
     """ SqlAlchemy class to report member id using specific class
     """
     impl = sa.Integer
@@ -86,6 +120,14 @@ class LUTStreetTypes(Base):
 
     member_addresses: orm.Mapped[list['MemberAddresses']] = orm.relationship('MemberAddresses', back_populates='street_type', lazy='selectin')
 
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
+
 
 class LUTContribution(Base):
     """ List of supported contribution levels
@@ -96,6 +138,14 @@ class LUTContribution(Base):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='contribution', lazy='selectin')
+
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
 
 
 class LUTKnowFrom(Base):
@@ -108,6 +158,14 @@ class LUTKnowFrom(Base):
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='know_from', lazy='selectin')
 
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
+
 
 class LUTAccounts(Base):
     """ List of supported transaction accounts
@@ -118,6 +176,14 @@ class LUTAccounts(Base):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='LUT_accounts', lazy='selectin')
+
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
 
 
 # Main tables
@@ -131,8 +197,8 @@ class Seasons(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(10), nullable=False, index=True)
-    start: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
-    end: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
+    start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
+    end: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='season', lazy='selectin')
     events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='season', lazy='selectin')
@@ -155,7 +221,15 @@ class Seasons(Base):
                         datetime.datetime.now().date() >= cls.start,
                         datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
                     ).label("is_current_season")
-                )
+                ).scalar_subquery()
+
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
 
 
 class Members(Base):
@@ -163,7 +237,7 @@ class Members(Base):
     """
     __tablename__ = 'members'
 
-    id: orm.Mapped[AjMemberId] = orm.mapped_column(SaMemberId, primary_key=True, index=True, unique=True, autoincrement=True)
+    id: orm.Mapped[AjMemberId] = orm.mapped_column(SaAjMemberId, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
@@ -171,8 +245,20 @@ class Members(Base):
     discord_pseudo: orm.Mapped[Optional['DiscordPseudos']] = orm.relationship('DiscordPseudos', back_populates='member', uselist=False, lazy='selectin')
     JCT_member_asso_role: orm.Mapped[list['JCTMemberAssoRole']] = orm.relationship('JCTMemberAssoRole', back_populates='member', lazy='selectin')
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member', lazy='selectin')
+    email_principal: orm.Mapped[Optional['JCTMemberEmail']] = orm.relationship('JCTMemberEmail',
+                                                                                primaryjoin="and_(Members.id==JCTMemberEmail.member_id,JCTMemberEmail.principal==True)",
+                                                                                lazy='selectin',
+                                                                                viewonly=True,)
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member', lazy='selectin')
+    phone_principal: orm.Mapped[Optional['JCTMemberPhone']] = orm.relationship('JCTMemberPhone',
+                                                                                primaryjoin="and_(Members.id==JCTMemberPhone.member_id,JCTMemberPhone.principal==True)",
+                                                                                lazy='selectin',
+                                                                                viewonly=True,)
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member', lazy='selectin')
+    address_principal: orm.Mapped[Optional['JCTMemberAddress']] = orm.relationship('JCTMemberAddress',
+                                                                                primaryjoin="and_(Members.id==JCTMemberAddress.member_id,JCTMemberAddress.principal==True)",
+                                                                                lazy='selectin',
+                                                                                viewonly=True,)
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member', lazy='selectin')
     JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='member', lazy='selectin')
@@ -217,45 +303,31 @@ class Members(Base):
     #                 ).label("nb_current_presence")
     #             )
 
-    @orm.reconstructor
-    def __init__(self):
-        self.fuzz_match = None
-
-    def set_match(self, match_val):
-        """ Set matching value (percentage) and return updated self
-        """
-        self.fuzz_match = match_val
-        return self
-
     def __str__(self):
-        return format(self, '')
-
+        return format(self, FormatTypes.RESTRICTED)
 
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_asso_info = f'[{self.id} - '
-        mbr_asso_info += 'cotisant' if self.is_current_subscriber else f'{self.nb_current_presence}'
-        mbr_asso_info += ']'
-        mbr_creds = f'{self.credential:{format_spec}}' if self.credential else None
-        mbr_disc = f'({self.discord_pseudo:{format_spec}})' if self.discord_pseudo else None
-        mbr_match = f'- match à {self.fuzz_match}%' if self.fuzz_match else None
-        name_list = [
-                        mbr_creds,
-                        mbr_disc,
-                        mbr_match,
-                    ]
-        match format_spec:
-            case FormatTypes.FULLSIMPLE:
-                name_list = [mbr_asso_info] + name_list
+        mbr_id = self.id
+        mbr_creds = self.credential
+        mbr_disc = self.discord_pseudo
+        mbr_email = self.email_principal.email if self.email_principal else None
+        mbr_address = self.address_principal.address if self.address_principal else None
+        mbr_phone = self.phone_principal.phone if self.phone_principal else None
 
-            case FormatTypes.RESTRICTED | '':
-                pass
+        mbr_asso_info = '' if self.is_current_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
+        mbr_asso_info += f'cotisant, {self.nb_current_presence} participation(s) cette saison.'
+
+        match format_spec:
+            case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
+                return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc,] if x])
+
+            case FormatTypes.FULLCOMPLETE:
+                return '\n'.join([f'{x:{format_spec}}'for x in [mbr_id, mbr_creds, mbr_disc, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
-
-        return ' '.join([x for x in name_list if x])
 
 
 class AssoRoles(Base):
@@ -279,7 +351,7 @@ class Memberships(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
-    date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False, comment='coupling between this and season')
+    date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, comment='coupling between this and season')
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships', lazy='selectin')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), index=True, nullable=False)
@@ -312,8 +384,9 @@ class Memberships(Base):
                         Seasons.id == cls.season_id,
                         Seasons.is_current_season)).correlate(cls), True), else_=False,
                     ).label("is_in_current_season")
-                )
+                ).scalar_subquery()
 
+    #TODO: implement __str__ & __format__
 
 class Events(Base):
     """ Events table class
@@ -321,7 +394,7 @@ class Events(Base):
     __tablename__ = 'events'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False, index=True)
+    date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True)
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=True, index=True)
     season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='events', lazy='selectin')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
@@ -347,12 +420,20 @@ class Events(Base):
                         Seasons.id == cls.season_id,
                         Seasons.is_current_season)).correlate(cls), True), else_=False,
                     ).label("is_in_current_season")
-                )
+                ).scalar_subquery()
 
     def __str__(self):
-        disp_date = AjDate(self.date)   #TODO: handle AjDate type for natively, like MemberId
-        disp_name = f' - {self.name}' if self.name else ''
-        return f'{disp_date}{disp_name}'
+        return format(self, FormatTypes.RESTRICTED)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE | FormatTypes.RESTRICTED:
+                return ' - '.join(f'{x}' for x in [self.date, self.name] if x)
+
+            case _:
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
 
@@ -385,7 +466,7 @@ class Events(Base):
 #     )
 
 #     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
-#     date: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
+#     date: orm.Mapped[HumanizedDate] = orm.mapped_column(saHumanized.Date, nullable=False)
 #     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
 #     account: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
 #     associated_event: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
@@ -453,6 +534,19 @@ class DiscordRoles(Base):
 
     JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='discord_role', lazy='selectin')
 
+    def __str__(self):
+        return format(self, FormatTypes.RESTRICTED)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case FormatTypes.FULLCOMPLETE | FormatTypes.FULLSIMPLE | FormatTypes.RESTRICTED:
+                return self.name
+
+            case _:
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+
 
 class DiscordPseudos(Base):
     """ user discord pseudo table class
@@ -463,15 +557,18 @@ class DiscordPseudos(Base):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord_pseudo', uselist=False, lazy='selectin')
 
+    def __str__(self):
+        return format(self, FormatTypes.RESTRICTED)
+
     def __format__(self, format_spec):
         """ override format
         """
         match format_spec:
-            case FormatTypes.FULLSIMPLE | FormatTypes.RESTRICTED | '':
-                return f'@{self.name}'
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE | FormatTypes.RESTRICTED:
+                return '@' + self.name
 
             case _:
-                return 'Ce format n\'est pas supporté'
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
 
@@ -492,28 +589,38 @@ class MemberCredentials(Base):
     member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='credential', uselist=False, lazy='selectin')
     first_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
-    birthdate: orm.Mapped[Optional[datetime.date]] = orm.mapped_column(sa.Date)
+    birthdate: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate)
+
+    @orm.reconstructor
+    def __init__(self):
+        self.fuzzy_match = None
+
+    def compute_fuzzy_match(self, lookup_val):
+        """ Set matching value (percentage)
+        """
+        self.fuzzy_match = fuzz.token_sort_ratio(lookup_val, self.first_name + ' ' + self.last_name)
 
     def __str__(self):
-        return format(self, '')
+        return format(self, FormatTypes.RESTRICTED)
 
     def __format__(self, format_spec):
         """ override format
         """
+        mbr_match = f'(match à {self.fuzzy_match}%)' if (self.fuzzy_match and self.fuzzy_match < 100) else None
         match format_spec:
-            case FormatTypes.RESTRICTED | '':
-                name_list = [self.first_name]
+            case FormatTypes.RESTRICTED:
+                name_list = [self.first_name, mbr_match]
 
             case FormatTypes.FULLSIMPLE:
-                name_list = [self.first_name, self.last_name]
+                name_list = [self.first_name, self.last_name, mbr_match]
 
             case FormatTypes.FULLCOMPLETE:
-                name_list = [self.first_name, self.last_name, f"({AjDate(self.birthdate)})"]
+                name_list = [self.first_name, self.last_name, mbr_match, self.birthdate]
 
             case _:
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
-        return ' '.join([x for x in name_list if x])
+        return ' '.join([f'{x}' for x in name_list if x])
 
 
 class MemberEmails(Base):
@@ -529,6 +636,22 @@ class MemberEmails(Base):
 
     JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='email', lazy='selectin')
 
+    def __str__(self):
+        return format(self, FormatTypes.RESTRICTED)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                return 'xxxxxx@yyyy.zzz'
+
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+                return self.address
+
+            case _:
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+
 
 class MemberPhones(Base):
     """ user phone number table class
@@ -543,13 +666,29 @@ class MemberPhones(Base):
 
     JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='phone', lazy='selectin')
 
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                return '(+33)000000000'
+
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+                return self.number
+
+            case _:
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+
 
 class MemberAddresses(Base):
     """ user address table class
     """
     __tablename__ = 'member_addresses'
     __table_args__ = (
-        sa.UniqueConstraint('street_num', 'street_type_id', 'street_name', 'zip_code', 'town',),
+        sa.UniqueConstraint('street_num', 'street_type_id', 'street_name', 'zip_code', 'city',),
         {'comment': 'contains RGPD info'}
     )
 
@@ -559,10 +698,32 @@ class MemberAddresses(Base):
     street_type: orm.Mapped[Optional['LUTStreetTypes']] = orm.relationship('LUTStreetTypes', back_populates='member_addresses', lazy='selectin')
     street_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
     zip_code: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer, nullable=True)
-    town: orm.Mapped[str] = orm.mapped_column(sa.String(255), nullable=False)
-    street_extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
+    city: orm.Mapped[str] = orm.mapped_column(sa.String(255), nullable=False)
+    extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
     JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='address', lazy='selectin')
+
+    def __str__(self):
+        return format(self, FormatTypes.RESTRICTED)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                return self.city
+
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+                return ' '.join([f'{x}' for x in [self.street_num,
+                                                  self.street_type,
+                                                  self.street_name,
+                                                  self.zip_code,
+                                                  self.city,
+                                                  self.extra] if x])
+
+            case _:
+                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+
 
 
 # Junction tables
@@ -627,8 +788,8 @@ class JCTMemberAssoRole(Base):
     member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_asso_role', lazy='selectin')
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
     asso_role: orm.Mapped['AssoRoles'] = orm.relationship('AssoRoles', back_populates='JCT_member_asso_role', lazy='selectin')
-    start: orm.Mapped[datetime.date] = orm.mapped_column(sa.Date, nullable=False)
-    end: orm.Mapped[Optional[datetime.date]] = orm.mapped_column(sa.Date, nullable=True)
+    start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
+    end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
 
@@ -744,18 +905,18 @@ class AjDb():
             return matched_members
 
         # Fuzz search on credential
-        fuzzy_match = [v.set_match(fuzz.token_sort_ratio(lookup_val, f'{v.credential:{FormatTypes.FULLSIMPLE}}'))
-                       for v in matched_members]
-        fuzzy_match = [v for v in fuzzy_match if v.fuzz_match > match_crit]
-        fuzzy_match.sort(key=lambda x: x.fuzz_match, reverse=True)
+        for v in matched_members:
+            v.credential.compute_fuzzy_match(lookup_val)
 
-        perfect_match = [v.set_match(None) for v in fuzzy_match if v.fuzz_match == 100]
+        perfect_match = [v for v in matched_members if v.credential.fuzzy_match == 100]
         if perfect_match:
             if len(perfect_match) > 1 and break_if_multi_perfect_match:
-                raise AjDbException(f"multiple member perfectly match {lookup_val}")
+                raise AjDbException(f"Plusieurs correspondances parfaites pour {lookup_val}")
             return perfect_match
 
-        return fuzzy_match
+        matched_members = [v for v in matched_members if v.credential.fuzzy_match > match_crit]
+        matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
+        return matched_members
 
 #     def get_in_season_events(self, event_types = None):
 #         """ returns events of certain type that are in current season
