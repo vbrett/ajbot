@@ -992,7 +992,6 @@ class AjDb():
             @return
                 [all found Members]
         '''
-        #TODO: add management of any season
         if season_name:
             raise AjDbException(f"saison non supportée {season_name}")
 
@@ -1011,11 +1010,39 @@ class AjDb():
             @return
                 [all found events]
         '''
-        #TODO: add management of any season
         if season_name:
             raise AjDbException(f"saison non supportée {season_name}")
 
         query = sa.select(Event).where(Event.is_in_current_season)
+        async with self.AsyncSessionMaker() as session:
+            async with session.begin():
+                query_result = await session.execute(query)
+
+        return query_result.scalars().all()
+
+    async def get_season_members(self, season_name = None):
+        ''' retrieve list of members having participated in season
+            @args
+                season_name = Optional. If empty, use current season
+
+            @return
+                [all found members with number of presence]
+        '''
+        if season_name:
+            query = sa.select(Member)\
+                        .join(MemberEvent)\
+                        .join(Event)\
+                        .join(Season)\
+                        .where(Season.name == season_name)\
+                        .group_by(Member)
+        else:
+            query = sa.select(Member)\
+                        .join(MemberEvent)\
+                        .join(Event)\
+                        .join(Season)\
+                        .where(Season.is_current_season)\
+                        .group_by(Member)
+
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)

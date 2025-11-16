@@ -148,6 +148,7 @@ class AjBot():
         async def memberships(interaction: discord.Interaction):
             """ Affiche les cotisants
             """
+            #TODO: add management of any season
             async with AjDb() as aj_db:
                 members = await aj_db.get_season_subscribers()
 
@@ -164,12 +165,31 @@ class AjBot():
         async def events(interaction: discord.Interaction):
             """ Affiche les evenements
             """
+            #TODO: add management of any season
             async with AjDb() as aj_db:
                 events = await aj_db.get_season_events()
 
             if events:
                 reply = f"Il y a {len(events)} évènement(s) cette saison:\n- "
                 reply += '\n- '.join(str(e) for e in events)
+            else:
+                reply = "Mais il n'y a eu aucun évènement cette saison ;-("
+
+            await interaction.response.send_message(reply, ephemeral=True)
+
+        @self.client.tree.command(name="presence")
+        @app_commands.check(self._is_manager)
+        async def presence(interaction: discord.Interaction):
+            """ Affiche les personne ayant participé à une saison
+            """
+            #TODO: add management of any season
+            async with AjDb() as aj_db:
+                members = await aj_db.get_season_members()
+
+            if members:
+                members.sort(key=lambda x: x.credential, reverse=False)
+                reply = f"Il y a {len(members)} personne(s) qui ont participé cette saison:\n- "
+                reply += '\n- '.join(f'{m} - {len([me for me in m.events if me.event.season.is_current_season])} venue(s)' for m in members)
             else:
                 reply = "Mais il n'y a eu aucun évènement cette saison ;-("
 

@@ -2,6 +2,8 @@
 """
 import sys
 import asyncio
+from typing import cast
+
 import sqlalchemy as sa
 
 from ajbot._internal import ajdb
@@ -55,21 +57,23 @@ async def _principal_address(aj_db_session):
 
 
 async def _test_query(aj_db_session):
+    season_name = "2025-2026"
                 # .with_only_columns(ajdb.Member.id, ajdb.Member.credential, sa.func.count(ajdb.Member.memberships))\
-    query = sa.select(ajdb.Member, ajdb.Event)\
+    query = sa.select(ajdb.Member)\
                 .join(ajdb.MemberEvent)\
                 .join(ajdb.Event)\
                 .join(ajdb.Season)\
-                .where(ajdb.Season.name == "2025-2026")\
-                .select_from(ajdb.Member)
+                .where(ajdb.Season.name == season_name)\
+                .group_by(ajdb.Member)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
     matched_items = query_result.scalars().all()
-    matched_items = list(set(matched_items))
-    matched_items.sort(key=lambda x: x.credential, reverse=False)
-    for e in matched_items:
-        print(f'{e:{FormatTypes.FULLSIMPLE}} - {len(e.memberships)} cotisations(s)')
+    matched_items.sort(key=lambda x: cast(ajdb.Member, x).credential, reverse=False)
+    for m in matched_items:
+        presence = len([member_event for member_event in cast(ajdb.Member, m).events
+                        if member_event.event.season.name == season_name])
+        print(f'{m:{FormatTypes.FULLSIMPLE}} - {presence} présence(s)')
     print(len(matched_items), 'item(s)')
 
 
