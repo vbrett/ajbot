@@ -54,15 +54,28 @@ async def _principal_address(aj_db_session):
     print('-------------------')
 
 
+async def _test_query(aj_db_session):
+    query = sa.select(ajdb.Members).join(ajdb.Members.memberships).where(ajdb.Memberships.is_in_current_season)
+    async with aj_db_session.AsyncSessionMaker() as session:
+        async with session.begin():
+            query_result = await session.execute(query)
+    matched_members = query_result.scalars().all()
+    for e in matched_members:
+        print(e)
+    print(len(matched_members), 'membre(s) cotisants cette année')
+
+
+
 async def _main():
     """ main function - async version
     """
     async with ajdb.AjDb() as aj_db_session:
 
-        await _search_member(aj_db_session, 'vincent')
-        await _season_events(aj_db_session)
-        await _principal_address(aj_db_session)
+        # await _search_member(aj_db_session, 'vincent')
+        # await _season_events(aj_db_session)
+        # await _principal_address(aj_db_session)
 
+        await _test_query(aj_db_session)
 
     return 0
 

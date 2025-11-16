@@ -80,6 +80,7 @@ class AjBot():
         self.client = MyDiscordClient(intents=intents,
                                       guild=discord.Object(aj_config.discord_guild))
         self.last_hello_member : discord.User = None
+        self.last_hello_member_count : int = 0
 
         # List of events for the bot
         # ========================================================
@@ -93,14 +94,21 @@ class AjBot():
         @self.client.tree.command()
         async def hello(interaction: discord.Interaction):
             """Dis bonjour à l'utilisateur."""
-            if interaction.user == self.last_hello_member:
-                message = "Toi encore ?\r\nT'as rien de mieux à faire ?"
-            else:
-                self.last_hello_member = interaction.user
-                message = f'Bonjour {interaction.user.mention}!'
-            await interaction.response.send_message(message, ephemeral=True)
+            MESSAGE_LIST=[f"Bonjour {interaction.user.mention} !",
+                          f"Re-bonjour {interaction.user.mention} !",
+                          f"Re-re-bonjour {interaction.user.mention} !",
+                          "...tu insistes dis donc...",
+                          "Encore ? Franchement, t'as rien de mieux à faire ?",
+                          "Allez, sérieux, tu veux pas lâcher ton écran ?",
+                          "Mais lâche moi le microprocesseur !",
+                          "Bon, c'est plus drôle là.",
+                         ]
 
-        @self.client.tree.command(name="membre")
+            self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(MESSAGE_LIST)-1])
+            self.last_hello_member = interaction.user
+            await interaction.response.send_message(MESSAGE_LIST[self.last_hello_member_count], ephemeral=True)
+
+        @self.client.tree.command(name="info_membre")
         @app_commands.check(self._is_member)
         @app_commands.rename(disc_member='pseudo')
         @app_commands.rename(int_member='id')
@@ -108,10 +116,10 @@ class AjBot():
         @app_commands.describe(disc_member='pseudo discord.')
         @app_commands.describe(int_member='ID de l\'asso.')
         @app_commands.describe(str_member='nom (ID, nom complet ou partiel)')
-        async def member(interaction: discord.Interaction,
-                         disc_member:Optional[discord.Member]=None,
-                         int_member:Optional[int]=None,
-                         str_member:Optional[str]=None):
+        async def member_info(interaction: discord.Interaction,
+                              disc_member:Optional[discord.Member]=None,
+                              int_member:Optional[int]=None,
+                              str_member:Optional[str]=None):
             """ Affiche les infos des membres. Parametre = ID, pseudo discord ou nom (complet ou partiel)
                 paramètre au choix:
                     - pseudo_discord (ex: VbrBot)
@@ -134,6 +142,38 @@ class AjBot():
             """ Affiche la version du bot
             """
             await interaction.response.send_message(f"Version du bot: {ajbot_version}", ephemeral=True)
+
+        @self.client.tree.command(name="cotisants")
+        @app_commands.check(self._is_manager)
+        async def memberships(interaction: discord.Interaction):
+            """ Affiche les cotisants
+            """
+            async with AjDb() as aj_db:
+                members = await aj_db.get_season_subscribers()
+
+            if members:
+                reply = f"Il y a {len(members)} cotisant(s) cette saison:\n- "
+                reply += '\n- '.join(str(m) for m in members)
+            else:
+                reply = "Mais il n'y a eu personne cette saison ;-("
+
+            await interaction.response.send_message(reply, ephemeral=True)
+
+        @self.client.tree.command(name="evenements")
+        @app_commands.check(self._is_manager)
+        async def events(interaction: discord.Interaction):
+            """ Affiche les evenements
+            """
+            async with AjDb() as aj_db:
+                events = await aj_db.get_season_events()
+
+            if events:
+                reply = f"Il y a {len(events)} évènement(s) cette saison:\n- "
+                reply += '\n- '.join(str(e) for e in events)
+            else:
+                reply = "Mais il n'y a eu aucun évènement cette saison ;-("
+
+            await interaction.response.send_message(reply, ephemeral=True)
 
 
         # # List of context menu commands for the bot
@@ -172,23 +212,18 @@ class AjBot():
         embed = None
         reply = f"Je ne connais pas ton ou ta {input_member}."
         if members:
+            is_self = len(members) == 1 and members[0].discord_pseudo.name == interaction.user.name
             embed = discord.Embed(color=discord.Color.orange())
-            format_style = FormatTypes.FULLSIMPLE if self._is_manager(interaction) else FormatTypes.RESTRICTED
+            format_style = FormatTypes.FULLSIMPLE if (is_self or self._is_manager(interaction)) else FormatTypes.RESTRICTED
             embed.add_field(name = 'id', inline=True,
                             value = '\n'.join(str(m.id) for m in members)
-                        )
+                           )
             embed.add_field(name = 'Discord', inline=True,
                             value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '' for m in members)
                            )
-            if members[0].fuzzy_match:
-                embed.add_field(name = 'Nom (% match)', inline=True,
-                                value = '\n'.join(' '.join([f'{m.credential:{format_style}}' if m.credential else '',
-                                                            f'({m.fuzzy_match}%)' if m.fuzzy_match else '(100%)']) for m in members)
-                            )
-            else:
-                embed.add_field(name = 'Nom', inline=True,
-                                value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '' for m in members)
-                            )
+            embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
+                            value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '' for m in members)
+                           )
 
             reply = "Voilà ce que j'ai trouvé:"
 

@@ -267,13 +267,13 @@ class Members(Base):
 #     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
 
     @hybrid_property
-    def is_current_subscriber(self):
+    def current_season_has_subscribed(self):
         """ return true if member has subscribed to current season 
         """
         return any(m.is_in_current_season for m in self.memberships)
 
-    @is_current_subscriber.expression
-    def is_current_subscriber(cls):      #pylint: disable=no-self-argument   #function is a class factory
+    @current_season_has_subscribed.expression
+    def current_season_has_subscribed(cls):      #pylint: disable=no-self-argument   #function is a class factory
         """ SQL version
         """
         return  sa.select(
@@ -281,27 +281,32 @@ class Members(Base):
                     sa.and_(
                         Memberships.member_id == cls.id,
                         Memberships.is_in_current_season)).correlate(cls), True), else_=False,
-                    ).label("is_current_season")
+                    ).label("current_season_has_subscribed")
                 )
 
     @hybrid_property
-    def nb_current_presence(self):
+    def current_season_presence_count(self):
         """ return number of presence in current season events 
         """
         return len([m.event for m in self.JCT_event_member if m.member_id == self.id and m.event.is_in_current_season])
 
     #TODO: code
-    # @nb_current_presence.expression
-    # def nb_current_presence(cls):      #pylint: disable=no-self-argument   #function is a class factory
+    # @current_season_presence_count.expression
+    # def current_season_presence_count(cls):      #pylint: disable=no-self-argument   #function is a class factory
     #     """ SQL version
     #     """
-    #     return  sa.select(
-    #                 sa.case((sa.exists().where(
-    #                 sa.and_(
-    #                     Memberships.member_id == cls.id,
-    #                     Memberships.is_in_current_season)).correlate(cls), True), else_=False,
-    #                 ).label("nb_current_presence")
-    #             )
+    #     return sa.select(JCTEventMember.event,
+    #             sa.func.count.select(
+    #             sa.and_(
+    #                     JCTEventMember.member_id == cls.id,
+    #                     Events.is_in_current_season)
+    #             ).label("current_season_presence_count")).group_by().subquery()
+
+    @hybrid_property
+    def current_season_asso_role(self):
+        """ return number of presence in current season events 
+        """
+        return len([m.event for m in self.JCT_event_member if m.member_id == self.id and m.event.is_in_current_season])
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -316,8 +321,8 @@ class Members(Base):
         mbr_address = self.address_principal.address if self.address_principal else None
         mbr_phone = self.phone_principal.phone if self.phone_principal else None
 
-        mbr_asso_info = '' if self.is_current_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
-        mbr_asso_info += f'cotisant, {self.nb_current_presence} participation(s) cette saison.'
+        mbr_asso_info = '' if self.current_season_has_subscribed else 'non ' #pylint: disable=using-constant-test #variable is not constant
+        mbr_asso_info += f'cotisant, {self.current_season_presence_count} participation(s) cette saison.'
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
@@ -606,7 +611,7 @@ class MemberCredentials(Base):
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_match = f'(match à {self.fuzzy_match}%)' if (self.fuzzy_match and self.fuzzy_match < 100) else None
+        mbr_match = f'({self.fuzzy_match}%)' if (self.fuzzy_match and self.fuzzy_match < 100) else None
         match format_spec:
             case FormatTypes.RESTRICTED:
                 name_list = [self.first_name, mbr_match]
@@ -918,13 +923,43 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
-#     def get_in_season_events(self, event_types = None):
-#         """ returns events of certain type that are in current season
-#         """
-#         if event_types and not isinstance(event_types, list):
-#             event_types = [event_types]
+    async def get_season_subscribers(self, season_name = None):
+        ''' retrieve list of member having subscribed to season
+            @args
+                season_name = Optional. If empty, use current season
 
-#         return [event for event in self if event.in_season and (not event_types or event.type in [etype for etype in event_types])]
+            @return
+                [all found Members]
+        '''
+        #TODO: add management of any season
+        if season_name:
+            raise AjDbException(f"saison non supportée {season_name}")
+
+        query = sa.select(Members).join(Members.memberships).where(Memberships.is_in_current_season)
+        async with self.AsyncSessionMaker() as session:
+            async with session.begin():
+                query_result = await session.execute(query)
+
+        return query_result.scalars().all()
+
+    async def get_season_events(self, season_name = None):
+        ''' retrieve list of events having occured in season
+            @args
+                season_name = Optional. If empty, use current season
+
+            @return
+                [all found events]
+        '''
+        #TODO: add management of any season
+        if season_name:
+            raise AjDbException(f"saison non supportée {season_name}")
+
+        query = sa.select(Events).where(Events.is_in_current_season)
+        async with self.AsyncSessionMaker() as session:
+            async with session.begin():
+                query_result = await session.execute(query)
+
+        return query_result.scalars().all()
 
 
 
