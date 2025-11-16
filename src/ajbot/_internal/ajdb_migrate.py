@@ -81,8 +81,9 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
             new_member.discord_pseudo=ajdb.DiscordPseudos(name=val['pseudo_discord'])
 
         if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
-            new_member.credential = ajdb.MemberCredentials(first_name=val.get('prenom'),
-                                                           last_name=val.get('nom'))
+            new_member.credential = ajdb.MemberCredentials()
+            new_member.credential.first_name=val.get('prenom')
+            new_member.credential.last_name=val.get('nom')
             if val.get('date_naissance'):
                 new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
 
