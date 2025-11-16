@@ -898,6 +898,7 @@ class AjDb():
         self.db_username = None
 
     async def __aenter__(self):
+        #TODO clean this mess. I'm mixing db and session
         with AjConfig(save_on_exit=False, break_if_missing=True) as aj_config:
             self.db_username = aj_config.db_creds['user']
             # Connect to MariaDB Platform
@@ -984,6 +985,19 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
+    async def get_seasons(self):
+        ''' retrieve list of seasons
+
+            @return
+                [all found seasons]
+        '''
+        query = sa.select(Season)
+        async with self.AsyncSessionMaker() as session:
+            async with session.begin():
+                query_result = await session.execute(query)
+
+        return query_result.scalars().all()
+
     async def get_season_subscribers(self, season_name = None):
         ''' retrieve list of member having subscribed to season
             @args
@@ -993,9 +1007,9 @@ class AjDb():
                 [all found Members]
         '''
         if season_name:
-            raise AjDbException(f"saison non supportée {season_name}")
-
-        query = sa.select(Member).join(Member.memberships).where(Membership.is_in_current_season)
+            query = sa.select(Member).join(Membership).join(Season).where(Season.name == season_name)
+        else:
+            query = sa.select(Member).join(Membership).where(Membership.is_in_current_season)
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)
@@ -1011,9 +1025,9 @@ class AjDb():
                 [all found events]
         '''
         if season_name:
-            raise AjDbException(f"saison non supportée {season_name}")
-
-        query = sa.select(Event).where(Event.is_in_current_season)
+            query = sa.select(Event).join(Season).where(Season.name == season_name)
+        else:
+            query = sa.select(Event).where(Event.is_in_current_season)
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)

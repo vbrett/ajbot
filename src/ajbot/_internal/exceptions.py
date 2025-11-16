@@ -5,6 +5,9 @@ Library for support package exceptions
 class CredsException(Exception):
     """ Exception related to credential management """
 
+class AjBotException(Exception):
+    """ Aj Bot related exception """
+
 class AjDbException(Exception):
     """ Aj DB related exception """
 

@@ -11,8 +11,8 @@ from discord import app_commands
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal.exceptions import OtherException
+from ajbot._internal import ajdb
+from ajbot._internal.exceptions import AjBotException, OtherException
 from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 
 def get_member_dict(discord_client, guild_names=None):
@@ -145,12 +145,19 @@ class AjBot():
 
         @self.client.tree.command(name="cotisants")
         @app_commands.check(self._is_manager)
-        async def memberships(interaction: discord.Interaction):
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
+        @app_commands.choices(season_name=[
+            app_commands.Choice(name='2025-2026', value='2025-2026'),
+            app_commands.Choice(name='2024-2025', value='2024-2025'),
+            app_commands.Choice(name='2023-2024', value='2023-2024'),
+        ])
+        async def memberships(interaction: discord.Interaction,
+                              season_name:Optional[str]=None):
             """ Affiche les cotisants
             """
-            #TODO: add management of any season
-            async with AjDb() as aj_db:
-                members = await aj_db.get_season_subscribers()
+            async with ajdb.AjDb() as aj_db_session:
+                members = await aj_db_session.get_season_subscribers(season_name)
 
             if members:
                 reply = f"Il y a {len(members)} cotisant(s) cette saison:\n- "
@@ -158,16 +165,24 @@ class AjBot():
             else:
                 reply = "Mais il n'y a eu personne cette saison ;-("
 
-            await interaction.response.send_message(reply, ephemeral=True)
+            await self.send_response(interaction, content=reply, ephemeral=True, split_on_eol=True)
 
         @self.client.tree.command(name="evenements")
         @app_commands.check(self._is_manager)
-        async def events(interaction: discord.Interaction):
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
+        @app_commands.choices(season_name=[
+            app_commands.Choice(name='2025-2026', value='2025-2026'),
+            app_commands.Choice(name='2024-2025', value='2024-2025'),
+            app_commands.Choice(name='2023-2024', value='2023-2024'),
+        ])
+        async def events(interaction: discord.Interaction,
+                         season_name:Optional[str]=None,
+                         ):
             """ Affiche les evenements
             """
-            #TODO: add management of any season
-            async with AjDb() as aj_db:
-                events = await aj_db.get_season_events()
+            async with ajdb.AjDb() as aj_db_session:
+                events = await aj_db_session.get_season_events(season_name)
 
             if events:
                 reply = f"Il y a {len(events)} évènement(s) cette saison:\n- "
@@ -175,16 +190,24 @@ class AjBot():
             else:
                 reply = "Mais il n'y a eu aucun évènement cette saison ;-("
 
-            await interaction.response.send_message(reply, ephemeral=True)
+            await self.send_response(interaction, content=reply, ephemeral=True, split_on_eol=True)
 
         @self.client.tree.command(name="presence")
         @app_commands.check(self._is_manager)
-        async def presence(interaction: discord.Interaction):
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
+        @app_commands.choices(season_name=[
+            app_commands.Choice(name='2025-2026', value='2025-2026'),
+            app_commands.Choice(name='2024-2025', value='2024-2025'),
+            app_commands.Choice(name='2023-2024', value='2023-2024'),
+        ])
+        async def presence(interaction: discord.Interaction,
+                           season_name:Optional[str]=None,
+                           ):
             """ Affiche les personne ayant participé à une saison
             """
-            #TODO: add management of any season
-            async with AjDb() as aj_db:
-                members = await aj_db.get_season_members()
+            async with ajdb.AjDb() as aj_db_session:
+                members = await aj_db_session.get_season_members(season_name)
 
             if members:
                 members.sort(key=lambda x: x.credential, reverse=False)
@@ -193,7 +216,7 @@ class AjBot():
             else:
                 reply = "Mais il n'y a eu aucun évènement cette saison ;-("
 
-            await interaction.response.send_message(reply, ephemeral=True)
+            await self.send_response(interaction, content=reply, ephemeral=True, split_on_eol=True)
 
 
         # # List of context menu commands for the bot
@@ -211,6 +234,39 @@ class AjBot():
 
     # # Support functions
     # # ========================================================
+    async def send_response(self, interaction: discord.Interaction, content:str, ephemeral=False,
+                            chunk_size=1800, split_on_eol=True):
+        """ Send command response, handling splitting it if needed (limit = 2000 characters).
+            Only supports content (= text)
+            TODO: add full response possibilities
+        """
+        if chunk_size > 1980:
+            raise AjBotException(f"La taille demandée {chunk_size} n'est pas supportée. Max 2000.")
+
+        first_answer = True
+        i = 0
+        while i < len(content):
+            chunk = content[i:i + chunk_size]
+            if split_on_eol and (i + chunk_size) < len(content):
+                split_last_line = chunk.rsplit('\n', 1)
+                if len(split_last_line) > 1:
+                    chunk = split_last_line[0]
+                    i -= len(split_last_line[1])
+            i += chunk_size
+            if first_answer:
+                await interaction.response.send_message(chunk, ephemeral=ephemeral)
+                first_answer = False
+            else:
+                await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral)
+
+    async def get_season_names(self):
+        """ return list of season names
+        """
+        #TODO: This is unusable. Need to add dynamic definition of list of seasons through app_commands.Transformer
+        async with ajdb.AjDb() as aj_db_session:
+            seasons = await aj_db_session.get_seasons()
+
+        return [app_commands.Choice(name=s.name, value=s.name) for s in seasons.sort()]
 
     async def send_member_info(self, interaction: discord.Interaction,
                                disc_member:discord.Member=None,
@@ -226,8 +282,8 @@ class AjBot():
             return
         input_member = input_member[0]
 
-        async with AjDb() as aj_db:
-            members = await aj_db.search_member(input_member, 50, False)
+        async with ajdb.AjDb() as aj_db_session:
+            members = await aj_db_session.search_member(input_member, 50, False)
 
         embed = None
         reply = f"Je ne connais pas ton ou ta {input_member}."
