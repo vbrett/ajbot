@@ -598,12 +598,26 @@ class MemberCredentials(Base):
 
     @orm.reconstructor
     def __init__(self):
-        self.fuzzy_match = None
+        self._fuzzy_lookup = None
 
-    def compute_fuzzy_match(self, lookup_val):
-        """ Set matching value (percentage)
+
+    @property
+    def fuzzy_lookup(self):
+        """ Get the lookup value.
         """
-        self.fuzzy_match = fuzz.token_sort_ratio(lookup_val, self.first_name + ' ' + self.last_name)
+        return self._fuzzy_lookup
+    @fuzzy_lookup.setter
+    def fuzzy_lookup(self, value):
+        """ Set the lookup value.
+        """
+        self._fuzzy_lookup = value
+
+    @property
+    def fuzzy_match(self):
+        """ return the matching percentage of credential against the lookup value
+            if no lookup, return 100%
+        """
+        return 100 if not self._fuzzy_lookup else fuzz.token_sort_ratio(self._fuzzy_lookup, self.first_name + ' ' + self.last_name)
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -611,7 +625,7 @@ class MemberCredentials(Base):
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_match = f'({self.fuzzy_match}%)' if (self.fuzzy_match and self.fuzzy_match < 100) else None
+        mbr_match = f'({self.fuzzy_match}%)' if self.fuzzy_match < 100 else None
         match format_spec:
             case FormatTypes.RESTRICTED:
                 name_list = [self.first_name, mbr_match]
@@ -906,12 +920,12 @@ class AjDb():
 
         matched_members = query_result.scalars().all()
 
-        if not isinstance(lookup_val, str):
+        if len(matched_members) <= 1:
             return matched_members
 
         # Fuzz search on credential
         for v in matched_members:
-            v.credential.compute_fuzzy_match(lookup_val)
+            v.credential.fuzzy_lookup = lookup_val
 
         perfect_match = [v for v in matched_members if v.credential.fuzzy_match == 100]
         if perfect_match:
