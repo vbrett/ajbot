@@ -37,9 +37,9 @@ class HumanizedDate(datetime.date):
     def __format__(self, _format_spec):
         """ override format
         """
-        humanize.i18n.activate("fr")
+        humanize.activate("fr_FR")
         humanized_date = humanize.naturaldate(self)
-        humanize.i18n.deactivate()
+        humanize.deactivate()
         return humanized_date
 
 class SaHumanizedDate(sa.types.TypeDecorator):          #pylint: disable=abstract-method,abstract-method

@@ -26,7 +26,7 @@ async def _search_member(aj_db_session, lokkup_val):
     print('')
 
 async def _season_events(aj_db_session):
-    query = sa.select(ajdb.Events).filter(ajdb.Events.is_in_current_season)
+    query = sa.select(ajdb.Events).where(ajdb.Events.is_in_current_season)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
