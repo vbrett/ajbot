@@ -111,15 +111,15 @@ class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
 ################################
 
 
-class LUTStreetTypes(Base):
-    """ List of supported street types
+class StreetType(Base):
+    """ Supported street type table class
     """
     __tablename__ = 'LUT_street_types'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    member_addresses: orm.Mapped[list['MemberAddresses']] = orm.relationship('MemberAddresses', back_populates='street_type', lazy='selectin')
+    addresses: orm.Mapped[list['PostalAddress']] = orm.relationship('PostalAddress', back_populates='street_type', lazy='selectin')
 
     def __str__(self):
         return f'{self}'
@@ -130,15 +130,15 @@ class LUTStreetTypes(Base):
         return self.name
 
 
-class LUTContribution(Base):
-    """ List of supported contribution levels
+class ContributionType(Base):
+    """ Supported contribution type table class
     """
-    __tablename__ = 'LUT_contribution'
+    __tablename__ = 'LUT_contribution_types'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='contribution', lazy='selectin')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='contribution_type', lazy='selectin')
 
     def __str__(self):
         return f'{self}'
@@ -149,15 +149,15 @@ class LUTContribution(Base):
         return self.name
 
 
-class LUTKnowFrom(Base):
-    """ List of supported sources of knowing about the association
+class KnowFromSource(Base):
+    """ Table class for source of knowing about the association
     """
-    __tablename__ = 'LUT_know_from'
+    __tablename__ = 'LUT_know_from_sources'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='know_from', lazy='selectin')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='know_from_source', lazy='selectin')
 
     def __str__(self):
         return f'{self}'
@@ -168,15 +168,15 @@ class LUTKnowFrom(Base):
         return self.name
 
 
-class LUTAccounts(Base):
-    """ List of supported transaction accounts
+class AccountType(Base):
+    """ Supported account type table class
     """
     __tablename__ = 'LUT_accounts'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='LUT_accounts', lazy='selectin')
+    # transactions: orm.Mapped[list['Transaction']] = orm.relationship('Transaction', back_populates='account_type', lazy='selectin')
 
     def __str__(self):
         return f'{self}'
@@ -191,8 +191,8 @@ class LUTAccounts(Base):
 ################################
 
 
-class Seasons(Base):
-    """ Seasons table class
+class Season(Base):
+    """ Season table class
     """
     __tablename__ = 'seasons'
 
@@ -201,9 +201,9 @@ class Seasons(Base):
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, unique=True)
     end: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
 
-    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='season', lazy='selectin')
-    events: orm.Mapped[list['Events']] = orm.relationship('Events', back_populates='season', lazy='selectin')
-    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='seasons')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='season', lazy='selectin')
+    events: orm.Mapped[list['Event']] = orm.relationship('Event', back_populates='season', lazy='selectin')
+    # transactions: orm.Mapped[list['Transaction']] = orm.relationship('Transaction', back_populates='seasons')
 
     @hybrid_property
     def is_current_season(self):
@@ -245,7 +245,7 @@ class Seasons(Base):
 
 
 @functools.total_ordering
-class Members(Base):
+class Member(Base):
     """ Member table class
     """
     __tablename__ = 'members'
@@ -253,31 +253,31 @@ class Members(Base):
     id: orm.Mapped[AjMemberId] = orm.mapped_column(SaAjMemberId, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
-    credential: orm.Mapped[Optional['MemberCredentials']] = orm.relationship('MemberCredentials', back_populates='member', uselist=False, lazy='selectin')
+    credential: orm.Mapped[Optional['Credential']] = orm.relationship('Credential', back_populates='member', uselist=False, lazy='selectin')
     discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discord_pseudos.id'), index=True, nullable=True)
-    discord_pseudo: orm.Mapped[Optional['DiscordPseudos']] = orm.relationship('DiscordPseudos', back_populates='member', uselist=False, lazy='selectin')
-    JCT_member_asso_role: orm.Mapped[list['JCTMemberAssoRole']] = orm.relationship('JCTMemberAssoRole', back_populates='member', lazy='selectin')
-    JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='member', lazy='selectin')
-    email_principal: orm.Mapped[Optional['JCTMemberEmail']] = orm.relationship('JCTMemberEmail',
-                                                                                primaryjoin="and_(Members.id==JCTMemberEmail.member_id,JCTMemberEmail.principal==True)",
+    discord_pseudo: orm.Mapped[Optional['DiscordPseudo']] = orm.relationship('DiscordPseudo', back_populates='member', uselist=False, lazy='selectin')
+    asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='member', lazy='selectin')
+    emails: orm.Mapped[list['MemberEmail']] = orm.relationship('MemberEmail', back_populates='member', lazy='selectin')
+    email_principal: orm.Mapped[Optional['MemberEmail']] = orm.relationship('MemberEmail',
+                                                                                primaryjoin="and_(Member.id==MemberEmail.member_id,MemberEmail.principal==True)",
                                                                                 lazy='selectin',
                                                                                 viewonly=True,)
-    JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='member', lazy='selectin')
-    phone_principal: orm.Mapped[Optional['JCTMemberPhone']] = orm.relationship('JCTMemberPhone',
-                                                                                primaryjoin="and_(Members.id==JCTMemberPhone.member_id,JCTMemberPhone.principal==True)",
-                                                                                lazy='selectin',
-                                                                                viewonly=True,)
-    JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='member', lazy='selectin')
-    address_principal: orm.Mapped[Optional['JCTMemberAddress']] = orm.relationship('JCTMemberAddress',
-                                                                                primaryjoin="and_(Members.id==JCTMemberAddress.member_id,JCTMemberAddress.principal==True)",
-                                                                                lazy='selectin',
-                                                                                viewonly=True,)
+    phones: orm.Mapped[list['MemberPhone']] = orm.relationship('MemberPhone', back_populates='member', lazy='selectin')
+    phone_principal: orm.Mapped[Optional['MemberPhone']] = orm.relationship('MemberPhone',
+                                                                             primaryjoin="and_(Member.id==MemberPhone.member_id,MemberPhone.principal==True)",
+                                                                             lazy='selectin',
+                                                                             viewonly=True,)
+    addresses: orm.Mapped[list['MemberAddress']] = orm.relationship('MemberAddress', back_populates='member', lazy='selectin')
+    address_principal: orm.Mapped[Optional['MemberAddress']] = orm.relationship('MemberAddress',
+                                                                                   primaryjoin="and_(Member.id==MemberAddress.member_id,MemberAddress.principal==True)",
+                                                                                   lazy='selectin',
+                                                                                   viewonly=True,)
 
-    memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='member', lazy='selectin')
-    JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='member', lazy='selectin')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='member', lazy='selectin')
+    events: orm.Mapped[list['MemberEvent']] = orm.relationship('MemberEvent', back_populates='member', lazy='selectin')
 
-#     log: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members', lazy='selectin')
-#     log_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
+#     logs: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members', lazy='selectin')
+#     logs_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
 
     @hybrid_property
     def current_season_has_subscribed(self):
@@ -292,8 +292,8 @@ class Members(Base):
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
-                        Memberships.member_id == cls.id,
-                        Memberships.is_in_current_season)).correlate(cls), True), else_=False,
+                        Membership.member_id == cls.id,
+                        Membership.is_in_current_season)).correlate(cls), True), else_=False,
                     ).label("current_season_has_subscribed")
                 )
 
@@ -301,25 +301,25 @@ class Members(Base):
     def current_season_presence_count(self):
         """ return number of presence in current season events 
         """
-        return len([m.event for m in self.JCT_event_member if m.member_id == self.id and m.event.is_in_current_season])
+        return len([m.event for m in self.events if m.member_id == self.id and m.event.is_in_current_season])
 
     #TODO: code
     # @current_season_presence_count.expression
     # def current_season_presence_count(cls):      #pylint: disable=no-self-argument   #function is a class factory
     #     """ SQL version
     #     """
-    #     return sa.select(JCTEventMember.event,
+    #     return sa.select(MemberEvent.event,
     #             sa.func.count.select(
     #             sa.and_(
-    #                     JCTEventMember.member_id == cls.id,
-    #                     Events.is_in_current_season)
+    #                     MemberEvent.member_id == cls.id,
+    #                     Event.is_in_current_season)
     #             ).label("current_season_presence_count")).group_by().subquery()
 
     @hybrid_property
     def current_season_asso_role(self):
         """ return number of presence in current season events 
         """
-        return len([m.event for m in self.JCT_event_member if m.member_id == self.id and m.event.is_in_current_season])
+        return len([m.event for m in self.events if m.member_id == self.id and m.event.is_in_current_season])
 
     def __hash__(self):
         return hash(self.id)
@@ -357,19 +357,19 @@ class Members(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
-class AssoRoles(Base):
-    """ user member roles table class
+class AssoRole(Base):
+    """ Asso role table class
     """
     __tablename__ = 'asso_roles'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
-    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='asso_role', lazy='selectin')
-    JCT_member_asso_role: orm.Mapped[list['JCTMemberAssoRole']] = orm.relationship('JCTMemberAssoRole', back_populates='asso_role', lazy='selectin')
+    discord_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='asso_role', lazy='selectin')
+    members: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='asso_role', lazy='selectin')
 
 
-class Memberships(Base):
-    """ Memberships table class
+class Membership(Base):
+    """ Membership table class
     """
     __tablename__ = 'memberships'
     __table_args__ = (
@@ -380,20 +380,20 @@ class Memberships(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, comment='coupling between this and season')
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='memberships', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='memberships', lazy='selectin')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), index=True, nullable=False)
-    season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='memberships', lazy='selectin')
+    season: orm.Mapped['Season'] = orm.relationship('Season', back_populates='memberships', lazy='selectin')
 
     statutes_accepted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
     has_civil_insurance: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
     picture_authorized: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
 
-    know_from_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_know_from.id'), index=True, nullable=True)
-    know_from: orm.Mapped[Optional['LUTKnowFrom']] = orm.relationship('LUTKnowFrom', back_populates='memberships', lazy='selectin')
-    contribution_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_contribution.id'), index=True, nullable=False)
-    contribution: orm.Mapped['LUTContribution'] = orm.relationship('LUTContribution', back_populates='memberships', lazy='selectin')
-    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='memberships')
-    # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='memberships', lazy='selectin')
+    know_from_source_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_know_from_sources.id'), index=True, nullable=True)
+    know_from_source: orm.Mapped[Optional['KnowFromSource']] = orm.relationship('KnowFromSource', back_populates='memberships', lazy='selectin')
+    contribution_type_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_contribution_types.id'), index=True, nullable=False)
+    contribution_type: orm.Mapped['ContributionType'] = orm.relationship('ContributionType', back_populates='memberships', lazy='selectin')
+    # transactions: orm.Mapped[list['Transaction']] = orm.relationship('Transaction', back_populates='memberships')
+    # logs: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='memberships', lazy='selectin')
 
     @hybrid_property
     def is_in_current_season(self):
@@ -408,29 +408,29 @@ class Memberships(Base):
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
-                        Seasons.id == cls.season_id,
-                        Seasons.is_current_season)).correlate(cls), True), else_=False,
+                        Season.id == cls.season_id,
+                        Season.is_current_season)).correlate(cls), True), else_=False,
                     ).label("is_in_current_season")
                 ).scalar_subquery()
 
     #TODO: implement __str__ & __format__
 
 @functools.total_ordering
-class Events(Base):
-    """ Events table class
+class Event(Base):
+    """ Event table class
     """
     __tablename__ = 'events'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
     date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True)
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=True, index=True)
-    season: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='events', lazy='selectin')
+    season: orm.Mapped['Season'] = orm.relationship('Season', back_populates='events', lazy='selectin')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-    JCT_event_member: orm.Mapped[list['JCTEventMember']] = orm.relationship('JCTEventMember', back_populates='event', lazy='selectin')
-    # transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='events', lazy='selectin')
-    # log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events', lazy='selectin')
+    members: orm.Mapped[list['MemberEvent']] = orm.relationship('MemberEvent', back_populates='event', lazy='selectin')
+    # transactions: orm.Mapped[list['Transaction']] = orm.relationship('Transaction', back_populates='events', lazy='selectin')
+    # logs: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events', lazy='selectin')
 
     @hybrid_property
     def is_in_current_season(self):
@@ -445,8 +445,8 @@ class Events(Base):
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
-                        Seasons.id == cls.season_id,
-                        Seasons.is_current_season)).correlate(cls), True), else_=False,
+                        Season.id == cls.season_id,
+                        Season.is_current_season)).correlate(cls), True), else_=False,
                     ).label("is_in_current_season")
                 ).scalar_subquery()
 
@@ -474,8 +474,9 @@ class Events(Base):
 
 
 
-# class Assets(Base):
-#     """ Assets table class
+# class Asset(Base):
+#TODO: ensure ERD is matching
+#     """ Asset table class
 #     """
 #     __tablename__ = 'assets'
 #
@@ -483,13 +484,14 @@ class Events(Base):
 #     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 #     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 #
-#     transactions: orm.Mapped[list['Transactions']] = orm.relationship('Transactions', back_populates='assets', lazy='selectin')
+#     transactions: orm.Mapped[list['Transaction']] = orm.relationship('Transaction', back_populates='assets', lazy='selectin')
 
 
-# class Transactions(Base):
+# class Transaction(Base):
+#TODO: ensure ERD is matching
 #     """ Transaction table class
 #     """
-#     __tablename__ = 'transaction'
+#     __tablename__ = 'transactions'
 #     __table_args__ = (
 #         sa.ForeignKeyConstraint(['account'], ['LUT_accounts.id'], name='FK_LUT_accounts_TO_transaction'),
 #         sa.ForeignKeyConstraint(['associated_asset'], ['assets.id'], name='FK_assets_TO_transaction'),
@@ -515,24 +517,25 @@ class Events(Base):
 #     debit: orm.Mapped[Optional[float]] = orm.mapped_column(sa.Float)
 #     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-#     LUT_accounts: orm.Mapped['LUTAccounts'] = orm.relationship('LUTAccounts', back_populates='transactions', lazy='selectin')
-#     assets: orm.Mapped[Optional['Assets']] = orm.relationship('Assets', back_populates='transactions', lazy='selectin')
-#     events: orm.Mapped[Optional['Events']] = orm.relationship('Events', back_populates='transactions', lazy='selectin')
-#     memberships: orm.Mapped[Optional['Memberships']] = orm.relationship('Memberships', back_populates='transactions', lazy='selectin')
-#     seasons: orm.Mapped['Seasons'] = orm.relationship('Seasons', back_populates='transactions', lazy='selectin')
-#     log: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='transactions', lazy='selectin')
+#     account_type: orm.Mapped['AccountType'] = orm.relationship('AccountType', back_populates='transactions', lazy='selectin')
+#     assets: orm.Mapped[Optional['Asset']] = orm.relationship('Asset', back_populates='transactions', lazy='selectin')
+#     events: orm.Mapped[Optional['Event']] = orm.relationship('Event', back_populates='transactions', lazy='selectin')
+#     memberships: orm.Mapped[Optional['Membership']] = orm.relationship('Membership', back_populates='transactions', lazy='selectin')
+#     seasons: orm.Mapped['Season'] = orm.relationship('Season', back_populates='transactions', lazy='selectin')
+#     logs: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='transactions', lazy='selectin')
 
 
 # class Log(Base):
+#TODO: ensure ERD is matching
 #     """ Log table class
 #     """
-#     __tablename__ = 'log'
+#     __tablename__ = 'logs'
 #     __table_args__ = (
 #         sa.ForeignKeyConstraint(['author_id'], ['members.id'], name='FK_members_TO_log1'),
 #         sa.ForeignKeyConstraint(['updated_event_id'], ['events.id'], name='FK_events_TO_log'),
 #         sa.ForeignKeyConstraint(['updated_member_id'], ['members.id'], name='FK_members_TO_log'),
 #         sa.ForeignKeyConstraint(['updated_membership_id'], ['memberships.id'], name='FK_memberships_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_transaction_id'], ['transaction.id'], name='FK_transaction_TO_log'),
+#         sa.ForeignKeyConstraint(['updated_transaction_id'], ['transactions.id'], name='FK_transaction_TO_log'),
 #         sa.Index('FK_events_TO_log', 'updated_event_id'),
 #         sa.Index('FK_members_TO_log', 'updated_member_id'),
 #         sa.Index('FK_members_TO_log1', 'author_id'),
@@ -550,26 +553,26 @@ class Events(Base):
 #     updated_member_id: orm.Mapped[Optional[AjMemberId]] = orm.mapped_column(sa.Integer)
 #     updated_transaction_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 
-#     members: orm.Mapped['Members'] = orm.relationship('Members', foreign_keys=[author], back_populates='log', lazy='selectin')
-#     events: orm.Mapped[Optional['Events']] = orm.relationship('Events', back_populates='log', lazy='selectin')
-#     members_: orm.Mapped[Optional['Members']] = orm.relationship('Members', foreign_keys=[updated_member], back_populates='log_', lazy='selectin')
-#     memberships: orm.Mapped[Optional['Memberships']] = orm.relationship('Memberships', back_populates='log', lazy='selectin')
-#     transactions: orm.Mapped[Optional['Transactions']] = orm.relationship('Transactions', back_populates='log', lazy='selectin')
+#     members: orm.Mapped['Member'] = orm.relationship('Member', foreign_keys=[author], back_populates='logs', lazy='selectin')
+#     events: orm.Mapped[Optional['Event']] = orm.relationship('Event', back_populates='logs', lazy='selectin')
+#     members_: orm.Mapped[Optional['Member']] = orm.relationship('Member', foreign_keys=[updated_member], back_populates='log_', lazy='selectin')
+#     memberships: orm.Mapped[Optional['Membership']] = orm.relationship('Membership', back_populates='logs', lazy='selectin')
+#     transactions: orm.Mapped[Optional['Transaction']] = orm.relationship('Transaction', back_populates='logs', lazy='selectin')
 
 
 
 # Discord tables
 #########################################
 
-class DiscordRoles(Base):
-    """ List of supported Discord roles
+class DiscordRole(Base):
+    """ Discord role table class
     """
     __tablename__ = 'discord_roles'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    JCT_asso_discord_role: orm.Mapped[list['JCTAssoDiscordRole']] = orm.relationship('JCTAssoDiscordRole', back_populates='discord_role', lazy='selectin')
+    asso_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='discord_role', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -585,14 +588,14 @@ class DiscordRoles(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
-class DiscordPseudos(Base):
-    """ user discord pseudo table class
+class DiscordPseudo(Base):
+    """ Discord pseudo table class
     """
     __tablename__ = 'discord_pseudos'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='discord_pseudo', uselist=False, lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='discord_pseudo', uselist=False, lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -609,13 +612,13 @@ class DiscordPseudos(Base):
 
 
 
-# Members private data tables
+# Member private data tables
 #########################################
 
 
 @functools.total_ordering
-class MemberCredentials(Base):
-    """ user credentials table class
+class Credential(Base):
+    """ user credential table class
     """
     __tablename__ = 'member_credentials'
     __table_args__ = (
@@ -624,7 +627,7 @@ class MemberCredentials(Base):
                      )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
-    member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='credential', uselist=False, lazy='selectin')
+    member: orm.Mapped[Optional['Member']] = orm.relationship('Member', back_populates='credential', uselist=False, lazy='selectin')
     first_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     birthdate: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate)
@@ -686,7 +689,7 @@ class MemberCredentials(Base):
         return ' '.join([f'{x}' for x in name_list if x])
 
 
-class MemberEmails(Base):
+class Email(Base):
     """ user email table class
     """
     __tablename__ = 'member_emails'
@@ -697,7 +700,7 @@ class MemberEmails(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     address: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, unique=True, index=True)
 
-    JCT_member_email: orm.Mapped[list['JCTMemberEmail']] = orm.relationship('JCTMemberEmail', back_populates='email', lazy='selectin')
+    members: orm.Mapped[list['MemberEmail']] = orm.relationship('MemberEmail', back_populates='email', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -716,7 +719,7 @@ class MemberEmails(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
-class MemberPhones(Base):
+class Phone(Base):
     """ user phone number table class
     """
     __tablename__ = 'member_phones'
@@ -727,7 +730,7 @@ class MemberPhones(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
 
-    JCT_member_phone: orm.Mapped[list['JCTMemberPhone']] = orm.relationship('JCTMemberPhone', back_populates='phone', lazy='selectin')
+    members: orm.Mapped[list['MemberPhone']] = orm.relationship('MemberPhone', back_populates='phone', lazy='selectin')
 
     def __str__(self):
         return f'{self}'
@@ -746,7 +749,7 @@ class MemberPhones(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
-class MemberAddresses(Base):
+class PostalAddress(Base):
     """ user address table class
     """
     __tablename__ = 'member_addresses'
@@ -758,13 +761,13 @@ class MemberAddresses(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     street_num: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50), nullable=True)
     street_type_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_street_types.id'), index=True, nullable=True)
-    street_type: orm.Mapped[Optional['LUTStreetTypes']] = orm.relationship('LUTStreetTypes', back_populates='member_addresses', lazy='selectin')
+    street_type: orm.Mapped[Optional['StreetType']] = orm.relationship('StreetType', back_populates='addresses', lazy='selectin')
     street_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
     zip_code: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer, nullable=True)
     city: orm.Mapped[str] = orm.mapped_column(sa.String(255), nullable=False)
     extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
-    JCT_member_address: orm.Mapped[list['JCTMemberAddress']] = orm.relationship('JCTMemberAddress', back_populates='address', lazy='selectin')
+    members: orm.Mapped[list['MemberAddress']] = orm.relationship('MemberAddress', back_populates='address', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -793,7 +796,7 @@ class MemberAddresses(Base):
 #########################################
 
 
-class JCTMemberEmail(Base):
+class MemberEmail(Base):
     """ Junction table between members and emails
     """
     __tablename__ = 'JCT_member_email'
@@ -803,13 +806,13 @@ class JCTMemberEmail(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_email', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='emails', lazy='selectin')
     email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_emails.id'), index=True, nullable=False)
-    email: orm.Mapped['MemberEmails'] = orm.relationship('MemberEmails', back_populates='JCT_member_email', lazy='selectin')
+    email: orm.Mapped['Email'] = orm.relationship('Email', back_populates='members', lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
-class JCTMemberPhone(Base):
+class MemberPhone(Base):
     """ Junction table between members and phones
     """
     __tablename__ = 'JCT_member_phone'
@@ -819,13 +822,13 @@ class JCTMemberPhone(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_phone', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='phones', lazy='selectin')
     phone_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_phones.id'), index=True, nullable=False)
-    phone: orm.Mapped['MemberPhones'] = orm.relationship('MemberPhones', back_populates='JCT_member_phone', lazy='selectin')
+    phone: orm.Mapped['Phone'] = orm.relationship('Phone', back_populates='members', lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
-class JCTMemberAddress(Base):
+class MemberAddress(Base):
     """ Junction table between members and addresses
     """
     __tablename__ = 'JCT_member_address'
@@ -835,49 +838,49 @@ class JCTMemberAddress(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_address', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='addresses', lazy='selectin')
     address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_addresses.id'), index=True, nullable=False)
-    address: orm.Mapped['MemberAddresses'] = orm.relationship('MemberAddresses', back_populates='JCT_member_address', lazy='selectin')
+    address: orm.Mapped['PostalAddress'] = orm.relationship('PostalAddress', back_populates='members', lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
 
-class JCTMemberAssoRole(Base):
+class MemberAssoRole(Base):
     """ Junction table between members and asso roles
     """
     __tablename__ = 'JCT_member_asso_role'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Members'] = orm.relationship('Members', back_populates='JCT_member_asso_role', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='asso_roles', lazy='selectin')
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
-    asso_role: orm.Mapped['AssoRoles'] = orm.relationship('AssoRoles', back_populates='JCT_member_asso_role', lazy='selectin')
+    asso_role: orm.Mapped['AssoRole'] = orm.relationship('AssoRole', back_populates='members', lazy='selectin')
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
     end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
 
-class JCTAssoDiscordRole(Base):
+class AssoRoleDiscordRole(Base):
     """ Junction table between Asso and Discord roles
     """
     __tablename__ = 'JCT_asso_discord_role'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
-    asso_role: orm.Mapped['AssoRoles'] = orm.relationship('AssoRoles', back_populates='JCT_asso_discord_role', lazy='selectin')
+    asso_role: orm.Mapped['AssoRole'] = orm.relationship('AssoRole', back_populates='discord_roles', lazy='selectin')
     discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
-    discord_role: orm.Mapped['DiscordRoles'] = orm.relationship('DiscordRoles', back_populates='JCT_asso_discord_role', lazy='selectin')
+    discord_role: orm.Mapped['DiscordRole'] = orm.relationship('DiscordRole', back_populates='asso_roles', lazy='selectin')
 
 
-class JCTEventMember(Base):
+class MemberEvent(Base):
     """ Junction table between events and members
     """
     __tablename__ = 'JCT_event_member'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.id'), index=True, nullable=False)
-    event: orm.Mapped['Events'] = orm.relationship('Events', back_populates='JCT_event_member', lazy='selectin')
+    event: orm.Mapped['Event'] = orm.relationship('Event', back_populates='members', lazy='selectin')
     member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')
-    member: orm.Mapped[Optional['Members']] = orm.relationship('Members', back_populates='JCT_event_member', lazy='selectin')
+    member: orm.Mapped[Optional['Member']] = orm.relationship('Member', back_populates='events', lazy='selectin')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
@@ -943,16 +946,16 @@ class AjDb():
         # Check if lookup_val is a discord.Member object
         if isinstance(lookup_val, discord.Member):
             try:
-                query = sa.select(Members).join(Members.discord_pseudo).where(DiscordPseudos.name == lookup_val.name)
+                query = sa.select(Member).join(Member.discord_pseudo).where(DiscordPseudo.name == lookup_val.name)
             except MemberNotFound as e:
                 raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
 
         # check if lookup_val is an integer (member ID)
         elif isinstance(lookup_val, int):
-            query = sa.select(Members).where(Members.id == lookup_val)
+            query = sa.select(Member).where(Member.id == lookup_val)
 
         elif isinstance(lookup_val, str):
-            query = sa.select(Members).where(Members.credential)
+            query = sa.select(Member).where(Member.credential)
 
         else:
             raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
@@ -993,7 +996,7 @@ class AjDb():
         if season_name:
             raise AjDbException(f"saison non supportée {season_name}")
 
-        query = sa.select(Members).join(Members.memberships).where(Memberships.is_in_current_season)
+        query = sa.select(Member).join(Member.memberships).where(Membership.is_in_current_season)
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)
@@ -1012,7 +1015,7 @@ class AjDb():
         if season_name:
             raise AjDbException(f"saison non supportée {season_name}")
 
-        query = sa.select(Events).where(Events.is_in_current_season)
+        query = sa.select(Event).where(Event.is_in_current_season)
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)

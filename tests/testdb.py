@@ -26,7 +26,7 @@ async def _search_member(aj_db_session, lokkup_val):
     print('')
 
 async def _season_events(aj_db_session):
-    query = sa.select(ajdb.Events).where(ajdb.Events.is_in_current_season)
+    query = sa.select(ajdb.Event).where(ajdb.Event.is_in_current_season)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
@@ -40,7 +40,7 @@ async def _season_events(aj_db_session):
     print('-------------------')
 
 async def _principal_address(aj_db_session):
-    query = sa.select(ajdb.JCTMemberAddress).where(ajdb.Members.address_principal is not None)
+    query = sa.select(ajdb.MemberAddress).where(ajdb.Member.address_principal is not None)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
@@ -55,13 +55,13 @@ async def _principal_address(aj_db_session):
 
 
 async def _test_query(aj_db_session):
-                # .with_only_columns(ajdb.Members.id, ajdb.Members.credential, sa.func.count(ajdb.Members.memberships))\
-    query = sa.select(ajdb.Members, ajdb.Events)\
-                .join(ajdb.JCTEventMember)\
-                .join(ajdb.Events)\
-                .join(ajdb.Seasons)\
-                .where(ajdb.Seasons.name == "2025-2026")\
-                .select_from(ajdb.Members)
+                # .with_only_columns(ajdb.Member.id, ajdb.Member.credential, sa.func.count(ajdb.Member.memberships))\
+    query = sa.select(ajdb.Member, ajdb.Event)\
+                .join(ajdb.MemberEvent)\
+                .join(ajdb.Event)\
+                .join(ajdb.Season)\
+                .where(ajdb.Season.name == "2025-2026")\
+                .select_from(ajdb.Member)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
