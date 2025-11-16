@@ -94,7 +94,7 @@ class AjBot():
         @self.client.tree.command()
         async def hello(interaction: discord.Interaction):
             """Dis bonjour à l'utilisateur."""
-            MESSAGE_LIST=[f"Bonjour {interaction.user.mention} !",
+            message_list=[f"Bonjour {interaction.user.mention} !",
                           f"Re-bonjour {interaction.user.mention} !",
                           f"Re-re-bonjour {interaction.user.mention} !",
                           "...tu insistes dis donc...",
@@ -104,9 +104,9 @@ class AjBot():
                           "Bon, c'est plus drôle là.",
                          ]
 
-            self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(MESSAGE_LIST)-1])
+            self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(message_list)-1])
             self.last_hello_member = interaction.user
-            await interaction.response.send_message(MESSAGE_LIST[self.last_hello_member_count], ephemeral=True)
+            await interaction.response.send_message(message_list[self.last_hello_member_count], ephemeral=True)
 
         @self.client.tree.command(name="info_membre")
         @app_commands.check(self._is_member)

@@ -55,14 +55,22 @@ async def _principal_address(aj_db_session):
 
 
 async def _test_query(aj_db_session):
-    query = sa.select(ajdb.Members).join(ajdb.Members.memberships).where(ajdb.Memberships.is_in_current_season)
+                # .with_only_columns(ajdb.Members.id, ajdb.Members.credential, sa.func.count(ajdb.Members.memberships))\
+    query = sa.select(ajdb.Members, ajdb.Events)\
+                .join(ajdb.JCTEventMember)\
+                .join(ajdb.Events)\
+                .join(ajdb.Seasons)\
+                .where(ajdb.Seasons.name == "2025-2026")\
+                .select_from(ajdb.Members)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
-    matched_members = query_result.scalars().all()
-    for e in matched_members:
-        print(e)
-    print(len(matched_members), 'membre(s) cotisants cette année')
+    matched_items = query_result.scalars().all()
+    matched_items = list(set(matched_items))
+    matched_items.sort(key=lambda x: x.credential, reverse=False)
+    for e in matched_items:
+        print(f'{e:{FormatTypes.FULLSIMPLE}} - {len(e.memberships)} cotisations(s)')
+    print(len(matched_items), 'item(s)')
 
 
 

@@ -6,6 +6,7 @@ then manually reformated
 '''
 from typing import Optional
 import datetime
+import functools
 
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
@@ -197,7 +198,7 @@ class Seasons(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(10), nullable=False, index=True)
-    start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
+    start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, unique=True)
     end: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
 
     memberships: orm.Mapped[list['Memberships']] = orm.relationship('Memberships', back_populates='season', lazy='selectin')
@@ -223,6 +224,17 @@ class Seasons(Base):
                     ).label("is_current_season")
                 ).scalar_subquery()
 
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return ((self.start, self.end) ==
+                (other.start, other.end))
+
+    def __lt__(self, other):
+        return ((self.start, self.end) <
+                (other.start, other.end))
+
     def __str__(self):
         return f'{self}'
 
@@ -232,6 +244,7 @@ class Seasons(Base):
         return self.name
 
 
+@functools.total_ordering
 class Members(Base):
     """ Member table class
     """
@@ -307,6 +320,15 @@ class Members(Base):
         """ return number of presence in current season events 
         """
         return len([m.event for m in self.JCT_event_member if m.member_id == self.id and m.event.is_in_current_season])
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __lt__(self, other):
+        return self.id < other.id
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -393,6 +415,7 @@ class Memberships(Base):
 
     #TODO: implement __str__ & __format__
 
+@functools.total_ordering
 class Events(Base):
     """ Events table class
     """
@@ -426,6 +449,15 @@ class Events(Base):
                         Seasons.is_current_season)).correlate(cls), True), else_=False,
                     ).label("is_in_current_season")
                 ).scalar_subquery()
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return self.date == other.date
+
+    def __lt__(self, other):
+        return self.date < other.date
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -581,6 +613,7 @@ class DiscordPseudos(Base):
 #########################################
 
 
+@functools.total_ordering
 class MemberCredentials(Base):
     """ user credentials table class
     """
@@ -618,6 +651,17 @@ class MemberCredentials(Base):
             if no lookup, return 100%
         """
         return 100 if not self._fuzzy_lookup else fuzz.token_sort_ratio(self._fuzzy_lookup, self.first_name + ' ' + self.last_name)
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return ((self.last_name.lower(), self.first_name.lower()) ==
+                (other.last_name.lower(), other.first_name.lower()))
+
+    def __lt__(self, other):
+        return ((self.last_name.lower(), self.first_name.lower()) <
+                (other.last_name.lower(), other.first_name.lower()))
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
