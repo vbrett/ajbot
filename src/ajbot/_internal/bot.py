@@ -160,12 +160,14 @@ class AjBot():
                 members = await aj_db_session.get_season_subscribers(season_name)
 
             if members:
-                reply = f"Il y a {len(members)} cotisant(s) cette saison:\n- "
-                reply += '\n- '.join(str(m) for m in members)
+                summary = f"Il y a {len(members)} cotisant(s) cette saison:"
+                reply = '- ' + '\n- '.join(str(m) for m in members)
             else:
-                reply = "Mais il n'y a eu personne cette saison ;-("
+                summary = "Mais il n'y a eu personne cette saison ;-("
+                reply = '---'
 
-            await self.send_response(interaction, content=reply, ephemeral=True, split_on_eol=True)
+            # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
+            await self.send_response_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenements")
         @app_commands.check(self._is_manager)
@@ -185,12 +187,14 @@ class AjBot():
                 events = await aj_db_session.get_season_events(season_name)
 
             if events:
-                reply = f"Il y a {len(events)} évènement(s) cette saison:\n- "
-                reply += '\n- '.join(str(e) for e in events)
+                summary = f"Il y a {len(events)} évènement(s) cette saison:"
+                reply = '- ' + '\n- '.join(str(e) for e in events)
             else:
-                reply = "Mais il n'y a eu aucun évènement cette saison ;-("
+                summary = "Mais il n'y a eu aucun évènement cette saison ;-("
+                reply = '---'
 
-            await self.send_response(interaction, content=reply, ephemeral=True, split_on_eol=True)
+            # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
+            await self.send_response_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="presence")
         @app_commands.check(self._is_manager)
@@ -210,13 +214,15 @@ class AjBot():
                 members = await aj_db_session.get_season_members(season_name)
 
             if members:
-                members.sort(key=lambda x: x.credential, reverse=False)
-                reply = f"Il y a {len(members)} personne(s) qui ont participé cette saison:\n- "
-                reply += '\n- '.join(f'{m} - {len([me for me in m.events if me.event.season.is_current_season])} venue(s)' for m in members)
+                members.sort(key=lambda x: x, reverse=False)
+                summary = f"{len(members)} personne(s) sont venus cette saison:"
+                reply = '- ' + '\n- '.join(f'{m} - {len([me for me in m.events if me.event.season.is_current_season])} venue(s)' for m in members)
             else:
-                reply = "Mais il n'y a eu aucun évènement cette saison ;-("
+                summary = "Mais il n'y a eu personne cette saison ;-("
+                reply = "---"
 
-            await self.send_response(interaction, content=reply, ephemeral=True, split_on_eol=True)
+            # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
+            await self.send_response_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 
         # # List of context menu commands for the bot
@@ -234,11 +240,9 @@ class AjBot():
 
     # # Support functions
     # # ========================================================
-    async def send_response(self, interaction: discord.Interaction, content:str, ephemeral=False,
-                            chunk_size=1800, split_on_eol=True):
-        """ Send command response, handling splitting it if needed (limit = 2000 characters).
-            Only supports content (= text)
-            TODO: add full response possibilities
+    async def send_response_basic(self, interaction: discord.Interaction, content:str, ephemeral=False,
+                                  chunk_size=1800, split_on_eol=True):
+        """ Send basic command response, handling splitting it if needed (limit = 2000 characters).
         """
         if chunk_size > 1980:
             raise AjBotException(f"La taille demandée {chunk_size} n'est pas supportée. Max 2000.")
@@ -258,6 +262,26 @@ class AjBot():
                 first_answer = False
             else:
                 await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral)
+
+    async def send_response_view(self, interaction: discord.Interaction,
+                                 title:str, summary:str, content:str,
+                                 ephemeral=False,):
+        """ Send command response as a view
+        """
+        view = discord.ui.LayoutView()
+        container = discord.ui.Container()
+        view.add_item(container)
+
+        container.add_item(discord.ui.TextDisplay(f'# {title}'))
+
+        container.add_item(discord.ui.TextDisplay(f'## {summary}'))
+        container.add_item(discord.ui.TextDisplay(f'>>> {content}'))
+
+        timestamp = discord.utils.format_dt(interaction.created_at, 'F')
+        footer = discord.ui.TextDisplay(f'-# Généré par {interaction.user} (ID: {interaction.user.id}) | {timestamp}')
+
+        container.add_item(footer)
+        await interaction.response.send_message(view=view, ephemeral=ephemeral)
 
     async def get_season_names(self):
         """ return list of season names
