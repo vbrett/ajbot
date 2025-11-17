@@ -3,9 +3,10 @@
 import sys
 import asyncio
 from datetime import datetime
+from typing import cast
 from pathlib import Path
 
-from vbrpytools.dicjsontools import load_json_file
+from vbrpytools.exceltojson import ExcelWorkbook
 
 from ajbot._internal import ajdb
 from ajbot._internal.ajdb import AjDb
@@ -17,31 +18,27 @@ async def _create_db_schema(aj_db:AjDb):
     await aj_db.drop_create_schema()
 
 
-async def _populate_lut_tables(aj_db:AjDb):
+async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
     """ Populate lookup tables
     """
-    try:
-        xsldb_lookup_tables = load_json_file(Path('aj_xls2db/xlsdb_LUP.json'))
-    except FileNotFoundError:
-        return None
 
     lut_tables = []
-    for val in xsldb_lookup_tables['saisons']:
+    for val in ajdb_xls.dict_from_table('saisons'):
         lut_tables.append(ajdb.Season(name=val['nom'],
-                                    start=datetime.fromisoformat(val['debut']).date(),
-                                    end=datetime.fromisoformat(val['fin']).date()))
-    for val in xsldb_lookup_tables['contribution']:
+                                      start=cast(datetime, val['debut']).date(),
+                                      end=cast(datetime, val['fin']).date()))
+    for val in ajdb_xls.dict_from_table('contribution'):
         lut_tables.append(ajdb.ContributionType(name=val['val']))
-    for val in xsldb_lookup_tables['connaissance']:
+    for val in ajdb_xls.dict_from_table('connaissance'):
         lut_tables.append(ajdb.KnowFromSource(name=val['val']))
-    for val in xsldb_lookup_tables['compte']:
+    for val in ajdb_xls.dict_from_table('compte'):
         lut_tables.append(ajdb.AccountType(name=val['val']))
-    for val in xsldb_lookup_tables['type_voie']:
+    for val in ajdb_xls.dict_from_table('type_voie'):
         lut_tables.append(ajdb.StreetType(name=val['val']))
 
-    for val in xsldb_lookup_tables['discord_role']:
+    for val in ajdb_xls.dict_from_table('discord_role'):
         lut_tables.append(ajdb.DiscordRole(name=val['val'], id=int(val['id']),))
-    for val in xsldb_lookup_tables['roles']:
+    for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = ajdb.AssoRole(name=val['asso'])
         lut_tables.append(new_asso_role)
         if val.get('discord'):
@@ -58,19 +55,12 @@ async def _populate_lut_tables(aj_db:AjDb):
     return lut_tables
 
 
-async def _populate_member_tables(aj_db:AjDb, lut_tables):
+async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables):
     """ Populate member tables
     """
-    try:
-        xsldb_lut_member = load_json_file(Path('aj_xls2db/xlsdb_membres.json'))
-    except FileNotFoundError:
-        return None
-
     member_tables = []
-    for val in xsldb_lut_member['annuaire']:
-        try:
-            _creation_date = datetime.fromisoformat(val['creation']['date'])
-        except ValueError:
+    for val in ajdb_xls.dict_from_table('annuaire'):
+        if not isinstance(val['creation']['date'], datetime):
             continue
         new_member = ajdb.Member()
         member_tables.append(new_member)
@@ -85,7 +75,7 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
             new_member.credential.first_name=val.get('prenom')
             new_member.credential.last_name=val.get('nom')
             if val.get('date_naissance'):
-                new_member.credential.birthdate = datetime.fromisoformat(val['date_naissance']).date()
+                new_member.credential.birthdate = cast(datetime, val['date_naissance']).date()
 
         if val.get('emails'):
             principal = True
@@ -159,23 +149,19 @@ async def _populate_member_tables(aj_db:AjDb, lut_tables):
 
     return member_tables
 
-async def _populate_events_tables(aj_db:AjDb, lut_tables, member_tables):
+async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables, member_tables):
     """ Populate all event related tables
     """
-    try:
-        xsldb_events = load_json_file(Path('aj_xls2db/xlsdb_suivi.json'))
-    except FileNotFoundError:
-        return
 
     membership_tables = []
     event_tables = []
 
-    for val in xsldb_events['suivi']:
+    for val in ajdb_xls.dict_from_table('suivi'):
         # Membership
         if val['entree']['categorie'] == 'Cotisation':
             new_membership = ajdb.Membership()
             membership_tables.append(new_membership)
-            new_membership.date = datetime.fromisoformat(val['date']).date()
+            new_membership.date = cast(datetime, val['date']).date()
             new_membership.season            = [elt for elt in lut_tables    if isinstance(elt, ajdb.Season         ) and elt.name == val['entree']['nom']][0]
             new_membership.member            = [elt for elt in member_tables if isinstance(elt, ajdb.Member         ) and elt.id   == val['membre']['id']][0]
             new_membership.contribution_type = [elt for elt in lut_tables    if isinstance(elt, ajdb.ContributionType) and elt.name == val['cotisation']][0]
@@ -190,7 +176,7 @@ async def _populate_events_tables(aj_db:AjDb, lut_tables, member_tables):
         if val['entree']['categorie'] == 'Evènement' and not val['entree'].get('detail'):
             new_event = ajdb.Event()
             event_tables.append(new_event)
-            new_event.date   = datetime.fromisoformat(val['date']).date()
+            new_event.date   = cast(datetime, val['date']).date()
             new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb.Season) and new_event.date >= elt.start
                                                                                            and new_event.date <= elt.end][0]
             new_event.name   = val['entree']['nom']
@@ -203,13 +189,13 @@ async def _populate_events_tables(aj_db:AjDb, lut_tables, member_tables):
             new_event = ajdb.MemberEvent()
             event_tables.append(new_event)
             new_event.presence = val['entree']['categorie'] == 'Présence'
-            matched_event = [elt for elt in event_tables if isinstance(elt, ajdb.Event) and elt.date == datetime.fromisoformat(val['date']).date()]
+            matched_event = [elt for elt in event_tables if isinstance(elt, ajdb.Event) and elt.date == cast(datetime, val['date']).date()]
             if matched_event:
                 new_event.event = matched_event[0]
             else:
                 new_event.event = ajdb.Event()
                 event_tables.append(new_event.event)
-                new_event.event.date = datetime.fromisoformat(val['date']).date()
+                new_event.event.date = cast(datetime, val['date']).date()
                 new_event.event.season = [elt for elt in lut_tables if isinstance(elt, ajdb.Season) and new_event.event.date >= elt.start
                                                                                                      and new_event.event.date <= elt.end][0]
             if val.get('membre'):
@@ -220,7 +206,7 @@ async def _populate_events_tables(aj_db:AjDb, lut_tables, member_tables):
 
         # Member - Asso role
         if val['entree']['categorie'] == 'Info Membre' and val.get('membre') and val['membre'].get('asso_role'):
-            timestamp = datetime.fromisoformat(val['date']).date()
+            timestamp = cast(datetime, val['date']).date()
             member_id = val['membre']['id']
             matched_role = [elt for elt in lut_tables if isinstance(elt, ajdb.AssoRole) and elt.name == val['membre']['asso_role']]
             if len([elt for elt in event_tables if isinstance(elt, ajdb.MemberAssoRole)
@@ -244,6 +230,12 @@ async def _main():
     """ main function
     """
     async with AjDb() as aj_db:
+        ajdb_xls_file = Path('aj_xls2db/Annuaire & Suivi.xlsx')
+        try:
+            ajdb_xls = ExcelWorkbook(ajdb_xls_file)
+        except FileNotFoundError:
+            print(f"Excel file '{ajdb_xls_file}' not found.")
+            return 1
 
         # create all tables
         # -----------------
@@ -253,13 +245,13 @@ async def _main():
         # -------------------
 
         # lookup tables
-        lut_tables = await _populate_lut_tables(aj_db=aj_db)
+        lut_tables = await _populate_lut_tables(aj_db=aj_db, ajdb_xls=ajdb_xls)
         if lut_tables:
             # member tables
-            member_tables = await _populate_member_tables(aj_db=aj_db, lut_tables=lut_tables)
+            member_tables = await _populate_member_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_tables)
             if member_tables:
                 # membership tables
-                await _populate_events_tables(aj_db=aj_db, lut_tables=lut_tables, member_tables=member_tables)
+                await _populate_events_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_tables, member_tables=member_tables)
 
     return 0
 
