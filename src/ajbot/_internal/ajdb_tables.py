@@ -303,6 +303,13 @@ class Member(Base):
                        ((not season_name and mbr_evt.event.is_in_current_season)
                          or mbr_evt.event.season.name == season_name)])
 
+    def season_current_presence_count_check(self):
+        """ return number of presence if member has not currently subscribed
+        """
+        if self.current_season_has_subscribed:
+            return ""
+        return self.season_presence_count()
+
     @hybrid_property
     def current_season_asso_role(self):
         """ return number of presence in current season events 
@@ -845,6 +852,25 @@ class MemberAssoRole(Base):
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
     end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
+
+    @hybrid_property
+    def is_current_role(self):
+        """ return true if item is current season
+        """
+        return (    datetime.datetime.now().date() >= self.start
+                and (not self.end or datetime.datetime.now().date() <= self.end))
+
+    @is_current_role.expression
+    def is_current_role(cls):      #pylint: disable=no-self-argument   #function is a class factory
+        """ SQL version
+        """
+        return  sa.select(
+                    sa.case((sa.exists().where(
+                    sa.and_(
+                        datetime.datetime.now().date() >= cls.start,
+                        datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
+                    ).label("is_current_role")
+                ).scalar_subquery()
 
 
 class AssoRoleDiscordRole(Base):

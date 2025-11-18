@@ -63,6 +63,7 @@ class AjDb():
                 - discord member object
                 - integer = member ID
                 - string that is compared to "user friendly name" using fuzzy search
+                - None: return all members
 
             for first 2 types, return exact match
             for last, return exact match if found, otherwise list of match above match_crit
@@ -72,6 +73,9 @@ class AjDb():
                 [member (if perfect match) or matchedMember (if not perfect match)]
         '''
         query = None
+        if not lookup_val:
+            query = sa.select(Member)
+
         # Check if lookup_val is a discord.Member object
         if isinstance(lookup_val, discord.Member):
             try:
