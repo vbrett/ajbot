@@ -143,6 +143,9 @@ class AjBot():
             """
             await interaction.response.send_message(f"Version du bot: {ajbot_version}", ephemeral=True)
 
+
+
+
         @self.client.tree.command(name="cotisants")
         @app_commands.check(self._is_manager)
         @app_commands.rename(season_name='saison')
@@ -160,14 +163,22 @@ class AjBot():
                 members = await aj_db_session.get_season_subscribers(season_name)
 
             if members:
-                summary = f"Il y a {len(members)} cotisant(s) cette saison:"
-                reply = '- ' + '\n- '.join(str(m) for m in members)
+                if season_name:
+                    summary = f"{len(members)} personne(s) ont cotisé à la saison {season_name} :"
+                else:
+                    summary = f"{len(members)} personne(s) ont déjà cotisé à cette saison :"
+
+                format_style = FormatTypes.FULLSIMPLE if self._is_manager(interaction) else FormatTypes.RESTRICTED
+                reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in members)
             else:
                 summary = "Mais il n'y a eu personne cette saison ;-("
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
             await self.send_response_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
+
+
+
 
         @self.client.tree.command(name="evenements")
         @app_commands.check(self._is_manager)
@@ -187,14 +198,22 @@ class AjBot():
                 events = await aj_db_session.get_season_events(season_name)
 
             if events:
-                summary = f"Il y a {len(events)} évènement(s) cette saison:"
-                reply = '- ' + '\n- '.join(str(e) for e in events)
+                if season_name:
+                    summary = f"Il y a eu {len(events)} évènement(s) lors de la saison {season_name} :"
+                else:
+                    summary = f"Il y a déjà eu {len(events)} évènement(s) lors de cette saison :"
+
+                format_style = FormatTypes.FULLSIMPLE if self._is_manager(interaction) else FormatTypes.RESTRICTED
+                reply = '- ' + '\n- '.join(f'{e:{format_style}}' for e in events)
             else:
                 summary = "Mais il n'y a eu aucun évènement cette saison ;-("
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
             await self.send_response_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
+
+
+
 
         @self.client.tree.command(name="presence")
         @app_commands.check(self._is_manager)
@@ -215,8 +234,13 @@ class AjBot():
 
             if members:
                 members.sort(key=lambda x: x, reverse=False)
-                summary = f"{len(members)} personne(s) sont venus cette saison:"
-                reply = '- ' + '\n- '.join(f'{m} - {len([me for me in m.events if me.event.season.is_current_season])} venue(s)' for m in members)
+                if season_name:
+                    summary = f"{len(members)} personne(s) sont venus lors de la saison {season_name} :"
+                else:
+                    summary = f"{len(members)} personne(s) sont déjà venus lors de cette saison :"
+
+                format_style = FormatTypes.FULLSIMPLE if self._is_manager(interaction) else FormatTypes.RESTRICTED
+                reply = '- ' + '\n- '.join(f'{m:{format_style}} - {m.season_presence_count(season_name)} participation(s)' for m in members)
             else:
                 summary = "Mais il n'y a eu personne cette saison ;-("
                 reply = "---"

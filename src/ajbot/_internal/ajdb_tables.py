@@ -295,29 +295,19 @@ class Member(Base):
                     ).label("current_season_has_subscribed")
                 )
 
-    @hybrid_property
-    def current_season_presence_count(self):
-        """ return number of presence in current season events 
+    def season_presence_count(self, season_name = None):
+        """ return numnber of related events in provided season. Current if empty
         """
-        return len([m.event for m in self.events if m.member_id == self.id and m.event.is_in_current_season])
-
-    #TODO: code
-    # @current_season_presence_count.expression
-    # def current_season_presence_count(cls):      #pylint: disable=no-self-argument   #function is a class factory
-    #     """ SQL version
-    #     """
-    #     return sa.select(MemberEvent.event,
-    #             sa.func.count.select(
-    #             sa.and_(
-    #                     MemberEvent.member_id == cls.id,
-    #                     Event.is_in_current_season)
-    #             ).label("current_season_presence_count")).group_by().subquery()
+        return len([mbr_evt for mbr_evt in self.events
+                    if mbr_evt.member_id == self.id and
+                       ((not season_name and mbr_evt.event.is_in_current_season)
+                         or mbr_evt.event.season.name == season_name)])
 
     @hybrid_property
     def current_season_asso_role(self):
         """ return number of presence in current season events 
         """
-        return len([m.event for m in self.events if m.member_id == self.id and m.event.is_in_current_season])
+        return "I don't know" #TODO to implement this
 
     def __hash__(self):
         return hash(self.id)
@@ -342,7 +332,7 @@ class Member(Base):
         mbr_phone = self.phone_principal.phone if self.phone_principal else None
 
         mbr_asso_info = '' if self.current_season_has_subscribed else 'non ' #pylint: disable=using-constant-test #variable is not constant
-        mbr_asso_info += f'cotisant, {self.current_season_presence_count} participation(s) cette saison.'
+        mbr_asso_info += f'cotisant, {self.season_presence_count()} participation(s) cette saison.'
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
