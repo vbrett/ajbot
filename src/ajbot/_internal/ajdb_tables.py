@@ -306,15 +306,22 @@ class Member(Base):
     def season_current_presence_count_check(self):
         """ return number of presence if member has not currently subscribed
         """
-        if self.current_season_has_subscribed:
+        if self.current_season_has_subscribed:  #pylint: disable=using-constant-test #variable is not constant
             return ""
         return self.season_presence_count()
 
     @hybrid_property
-    def current_season_asso_role(self):
+    def current_season_asso_roles(self):
         """ return number of presence in current season events 
         """
-        return "I don't know" #TODO to implement this
+        current_member_asso_roles = [ar.asso_role for ar in self.asso_roles if ar.is_current_role]
+        if current_member_asso_roles:
+            return current_member_asso_roles
+
+        # if self.current_season_has_subscribed:
+        #     return [ar for ar in ][0]
+
+        return [] #TODO to implement this
 
     def __hash__(self):
         return hash(self.id)

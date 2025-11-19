@@ -11,7 +11,7 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.config import FormatTypes
 
 async def _search_member(aj_db_session, lokkup_val):
-    query_result = await aj_db_session.search_member(lokkup_val)
+    query_result = await aj_db_session.get_members(lokkup_val)
     print('')
     print('')
     print('-------------------')
@@ -82,13 +82,13 @@ async def _test_query(aj_db_session):
 async def _main():
     """ main function - async version
     """
-    async with AjDb() as aj_db_session:
+    async with AjDb() as aj_db:
 
         # await _search_member(aj_db_session, 'vincent')
         # await _season_events(aj_db_session)
         # await _principal_address(aj_db_session)
 
-        await _test_query(aj_db_session)
+        await _test_query(aj_db)
 
     return 0
 

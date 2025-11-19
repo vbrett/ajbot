@@ -3,6 +3,7 @@
 import sys
 from typing import Optional
 from pathlib import Path
+import traceback
 
 import discord
 from discord import app_commands
@@ -99,6 +100,99 @@ class MyAppEventsAndCommands():
         """A check which only allows managers to use the command."""
         return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
 
+# Define a modal dialog for reporting issues or feedback
+class ReportModal(discord.ui.Modal, title='Votre Rapport'):
+    topic = discord.ui.Label(
+        text='Sujet',
+        description='Choisis le sujet de ce rapport.',
+        component=discord.ui.Select(
+            placeholder='Choisis un sujet...',
+            options=[
+                discord.SelectOption(label='Bug', description='Signaler un bug'),
+                discord.SelectOption(label='Feature Request', description='Demander une nouvelle fonctionnalité'),
+            ],
+        ),
+    )
+    report_title = discord.ui.Label(
+        text='Titre',
+        description='Titre du rapport.',
+        component=discord.ui.TextInput(
+            style=discord.TextStyle.short,
+            placeholder='Le bot, ben il marche pas...',
+            max_length=120,
+        ),
+    )
+    description = discord.ui.Label(
+        text='Description',
+        description='Description détaillée du rapport.',
+        component=discord.ui.TextInput(
+            style=discord.TextStyle.paragraph,
+            placeholder="Lorsque j'utilise /info, le bot ne répond pas du tout. Aucun message d'erreur ne s'affiche.",
+            max_length=2000,
+        ),
+    )
+    # images = discord.ui.Label(
+    #     text='Images',
+    #     description='Upload any relevant images for your report (optional).',
+    #     component=discord.ui.FileUpload(
+    #         max_values=10,
+    #         custom_id='report_images',
+    #         required=False,
+    #     ),
+    # )
+    footer = discord.ui.TextDisplay(
+        'Assure toi que ton signalement respecte les règles du serveur. Tout abus entraînera un bannissement.'
+    )
+
+    def to_view(self, interaction: discord.Interaction) -> discord.ui.LayoutView:
+        """ display box
+        """
+        # Tell the type checker what our components are...
+        assert isinstance(self.topic.component, discord.ui.Select)
+        assert isinstance(self.description.component, discord.ui.TextInput)
+        assert isinstance(self.report_title.component, discord.ui.TextInput)
+        # assert isinstance(self.images.component, discord.ui.FileUpload)
+
+        topic = self.topic.component.values[0]
+        title = self.report_title.component.value
+        description = self.description.component.value
+        # files = self.images.component.values
+
+        view = discord.ui.LayoutView()
+        container = discord.ui.Container()
+        view.add_item(container)
+
+        container.add_item(discord.ui.TextDisplay(f'-# Rapport\n## {topic}'))
+
+        timestamp = discord.utils.format_dt(interaction.created_at, 'F')
+        footer = discord.ui.TextDisplay(f'-# Reported by {interaction.user} (ID: {interaction.user.id}) | {timestamp}')
+
+        container.add_item(discord.ui.TextDisplay(f'### {title}'))
+        container.add_item(discord.ui.TextDisplay(f'>>> {description}'))
+
+        # if files:
+        #     gallery = discord.ui.MediaGallery()
+        #     gallery.items = [discord.MediaGalleryItem(media=attachment.url) for attachment in files]
+        #     container.add_item(gallery)
+
+        container.add_item(footer)
+        return view
+
+    async def on_submit(self, interaction: discord.Interaction[MyDiscordClient]):
+        """ Submit report action
+        """
+        view = self.to_view(interaction)
+
+        # Send the report to the designated channel
+        # reports_channel = interaction.client.get_partial_messageable(AjConfig.discord_debug_channel)
+        # await reports_channel.send(view=view)
+        await interaction.response.send_message(ephemeral=True, view=view)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+
+        # Make sure we know what the error actually is
+        traceback.print_exception(type(error), error, error.__traceback__)
 
 
 
@@ -120,6 +214,7 @@ def _main():
         intents.members = True
 
         my_app = MyAppEventsAndCommands(aj_config, intents)
+
         # _gdrive = GoogleDrive(aj_config)
         # ajdb = AjDb(aj_config, _gdrive.get_file(aj_config.file_id_db))
 
@@ -154,6 +249,14 @@ def _main():
         #         last_hello_member = interaction.user
         #         message = f'Bonjour {interaction.user.mention}!'
         #     await interaction.response.send_message(message)
+
+        @client.tree.command(description='Report an issue or provide feedback.')
+        @app_commands.check(self._is_manager)
+        async def report(interaction: discord.Interaction):
+            # Send the modal with an instance of our `ReportModal` class
+            # Since modals require an interaction, they cannot be done as a response to a text command.
+            # They can only be done as a response to either an application command or a button press.
+            await interaction.response.send_modal(ReportModal())
 
         # @client.tree.command()
         # # @app_commands.checks.has_role("bureau")

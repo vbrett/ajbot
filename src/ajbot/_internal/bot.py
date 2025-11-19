@@ -12,6 +12,7 @@ from discord import app_commands
 
 from ajbot import __version__ as ajbot_version
 from ajbot._internal.ajdb import AjDb
+from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.exceptions import AjBotException, OtherException
 from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 
@@ -159,8 +160,8 @@ class AjBot():
                               season_name:Optional[str]=None):
             """ Affiche les cotisants
             """
-            async with AjDb() as aj_db_session:
-                members = await aj_db_session.get_season_subscribers(season_name)
+            async with AjDb() as aj_db:
+                members = await aj_db.get_season_subscribers(season_name)
 
             if members:
                 if season_name:
@@ -194,8 +195,8 @@ class AjBot():
                          ):
             """ Affiche les evenements
             """
-            async with AjDb() as aj_db_session:
-                events = await aj_db_session.get_season_events(season_name)
+            async with AjDb() as aj_db:
+                events = await aj_db.get_season_events(season_name)
 
             if events:
                 if season_name:
@@ -229,8 +230,8 @@ class AjBot():
                            ):
             """ Affiche les personne ayant participé à une saison
             """
-            async with AjDb() as aj_db_session:
-                members = await aj_db_session.get_season_members(season_name)
+            async with AjDb() as aj_db:
+                members = await aj_db.get_season_members(season_name)
 
             if members:
                 members.sort(key=lambda x: x, reverse=False)
@@ -311,8 +312,8 @@ class AjBot():
         """ return list of season names
         """
         #TODO: This is unusable. Need to add dynamic definition of list of seasons through app_commands.Transformer
-        async with AjDb() as aj_db_session:
-            seasons = await aj_db_session.get_seasons()
+        async with AjDb() as aj_db:
+            seasons = await aj_db.get_table_content(ajdb_t.Season)
 
         return [app_commands.Choice(name=s.name, value=s.name) for s in seasons.sort()]
 
@@ -330,8 +331,8 @@ class AjBot():
             return
         input_member = input_member[0]
 
-        async with AjDb() as aj_db_session:
-            members = await aj_db_session.search_member(input_member, 50, False)
+        async with AjDb() as aj_db:
+            members = await aj_db.get_members(input_member, 50, False)
 
         embed = None
         reply = f"Je ne connais pas ton ou ta {input_member}."

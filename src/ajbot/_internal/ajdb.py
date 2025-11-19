@@ -12,7 +12,7 @@ from discord.ext.commands import MemberNotFound
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
-from ajbot._internal.ajdb_tables import Base, Season, Event, Member, Membership, MemberEvent, DiscordPseudo
+from ajbot._internal import ajdb_tables as ajdb_t
 
 
 
@@ -26,7 +26,6 @@ class AjDb():
         self.db_username = None
 
     async def __aenter__(self):
-        #TODO clean this mess. I'm mixing db and session
         with AjConfig(save_on_exit=False, break_if_missing=True) as aj_config:
             self.db_username = aj_config.db_creds['user']
             # Connect to MariaDB Platform
@@ -45,6 +44,8 @@ class AjDb():
         self.db_username = None
         self.AsyncSessionMaker = None
 
+    # DB Management
+    # =============
     async def drop_create_schema(self):
         """ recreate database schema
         """
@@ -52,10 +53,27 @@ class AjDb():
             raise AjDbException(f"L'utilisateur {self.db_username} ne peut pas recréer la base de donnée !")
         # create all tables
         async with self.db_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-            await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(ajdb_t.Base.metadata.drop_all)
+            await conn.run_sync(ajdb_t.Base.metadata.create_all)
 
-    async def search_member(self,
+    # DB Queries
+    # ==========
+
+    async def get_table_content(self, tables):
+        ''' retrieve complete tables
+            @arg: list of table classes to retrieve
+
+            @return
+                [all found rows]
+        '''
+        query = sa.select(*tables)
+        async with self.AsyncSessionMaker() as session:
+            async with session.begin():
+                query_result = await session.execute(query)
+
+        return query_result.scalars().all()
+
+    async def get_members(self,
                      lookup_val = None,
                      match_crit = 50,
                      break_if_multi_perfect_match = True,):
@@ -74,21 +92,21 @@ class AjDb():
         '''
         query = None
         if not lookup_val:
-            query = sa.select(Member)
+            query = sa.select(ajdb_t.Member)
 
-        # Check if lookup_val is a discord.Member object
+        # Check if lookup_val is a discord.ajdb_t.Member object
         if isinstance(lookup_val, discord.Member):
             try:
-                query = sa.select(Member).join(Member.discord_pseudo).where(DiscordPseudo.name == lookup_val.name)
+                query = sa.select(ajdb_t.Member).join(ajdb_t.Member.discord_pseudo).where(ajdb_t.DiscordPseudo.name == lookup_val.name)
             except MemberNotFound as e:
                 raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
 
         # check if lookup_val is an integer (member ID)
         elif isinstance(lookup_val, int):
-            query = sa.select(Member).where(Member.id == lookup_val)
+            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.id == lookup_val)
 
         elif isinstance(lookup_val, str):
-            query = sa.select(Member).where(Member.credential)
+            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.credential)
 
         else:
             raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
@@ -117,19 +135,6 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
-    async def get_seasons(self):
-        ''' retrieve list of seasons
-
-            @return
-                [all found seasons]
-        '''
-        query = sa.select(Season)
-        async with self.AsyncSessionMaker() as session:
-            async with session.begin():
-                query_result = await session.execute(query)
-
-        return query_result.scalars().all()
-
     async def get_season_subscribers(self, season_name = None):
         ''' retrieve list of member having subscribed to season
             @args
@@ -139,9 +144,9 @@ class AjDb():
                 [all found Members]
         '''
         if season_name:
-            query = sa.select(Member).join(Membership).join(Season).where(Season.name == season_name)
+            query = sa.select(ajdb_t.Member).join(ajdb_t.Membership).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
         else:
-            query = sa.select(Member).join(Membership).where(Membership.is_in_current_season)
+            query = sa.select(ajdb_t.Member).join(ajdb_t.Membership).where(ajdb_t.Membership.is_in_current_season)
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)
@@ -157,9 +162,9 @@ class AjDb():
                 [all found events]
         '''
         if season_name:
-            query = sa.select(Event).join(Season).where(Season.name == season_name)
+            query = sa.select(ajdb_t.Event).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
         else:
-            query = sa.select(Event).where(Event.is_in_current_season)
+            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
                 query_result = await session.execute(query)
@@ -175,19 +180,19 @@ class AjDb():
                 [all found members with number of presence]
         '''
         if season_name:
-            query = sa.select(Member)\
-                        .join(MemberEvent)\
-                        .join(Event)\
-                        .join(Season)\
-                        .where(Season.name == season_name)\
-                        .group_by(Member)
+            query = sa.select(ajdb_t.Member)\
+                        .join(ajdb_t.MemberEvent)\
+                        .join(ajdb_t.Event)\
+                        .join(ajdb_t.Season)\
+                        .where(ajdb_t.Season.name == season_name)\
+                        .group_by(ajdb_t.Member)
         else:
-            query = sa.select(Member)\
-                        .join(MemberEvent)\
-                        .join(Event)\
-                        .join(Season)\
-                        .where(Season.is_current_season)\
-                        .group_by(Member)
+            query = sa.select(ajdb_t.Member)\
+                        .join(ajdb_t.MemberEvent)\
+                        .join(ajdb_t.Event)\
+                        .join(ajdb_t.Season)\
+                        .where(ajdb_t.Season.is_current_season)\
+                        .group_by(ajdb_t.Member)
 
         async with self.AsyncSessionMaker() as session:
             async with session.begin():
