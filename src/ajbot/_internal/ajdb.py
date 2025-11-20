@@ -4,6 +4,8 @@ Classes generated using:
 sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
+from functools import wraps
+
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 
@@ -21,9 +23,10 @@ class AjDb():
         Create DB engine and async session maker on enter, and dispose engine on exit
     """
     def __init__(self):
-        self.db_engine = None
-        self.AsyncSessionMaker = None   #pylint: disable=invalid-name   #variable is a class factory
-        self.db_username = None
+        self.db_engine: aio_sa.AsyncEngine = None
+        self.db_username:str = None
+        self.AsyncSessionMaker:aio_sa.async_sessionmaker = None   #pylint: disable=invalid-name   #variable is a class factory
+        self.aio_session: aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
 
     async def __aenter__(self):
         with AjConfig(save_on_exit=False, break_if_missing=True) as aj_config:
@@ -35,6 +38,7 @@ class AjDb():
         # aio_sa.async_sessionmaker: a factory for new AsyncSession objects
         # expire_on_commit - don't expire objects after transaction commit
         self.AsyncSessionMaker = aio_sa.async_sessionmaker(bind = self.db_engine, expire_on_commit=False)
+        self.aio_session = self.AsyncSessionMaker()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
@@ -43,6 +47,26 @@ class AjDb():
         await self.db_engine.dispose()
         self.db_username = None
         self.AsyncSessionMaker = None
+        self.aio_session = None
+
+    def _with_aio_session(func):    #pylint: disable=no-self-argument   #method is a decorator
+        """ Decorator to handle sql session creation & begining before calling the decorated function
+        """
+        @wraps(func)
+        async def wrapper(self, *args, **kwargs):
+            if not self.aio_session:
+                async with self.AsyncSessionMaker() as self.aio_session:
+                    async with self.aio_session.begin():
+                        result = await func(self, *args, **kwargs)  #pylint: disable=not-callable   #not sure why error is raised, this is callable
+                self.aio_session = None
+            else:
+                if not self.aio_session.in_transaction():
+                    raise AjDbException('session should be open')
+                result = await func(self, *args, **kwargs)  #pylint: disable=not-callable   #not sure why error is raised, this is callable
+
+            return result
+        return wrapper
+
 
     # DB Management
     # =============
@@ -59,28 +83,21 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def query_table_content(self, tables, aio_session: aio_sa.AsyncSession = None):
+    @_with_aio_session
+    async def query_table_content(self, tables):
         ''' retrieve complete tables
             @arg:
                 list of table classes to retrieve
-                session: a non open db session. If not provided, will execute the query in its own session
 
             @return
                 [all found rows]
         '''
         query = sa.select(*tables)
-        if not aio_session:
-            async with self.AsyncSessionMaker() as aio_session:
-                async with aio_session.begin():
-                    query_result = await aio_session.execute(query)
-        else:
-            if not aio_session.in_transaction():
-                raise AjDbException('session has already begun')
-            async with aio_session.begin():
-                query_result = await aio_session.execute(query)
+        query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
 
+    @_with_aio_session
     async def query_members(self,
                      lookup_val = None,
                      match_crit = 50,
@@ -120,9 +137,7 @@ class AjDb():
             raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
 
 
-        async with self.AsyncSessionMaker() as session:
-            async with session.begin():
-                query_result = await session.execute(query)
+        query_result = await self.aio_session.execute(query)
 
         matched_members = query_result.scalars().all()
 
@@ -143,6 +158,7 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
+    @_with_aio_session
     async def query_season_subscribers(self, season_name = None):
         ''' retrieve list of member having subscribed to season
             @args
@@ -155,12 +171,12 @@ class AjDb():
             query = sa.select(ajdb_t.Member).join(ajdb_t.Membership).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
         else:
             query = sa.select(ajdb_t.Member).join(ajdb_t.Membership).where(ajdb_t.Membership.is_in_current_season)
-        async with self.AsyncSessionMaker() as session:
-            async with session.begin():
-                query_result = await session.execute(query)
+
+        query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
 
+    @_with_aio_session
     async def query_season_events(self, season_name = None):
         ''' retrieve list of events having occured in season
             @args
@@ -173,12 +189,12 @@ class AjDb():
             query = sa.select(ajdb_t.Event).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
         else:
             query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
-        async with self.AsyncSessionMaker() as session:
-            async with session.begin():
-                query_result = await session.execute(query)
+
+        query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
 
+    @_with_aio_session
     async def query_season_members(self, season_name = None):
         ''' retrieve list of members having participated in season
             @args
@@ -202,9 +218,7 @@ class AjDb():
                         .where(ajdb_t.Season.is_current_season)\
                         .group_by(ajdb_t.Member)
 
-        async with self.AsyncSessionMaker() as session:
-            async with session.begin():
-                query_result = await session.execute(query)
+        query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
 
