@@ -10,8 +10,8 @@ from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.config import FormatTypes
 
-async def _search_member(aj_db_session, lookup_val):
-    query_result = await aj_db_session.get_members(lookup_val)
+async def _search_member(aj_db:AjDb, lookup_val):
+    query_result = await aj_db.query_members(lookup_val)
     print('')
     print('')
     print('-------------------')
@@ -84,9 +84,9 @@ async def _main():
     """
     async with AjDb() as aj_db:
 
-        # await _search_member(aj_db, 'vincent')
-        # await _season_events(aj_db)
-        # await _principal_address(aj_db)
+        await _search_member(aj_db, 'vincent')
+        await _season_events(aj_db)
+        await _principal_address(aj_db)
 
         await _test_query(aj_db)
 

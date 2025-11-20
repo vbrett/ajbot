@@ -44,28 +44,11 @@ class AjDb():
     async def __aexit__(self, exc_type, exc_value, traceback):
         # for AsyncEngine created in function scope, close and
         # clean-up pooled connections
-        await self.db_engine.dispose()
-        self.db_username = None
-        self.AsyncSessionMaker = None
+        await self.aio_session.close()
         self.aio_session = None
-
-    def _with_aio_session(func):    #pylint: disable=no-self-argument   #method is a decorator
-        """ Decorator to handle sql session creation & begining before calling the decorated function
-        """
-        @wraps(func)
-        async def wrapper(self, *args, **kwargs):
-            if not self.aio_session:
-                async with self.AsyncSessionMaker() as self.aio_session:
-                    async with self.aio_session.begin():
-                        result = await func(self, *args, **kwargs)  #pylint: disable=not-callable   #not sure why error is raised, this is callable
-                self.aio_session = None
-            else:
-                if not self.aio_session.in_transaction():
-                    raise AjDbException('session should be open')
-                result = await func(self, *args, **kwargs)  #pylint: disable=not-callable   #not sure why error is raised, this is callable
-
-            return result
-        return wrapper
+        await self.db_engine.dispose()
+        self.AsyncSessionMaker = None
+        self.db_username = None
 
 
     # DB Management
@@ -83,7 +66,6 @@ class AjDb():
     # DB Queries
     # ==========
 
-    @_with_aio_session
     async def query_table_content(self, tables):
         ''' retrieve complete tables
             @arg:
@@ -97,7 +79,6 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    @_with_aio_session
     async def query_members(self,
                      lookup_val = None,
                      match_crit = 50,
@@ -158,7 +139,6 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
-    @_with_aio_session
     async def query_season_subscribers(self, season_name = None):
         ''' retrieve list of member having subscribed to season
             @args
@@ -176,7 +156,6 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    @_with_aio_session
     async def query_season_events(self, season_name = None):
         ''' retrieve list of events having occured in season
             @args
@@ -194,7 +173,6 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    @_with_aio_session
     async def query_season_members(self, season_name = None):
         ''' retrieve list of members having participated in season
             @args
