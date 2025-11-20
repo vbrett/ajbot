@@ -16,7 +16,7 @@ async def _main():
     """ main function - async version
     """
     async with AjDb() as aj_db:
-        members = await aj_db.get_season_members()
+        members = await aj_db.query_season_members()
 
     members.sort(key=lambda x: x.credential)
     df = pd.DataFrame([{"id": f"{member.id:{FormatTypes.FULLSIMPLE}}",

@@ -161,7 +161,7 @@ class AjBot():
             """ Affiche les cotisants
             """
             async with AjDb() as aj_db:
-                members = await aj_db.get_season_subscribers(season_name)
+                members = await aj_db.query_season_subscribers(season_name)
 
             if members:
                 if season_name:
@@ -196,7 +196,7 @@ class AjBot():
             """ Affiche les evenements
             """
             async with AjDb() as aj_db:
-                events = await aj_db.get_season_events(season_name)
+                events = await aj_db.query_season_events(season_name)
 
             if events:
                 if season_name:
@@ -231,7 +231,7 @@ class AjBot():
             """ Affiche les personne ayant participé à une saison
             """
             async with AjDb() as aj_db:
-                members = await aj_db.get_season_members(season_name)
+                members = await aj_db.query_season_members(season_name)
 
             if members:
                 members.sort(key=lambda x: x, reverse=False)
@@ -313,7 +313,7 @@ class AjBot():
         """
         #TODO: This is unusable. Need to add dynamic definition of list of seasons through app_commands.Transformer
         async with AjDb() as aj_db:
-            seasons = await aj_db.get_table_content(ajdb_t.Season)
+            seasons = await aj_db.query_table_content(ajdb_t.Season)
 
         return [app_commands.Choice(name=s.name, value=s.name) for s in seasons.sort()]
 
@@ -332,7 +332,7 @@ class AjBot():
         input_member = input_member[0]
 
         async with AjDb() as aj_db:
-            members = await aj_db.get_members(input_member, 50, False)
+            members = await aj_db.query_members(input_member, 50, False)
 
         embed = None
         reply = f"Je ne connais pas ton ou ta {input_member}."

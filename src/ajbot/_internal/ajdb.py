@@ -59,21 +59,22 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def get_table_content(self, tables):
+    async def query_table_content(self, tables):
         ''' retrieve complete tables
-            @arg: list of table classes to retrieve
+            @arg:
+                list of table classes to retrieve
 
             @return
                 [all found rows]
         '''
         query = sa.select(*tables)
-        async with self.AsyncSessionMaker() as session:
-            async with session.begin():
-                query_result = await session.execute(query)
+        async with self.AsyncSessionMaker() as aio_session:
+            async with aio_session.begin():
+                query_result = await aio_session.execute(query)
 
         return query_result.scalars().all()
 
-    async def get_members(self,
+    async def query_members(self,
                      lookup_val = None,
                      match_crit = 50,
                      break_if_multi_perfect_match = True,):
@@ -135,7 +136,7 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
-    async def get_season_subscribers(self, season_name = None):
+    async def query_season_subscribers(self, season_name = None):
         ''' retrieve list of member having subscribed to season
             @args
                 season_name = Optional. If empty, use current season
@@ -153,7 +154,7 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    async def get_season_events(self, season_name = None):
+    async def query_season_events(self, season_name = None):
         ''' retrieve list of events having occured in season
             @args
                 season_name = Optional. If empty, use current season
@@ -171,7 +172,7 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    async def get_season_members(self, season_name = None):
+    async def query_season_members(self, season_name = None):
         ''' retrieve list of members having participated in season
             @args
                 season_name = Optional. If empty, use current season
