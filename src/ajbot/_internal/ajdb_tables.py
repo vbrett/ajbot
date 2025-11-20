@@ -303,7 +303,7 @@ class Member(Base):
                        ((not season_name and mbr_evt.event.is_in_current_season)
                          or mbr_evt.event.season.name == season_name)])
 
-    def season_current_presence_count_check(self):
+    def current_season_not_subscriber_presence_count(self):
         """ return number of presence if member has not currently subscribed
         """
         if self.current_season_has_subscribed:  #pylint: disable=using-constant-test #variable is not constant
