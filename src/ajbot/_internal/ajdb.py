@@ -59,16 +59,23 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def query_table_content(self, tables):
+    async def query_table_content(self, tables, aio_session: aio_sa.AsyncSession = None):
         ''' retrieve complete tables
             @arg:
                 list of table classes to retrieve
+                session: a non open db session. If not provided, will execute the query in its own session
 
             @return
                 [all found rows]
         '''
         query = sa.select(*tables)
-        async with self.AsyncSessionMaker() as aio_session:
+        if not aio_session:
+            async with self.AsyncSessionMaker() as aio_session:
+                async with aio_session.begin():
+                    query_result = await aio_session.execute(query)
+        else:
+            if not aio_session.in_transaction():
+                raise AjDbException('session has already begun')
             async with aio_session.begin():
                 query_result = await aio_session.execute(query)
 
