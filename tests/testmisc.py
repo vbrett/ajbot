@@ -38,7 +38,7 @@ async def _main():
     input_columns_width = [0.1, 0.3, 0.1, 0.5] # Need adjust if changing list of columns, total should always be 1
 
     row_per_page = 20
-    table_height_scale = 3  # Need adjust if changing mbr_per_page
+    table_height_scale = 2.7  # Need adjust if changing mbr_per_page
 
     # add empty rows to have full pages + one full blank page
     n_empty_rows = row_per_page - (((len(input_list) - 1) % row_per_page) + 1)
