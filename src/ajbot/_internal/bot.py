@@ -83,6 +83,8 @@ class AjBot():
         self.last_hello_member : discord.User = None
         self.last_hello_member_count : int = 0
 
+        self.season_names = None
+
         # List of events for the bot
         # ========================================================
         @self.client.event
@@ -117,6 +119,7 @@ class AjBot():
         @app_commands.describe(disc_member='pseudo discord.')
         @app_commands.describe(int_member='ID de l\'asso.')
         @app_commands.describe(str_member='nom (ID, nom complet ou partiel)')
+        @app_commands.checks.cooldown(1, 5)
         async def member_info(interaction: discord.Interaction,
                               disc_member:Optional[discord.Member]=None,
                               int_member:Optional[int]=None,
@@ -139,6 +142,7 @@ class AjBot():
 
         @self.client.tree.command(name="version")
         @app_commands.check(self._is_manager)
+        @app_commands.checks.cooldown(1, 5)
         async def version(interaction: discord.Interaction):
             """ Affiche la version du bot
             """
@@ -151,11 +155,8 @@ class AjBot():
         @app_commands.check(self._is_manager)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-        @app_commands.choices(season_name=[
-            app_commands.Choice(name='2025-2026', value='2025-2026'),
-            app_commands.Choice(name='2024-2025', value='2024-2025'),
-            app_commands.Choice(name='2023-2024', value='2023-2024'),
-        ])
+        @app_commands.autocomplete(season_name=self.season_autocomplete)
+        @app_commands.checks.cooldown(1, 5)
         async def memberships(interaction: discord.Interaction,
                               season_name:Optional[str]=None):
             """ Affiche les cotisants
@@ -185,11 +186,8 @@ class AjBot():
         @app_commands.check(self._is_manager)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-        @app_commands.choices(season_name=[
-            app_commands.Choice(name='2025-2026', value='2025-2026'),
-            app_commands.Choice(name='2024-2025', value='2024-2025'),
-            app_commands.Choice(name='2023-2024', value='2023-2024'),
-        ])
+        @app_commands.autocomplete(season_name=self.season_autocomplete)
+        @app_commands.checks.cooldown(1, 5)
         async def events(interaction: discord.Interaction,
                          season_name:Optional[str]=None,
                          ):
@@ -220,11 +218,8 @@ class AjBot():
         @app_commands.check(self._is_manager)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-        @app_commands.choices(season_name=[
-            app_commands.Choice(name='2025-2026', value='2025-2026'),
-            app_commands.Choice(name='2024-2025', value='2024-2025'),
-            app_commands.Choice(name='2023-2024', value='2023-2024'),
-        ])
+        @app_commands.autocomplete(season_name=self.season_autocomplete)
+        @app_commands.checks.cooldown(1, 5)
         async def presence(interaction: discord.Interaction,
                            season_name:Optional[str]=None,
                            ):
@@ -248,6 +243,7 @@ class AjBot():
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
             await self.send_response_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+            self.season_names = None
 
 
         # # List of context menu commands for the bot
@@ -260,8 +256,13 @@ class AjBot():
 
         @self.client.tree.error
         async def error_report(interaction: discord.Interaction, exception):
-            await interaction.response.send_message(f"Houla... un truc chelou c'est passé:\r\n{exception}", ephemeral=True)
+            if isinstance(exception, app_commands.CommandOnCooldown):
+                error_message = "Oh la! tout doux les foufous...\r\nRenvoie ta commande un peu plus tard."
+            else:
+                error_message =f"Houla... un truc chelou c'est passé:\r\n{exception}"
 
+            await interaction.response.send_message(error_message, ephemeral=True)
+            self.season_names = None
 
     # # Support functions
     # # ========================================================
@@ -297,8 +298,7 @@ class AjBot():
         container = discord.ui.Container()
         view.add_item(container)
 
-        container.add_item(discord.ui.TextDisplay(f'# {title}'))
-
+        container.add_item(discord.ui.TextDisplay(f'# __{title}__'))
         container.add_item(discord.ui.TextDisplay(f'## {summary}'))
         container.add_item(discord.ui.TextDisplay(f'>>> {content}'))
 
@@ -308,14 +308,22 @@ class AjBot():
         container.add_item(footer)
         await interaction.response.send_message(view=view, ephemeral=ephemeral)
 
-    async def get_season_names(self):
-        """ return list of season names
+    async def season_autocomplete(self,
+        _interaction: discord.Interaction,
+        current: str,
+    ) -> list[app_commands.Choice[str]]:
+        """ return list of season names for auto completion
         """
-        #TODO: This is unusable. Need to add dynamic definition of list of seasons through app_commands.Transformer
-        async with AjDb() as aj_db:
-            seasons = await aj_db.query_table_content(ajdb_t.Season)
+        if not self.season_names:
+            async with AjDb() as aj_db:
+                seasons = await aj_db.query_table_content(ajdb_t.Season)
+            self.season_names = [season.name for season in seasons]
 
-        return [app_commands.Choice(name=s.name, value=s.name) for s in seasons.sort()]
+        return [
+            app_commands.Choice(name=season_name, value=season_name)
+            for season_name in self.season_names if current.lower() in season_name.lower()
+        ]
+
 
     async def send_member_info(self, interaction: discord.Interaction,
                                disc_member:discord.Member=None,

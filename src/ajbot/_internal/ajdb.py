@@ -65,7 +65,7 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def query_table_content(self, tables):
+    async def query_table_content(self, *tables):
         ''' retrieve complete tables
             @arg:
                 list of table classes to retrieve
