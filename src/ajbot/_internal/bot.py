@@ -1,5 +1,6 @@
 """ This example requires the 'message_content' intent.
 """
+from functools import wraps
 from typing import Optional
 # from functools import wraps
 # import tempfile
@@ -16,7 +17,54 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.exceptions import AjBotException, OtherException
 from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 
-def get_member_dict(discord_client, guild_names=None):
+
+
+
+def _command_season_param(func):
+    """ Decorator to handle command season parameter (with autocomplete)
+    """
+    class _SeasonAutocomplete():
+        """ Season parameter autocomplete function factory
+        """
+        def __init__(self):
+            self._season_names = []
+
+        def reset(self):
+            """ Reset the season list for next command
+            """
+            self._season_names = []
+
+        async def ac(self,
+                    _interaction: discord.Interaction,
+                    current: str,
+                    ) -> list[app_commands.Choice[str]]:
+            """ return list of season names for auto completion
+            """
+            if not self._season_names:
+                async with AjDb() as aj_db:
+                    seasons = await aj_db.query_table_content(ajdb_t.Season)
+                self._season_names = [season.name for season in seasons]
+
+            return [
+                app_commands.Choice(name=season_name, value=season_name)
+                for season_name in self._season_names if current.lower() in season_name.lower()
+            ]
+
+    _season_autocomplete = _SeasonAutocomplete()
+
+    @wraps(func)
+    @app_commands.rename(season_name='saison')
+    @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
+    @app_commands.autocomplete(season_name=_season_autocomplete.ac)
+    async def wrapper(*args, **kwargs):
+        result = await func(*args, **kwargs)
+        _season_autocomplete.reset()
+        return result
+
+    return wrapper
+
+
+def get_discord_members(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.
         guilds: list of guild names to include members from.
                 If None, all guilds the bot is in are used.
@@ -153,10 +201,8 @@ class AjBot():
 
         @self.client.tree.command(name="cotisants")
         @app_commands.check(self._is_manager)
-        @app_commands.rename(season_name='saison')
-        @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=self.season_autocomplete)
         @app_commands.checks.cooldown(1, 5)
+        @_command_season_param
         async def memberships(interaction: discord.Interaction,
                               season_name:Optional[str]=None):
             """ Affiche les cotisants
@@ -184,10 +230,8 @@ class AjBot():
 
         @self.client.tree.command(name="evenements")
         @app_commands.check(self._is_manager)
-        @app_commands.rename(season_name='saison')
-        @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=self.season_autocomplete)
         @app_commands.checks.cooldown(1, 5)
+        @_command_season_param
         async def events(interaction: discord.Interaction,
                          season_name:Optional[str]=None,
                          ):
@@ -216,10 +260,8 @@ class AjBot():
 
         @self.client.tree.command(name="presence")
         @app_commands.check(self._is_manager)
-        @app_commands.rename(season_name='saison')
-        @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=self.season_autocomplete)
         @app_commands.checks.cooldown(1, 5)
+        @_command_season_param
         async def presence(interaction: discord.Interaction,
                            season_name:Optional[str]=None,
                            ):
@@ -308,22 +350,6 @@ class AjBot():
         container.add_item(footer)
         await interaction.response.send_message(view=view, ephemeral=ephemeral)
 
-    async def season_autocomplete(self,
-        _interaction: discord.Interaction,
-        current: str,
-    ) -> list[app_commands.Choice[str]]:
-        """ return list of season names for auto completion
-        """
-        if not self.season_names:
-            async with AjDb() as aj_db:
-                seasons = await aj_db.query_table_content(ajdb_t.Season)
-            self.season_names = [season.name for season in seasons]
-
-        return [
-            app_commands.Choice(name=season_name, value=season_name)
-            for season_name in self.season_names if current.lower() in season_name.lower()
-        ]
-
 
     async def send_member_info(self, interaction: discord.Interaction,
                                disc_member:discord.Member=None,
@@ -385,7 +411,7 @@ class AjBot():
 #         with tempfile.TemporaryDirectory() as temp_dir:
 #             json_filename = "members.json"
 #             member_info_json_file = Path(temp_dir) / json_filename
-#             save_json_file(get_member_dict(discord_client=self.bot,
+#             save_json_file(get_discord_members(discord_client=self.bot,
 #                                         guild_names=([ctx.guild.name] if ctx.guild else None)),
 #                         member_info_json_file, preserve=False)
 #             await ctx.reply("Et voilà:",
