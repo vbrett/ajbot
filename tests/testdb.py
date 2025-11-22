@@ -11,7 +11,7 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.config import FormatTypes
 
 async def _search_member(aj_db:AjDb, lookup_val):
-    query_result = await aj_db.query_members(lookup_val)
+    query_result = await aj_db.query_members_per_id_info(lookup_val)
     print('')
     print('')
     print('-------------------')

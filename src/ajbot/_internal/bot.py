@@ -161,7 +161,7 @@ class AjBot():
             """ Affiche les cotisants
             """
             async with AjDb() as aj_db:
-                members = await aj_db.query_season_subscribers(season_name)
+                members = await aj_db.query_members_per_presence(season_name, subscriber_only=True)
 
             if members:
                 if season_name:
@@ -196,7 +196,7 @@ class AjBot():
             """ Affiche les evenements
             """
             async with AjDb() as aj_db:
-                events = await aj_db.query_season_events(season_name)
+                events = await aj_db.query_events(season_name)
 
             if events:
                 if season_name:
@@ -231,7 +231,7 @@ class AjBot():
             """ Affiche les personne ayant participé à une saison
             """
             async with AjDb() as aj_db:
-                members = await aj_db.query_season_members(season_name)
+                members = await aj_db.query_members_per_presence(season_name)
 
             if members:
                 members.sort(key=lambda x: x, reverse=False)
@@ -332,7 +332,7 @@ class AjBot():
         input_member = input_member[0]
 
         async with AjDb() as aj_db:
-            members = await aj_db.query_members(input_member, 50, False)
+            members = await aj_db.query_members_per_id_info(input_member, 50, False)
 
         embed = None
         reply = f"Je ne connais pas ton ou ta {input_member}."

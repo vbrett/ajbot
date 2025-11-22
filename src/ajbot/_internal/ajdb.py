@@ -4,8 +4,7 @@ Classes generated using:
 sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
-from functools import wraps
-
+from typing import cast
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 
@@ -79,11 +78,11 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    async def query_members(self,
+    async def query_members_per_id_info(self,
                      lookup_val = None,
                      match_crit = 50,
                      break_if_multi_perfect_match = True,):
-        ''' retrieve list of member ids matching lookup_val which can be
+        ''' retrieve list of members matching lookup_val which can be
                 - discord member object
                 - integer = member ID
                 - string that is compared to "user friendly name" using fuzzy search
@@ -139,25 +138,8 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
-    async def query_season_subscribers(self, season_name = None):
-        ''' retrieve list of member having subscribed to season
-            @args
-                season_name = Optional. If empty, use current season
-
-            @return
-                [all found Members]
-        '''
-        if season_name:
-            query = sa.select(ajdb_t.Member).join(ajdb_t.Membership).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
-        else:
-            query = sa.select(ajdb_t.Member).join(ajdb_t.Membership).where(ajdb_t.Membership.is_in_current_season)
-
-        query_result = await self.aio_session.execute(query)
-
-        return query_result.scalars().all()
-
-    async def query_season_events(self, season_name = None):
-        ''' retrieve list of events having occured in season
+    async def query_events(self, season_name = None):
+        ''' retrieve list of events having occured in a given season
             @args
                 season_name = Optional. If empty, use current season
 
@@ -173,10 +155,11 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    async def query_season_members(self, season_name = None):
+    async def query_members_per_presence(self, season_name = None, subscriber_only = False):
         ''' retrieve list of members having participated in season
             @args
-                season_name = Optional. If empty, use current season
+                season_name     [Optional] If empty, use current season
+                subscriber_only [Optional] If True return only people that have subscribed
 
             @return
                 [all found members with number of presence]
@@ -198,8 +181,13 @@ class AjDb():
 
         query_result = await self.aio_session.execute(query)
 
-        return query_result.scalars().all()
-
+        members = query_result.scalars().all()
+        if subscriber_only:
+            members = [m for m in members
+                       if any(mb for mb in cast(ajdb_t.Member, m).memberships
+                              if ((not season_name and mb.is_in_current_season and mb.member == m)
+                                  or mb.is_in_current_season and mb.season.name == season_name))]
+        return members
 
 
 if __name__ == '__main__':
