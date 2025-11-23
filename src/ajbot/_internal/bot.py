@@ -2,6 +2,7 @@
 """
 from functools import wraps
 from typing import Optional
+from datetime import datetime, timedelta
 # from functools import wraps
 # import tempfile
 # from pathlib import Path
@@ -18,47 +19,43 @@ from ajbot._internal.exceptions import AjBotException, OtherException
 from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 
 
-
-
-def _command_season_param(func):
-    """ Decorator to handle command season parameter (with autocomplete)
+class AutocompleteFactory():
+    """ create an autocomplete function based on the content of a db table
     """
-    class _SeasonAutocomplete():
-        """ Season parameter autocomplete function factory
+    def __init__(self, table_class, attr_name, refresh_rate_in_sec=60):
+        self._table = table_class
+        self._attr = attr_name
+        self._values = None
+        self._last_refresh = None
+        self._refresh_in_sec = refresh_rate_in_sec
+
+    async def ac(self,
+                 _interaction: discord.Interaction,
+                 current: str,
+                ) -> list[app_commands.Choice[str]]:
+        """ AutoComplete function
         """
-        def __init__(self):
-            self._season_names = []
+        if not self._values or self._last_refresh < (datetime.now() - timedelta(seconds=self._refresh_in_sec)):
+            async with AjDb() as aj_db:
+                db_content = await aj_db.query_table_content(self._table)
+            self._values = [str(getattr(row, self._attr)) for row in db_content]
+            self._last_refresh = datetime.now()
 
-        def reset(self):
-            """ Reset the season list for next command
-            """
-            self._season_names = []
+        return [
+            app_commands.Choice(name=value, value=value)
+            for value in self._values if current.lower() in value.lower()
+        ]
 
-        async def ac(self,
-                    _interaction: discord.Interaction,
-                    current: str,
-                    ) -> list[app_commands.Choice[str]]:
-            """ return list of season names for auto completion
-            """
-            if not self._season_names:
-                async with AjDb() as aj_db:
-                    seasons = await aj_db.query_table_content(ajdb_t.Season)
-                self._season_names = [season.name for season in seasons]
 
-            return [
-                app_commands.Choice(name=season_name, value=season_name)
-                for season_name in self._season_names if current.lower() in season_name.lower()
-            ]
-
-    _season_autocomplete = _SeasonAutocomplete()
-
+def _with_season_name(func):
+    """ Decorator to handle command season parameter with autocomplete
+    """
     @wraps(func)
     @app_commands.rename(season_name='saison')
     @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-    @app_commands.autocomplete(season_name=_season_autocomplete.ac)
-    async def wrapper(*args, **kwargs):
-        result = await func(*args, **kwargs)
-        _season_autocomplete.reset()
+    @app_commands.autocomplete(season_name=AutocompleteFactory(ajdb_t.Season, 'name').ac)
+    async def wrapper(*args, season_name:Optional[str]=None, **kwargs):
+        result = await func(*args, season_name, **kwargs)
         return result
 
     return wrapper
@@ -131,7 +128,6 @@ class AjBot():
         self.last_hello_member : discord.User = None
         self.last_hello_member_count : int = 0
 
-        self.season_names = None
 
         # List of events for the bot
         # ========================================================
@@ -139,6 +135,7 @@ class AjBot():
         async def on_ready():
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
+
 
         # List of commands for the bot
         # ========================================================
@@ -148,9 +145,8 @@ class AjBot():
             message_list=[f"Bonjour {interaction.user.mention} !",
                           f"Re-bonjour {interaction.user.mention} !",
                           f"Re-re-bonjour {interaction.user.mention} !",
-                          "...tu insistes dis donc...",
-                          "Encore ? Franchement, t'as rien de mieux à faire ?",
-                          "Allez, sérieux, tu veux pas lâcher ton écran ?",
+                          "Tu insistes dis donc...",
+                          "Encore ? T'as rien de mieux à faire ?",
                           "Mais lâche moi le microprocesseur !",
                           "Bon, c'est plus drôle là.",
                          ]
@@ -202,7 +198,7 @@ class AjBot():
         @self.client.tree.command(name="cotisants")
         @app_commands.check(self._is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @_command_season_param
+        @_with_season_name
         async def memberships(interaction: discord.Interaction,
                               season_name:Optional[str]=None):
             """ Affiche les cotisants
@@ -231,7 +227,7 @@ class AjBot():
         @self.client.tree.command(name="evenements")
         @app_commands.check(self._is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @_command_season_param
+        @_with_season_name
         async def events(interaction: discord.Interaction,
                          season_name:Optional[str]=None,
                          ):
@@ -261,7 +257,7 @@ class AjBot():
         @self.client.tree.command(name="presence")
         @app_commands.check(self._is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @_command_season_param
+        @_with_season_name
         async def presence(interaction: discord.Interaction,
                            season_name:Optional[str]=None,
                            ):
@@ -285,7 +281,6 @@ class AjBot():
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
             await self.send_response_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
-            self.season_names = None
 
 
         # # List of context menu commands for the bot
@@ -299,12 +294,11 @@ class AjBot():
         @self.client.tree.error
         async def error_report(interaction: discord.Interaction, exception):
             if isinstance(exception, app_commands.CommandOnCooldown):
-                error_message = "Oh la! tout doux les foufous...\r\nRenvoie ta commande un peu plus tard."
+                error_message = "Tout doux le foufou !\r\nRenvoie ta commande un peu plus tard."
             else:
-                error_message =f"Houla... un truc chelou c'est passé:\r\n{exception}"
+                error_message =f"Hou... un truc chelou c'est passé :\r\n{exception}"
 
             await interaction.response.send_message(error_message, ephemeral=True)
-            self.season_names = None
 
     # # Support functions
     # # ========================================================
