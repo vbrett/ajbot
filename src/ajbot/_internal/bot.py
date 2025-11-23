@@ -12,7 +12,7 @@ from discord import app_commands, Interaction, ui as dui
 from ajbot import __version__ as ajbot_version
 from ajbot._internal import bot_elements as bot
 from ajbot._internal.ajdb import AjDb
-# from ajbot._internal import ajdb_tables as ajdb_t
+from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.exceptions import AjBotException, OtherException
 from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
 
@@ -147,7 +147,7 @@ class AjBot():
             """ Affiche la liste des cotisants d'une saison donnée
             """
             async with AjDb() as aj_db:
-                members = await aj_db.query_members_per_presence(season_name, subscriber_only=True)
+                members = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
 
             if members:
                 if season_name:
@@ -201,7 +201,7 @@ class AjBot():
             """ Affiche les personne ayant participé à une saison donnée
             """
             async with AjDb() as aj_db:
-                members = await aj_db.query_members_per_presence(season_name)
+                members = await aj_db.query_members_per_season_presence(season_name)
 
             if members:
                 members.sort(key=lambda x: x, reverse=False)
@@ -218,6 +218,20 @@ class AjBot():
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
             await self.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+
+        @self.client.tree.command(name="gérer_évènement")
+        @app_commands.check(bot.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        @app_commands.rename(event='évènement')
+        @app_commands.describe(event='évènement à modifier (aucun = crée un nouvel évènement)')
+        @app_commands.autocomplete(event=bot.AutocompleteFactory(ajdb_t.Event).ac)
+        async def event_handler(interaction: Interaction,
+                                event:Optional[str]=None,
+                                ):
+            """ Créer un nouvel évènement ou modifie un existant
+            """
+            eventmodal = await bot.CreateEventModal.create(event)
+            await interaction.response.send_modal(eventmodal)
 
 
         # ========================================================
@@ -237,9 +251,9 @@ class AjBot():
         @self.client.tree.error
         async def error_report(interaction: Interaction, exception):
             if isinstance(exception, app_commands.CommandOnCooldown):
-                error_message = "Ouh là, tout doux le foufou, tu vas trop vite pour moi 😵‍💫.\r\n\r\nRenvoie ta commande un peu plus tard."
+                error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite pour moi .\r\n\r\nRenvoie ta commande un peu plus tard."
             else:
-                error_message =f"Oups ! un truc chelou c'est passé 😱.\r\n{exception}"
+                error_message =f"😱 Oups ! un truc chelou c'est passé.\r\n{exception}"
 
             await self.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 
@@ -305,7 +319,7 @@ class AjBot():
             if len(input_member) == 0:
                 message = f"😓 Alors là, je vais avoir du mal à trouver sans un minimum d'info, à savoir {input_types}"
             else:
-                message = f"Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé 🤢"
+                message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
             await self.send_response_as_text(interaction=interaction,
                                              content=message,
                                              ephemeral=True)

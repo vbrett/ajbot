@@ -17,7 +17,7 @@ async def _main():
     ''' main function - async version
     '''
     async with AjDb() as aj_db:
-        members = await aj_db.query_members_per_presence()
+        members = await aj_db.query_members_per_season_presence()
 
     # sort alphabetically per last name / first name
     members.sort(key=lambda x: x.credential)

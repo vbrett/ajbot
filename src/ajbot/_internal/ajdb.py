@@ -65,15 +65,15 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def query_table_content(self, *tables):
+    async def query_table_content(self, table):
         ''' retrieve complete tables
             @arg:
-                list of table classes to retrieve
+                class of the table to retrieve
 
             @return
                 [all found rows]
         '''
-        query = sa.select(*tables)
+        query = sa.select(table)
         query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
@@ -155,7 +155,7 @@ class AjDb():
 
         return query_result.scalars().all()
 
-    async def query_members_per_presence(self, season_name = None, subscriber_only = False):
+    async def query_members_per_season_presence(self, season_name = None, subscriber_only = False):
         ''' retrieve list of members having participated in season
             @args
                 season_name     [Optional] If empty, use current season
@@ -188,6 +188,23 @@ class AjDb():
                               if ((not season_name and mb.is_in_current_season and mb.member == m)
                                   or mb.is_in_current_season and mb.season.name == season_name))]
         return members
+
+    async def query_members_per_event_presence(self, event_id):
+        ''' retrieve list of members having participated to an event
+            @args
+                event_id
+            @return
+                [all found members with number of presence]
+        '''
+        query = sa.select(ajdb_t.Member)\
+                    .join(ajdb_t.MemberEvent)\
+                    .join(ajdb_t.Event)\
+                    .where(ajdb_t.Event.id == event_id)\
+                    .group_by(ajdb_t.Member)
+
+        query_result = await self.aio_session.execute(query)
+
+        return query_result.scalars().all()
 
 
 if __name__ == '__main__':
