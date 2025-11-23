@@ -298,9 +298,9 @@ class AjBot():
         @self.client.tree.error
         async def error_report(interaction: discord.Interaction, exception):
             if isinstance(exception, app_commands.CommandOnCooldown):
-                error_message = "Ouh là, tout doux le foufou !\r\n\r\nRenvoie ta commande un peu plus tard."
+                error_message = "Ouh là, tout doux le foufou, tu vas trop vite pour moi 😵‍💫.\r\n\r\nRenvoie ta commande un peu plus tard."
             else:
-                error_message =f"Oups ! un truc chelou c'est passé :\r\n{exception}"
+                error_message =f"Oups ! un truc chelou c'est passé 😱.\r\n{exception}"
 
             await self.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 
@@ -362,9 +362,14 @@ class AjBot():
         """
         input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
         if len(input_member) != 1:
+            input_types="un (et un seul) élément parmi:\r\n* un pseudo\r\n* un nom\r\n* un ID"
+            if len(input_member) == 0:
+                message = f"😓 Alors là, je vais avoir du mal à trouver sans un minimum d'info, à savoir {input_types}"
+            else:
+                message = f"Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé 🤯"
             await self.send_response_as_text(interaction=interaction,
-                                             content="Tu peux fournir soit:\r\n* un pseudo\r\n* un nom\r\n* un ID\r\nMais s'il te plait, pas de mélange, c'est pas bon pour ma santé.",
-                                             ephemeral=True, delete_after=10)
+                                             content=message,
+                                             ephemeral=True)
             return
         input_member = input_member[0]
 
