@@ -129,6 +129,7 @@ class AjBot():
         self.last_hello_member_count : int = 0
 
 
+        # ========================================================
         # List of events for the bot
         # ========================================================
         @self.client.event
@@ -137,11 +138,27 @@ class AjBot():
             print('------')
 
 
+        # ========================================================
         # List of commands for the bot
         # ========================================================
-        @self.client.tree.command()
+
+        # General commands
+        # ========================================================
+        @self.client.tree.command(name="version")
+        @app_commands.check(self._is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        async def version(interaction: discord.Interaction):
+            """ Affiche la version du bot
+            """
+            await self.send_response_as_text(interaction=interaction,
+                                             content=f"Version du bot: {ajbot_version}",
+                                             ephemeral=True)
+
+        @self.client.tree.command(name="bonjour")
+        @app_commands.check(self._is_member)
+        @app_commands.checks.cooldown(1, 5)
         async def hello(interaction: discord.Interaction):
-            """Dis bonjour à l'utilisateur."""
+            """C'est toujours bien d'être poli avec moi"""
             message_list=[f"Bonjour {interaction.user.mention} !",
                           f"Re-bonjour {interaction.user.mention} !",
                           f"Re-re-bonjour {interaction.user.mention} !",
@@ -153,30 +170,27 @@ class AjBot():
 
             self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(message_list)-1])
             self.last_hello_member = interaction.user
-            await interaction.response.send_message(message_list[self.last_hello_member_count], ephemeral=True)
+            await self.send_response_as_text(interaction=interaction,
+                                           content=message_list[self.last_hello_member_count],
+                                           ephemeral=True)
 
-        @self.client.tree.command(name="info_membre")
+
+        # Member related commands
+        # ========================================================
+        @self.client.tree.command(name="cqui")
         @app_commands.check(self._is_member)
-        @app_commands.rename(disc_member='pseudo')
-        @app_commands.rename(int_member='id')
-        @app_commands.rename(str_member='nom')
-        @app_commands.describe(disc_member='pseudo discord.')
-        @app_commands.describe(int_member='ID de l\'asso.')
-        @app_commands.describe(str_member='nom (ID, nom complet ou partiel)')
         @app_commands.checks.cooldown(1, 5)
-        async def member_info(interaction: discord.Interaction,
-                              disc_member:Optional[discord.Member]=None,
-                              int_member:Optional[int]=None,
-                              str_member:Optional[str]=None):
-            """ Affiche les infos des membres. Parametre = ID, pseudo discord ou nom (complet ou partiel)
-                paramètre au choix:
-                    - pseudo_discord (ex: VbrBot)
-                    - ID de l'asso (ex: 12, 124)
-                    - prénom nom ou nom prénom (sans guillement)
-                    supporte des valeurs approximatives comme
-                        - nom ou prenom seul
-                        - nom et/ou prénom approximatif
-                    retourne alors une liste avec la valeur de match
+        @app_commands.rename(disc_member='pseudo')
+        @app_commands.describe(disc_member='pseudo discord')
+        @app_commands.rename(int_member='id')
+        @app_commands.describe(int_member='numéro de membre de l\'asso')
+        @app_commands.rename(str_member='nom')
+        @app_commands.describe(str_member='prénom et/ou nom (complet, partiel ou approximatif)')
+        async def who(interaction: discord.Interaction,
+                      disc_member:Optional[discord.Member]=None,
+                      int_member:Optional[int]=None,
+                      str_member:Optional[str]=None):
+            """ Retrouve l'identité d'un membre. Retourne le, la ou les membres qui correspond(ent) le plus aux infos fournies.
             """
             await self.send_member_info(interaction=interaction,
                                         disc_member=disc_member,
@@ -184,16 +198,8 @@ class AjBot():
                                         str_member=str_member)
 
 
-        @self.client.tree.command(name="version")
-        @app_commands.check(self._is_manager)
-        @app_commands.checks.cooldown(1, 5)
-        async def version(interaction: discord.Interaction):
-            """ Affiche la version du bot
-            """
-            await interaction.response.send_message(f"Version du bot: {ajbot_version}", ephemeral=True)
-
-
-
+        # Season related commands
+        # ========================================================
 
         @self.client.tree.command(name="cotisants")
         @app_commands.check(self._is_manager)
@@ -201,7 +207,7 @@ class AjBot():
         @_with_season_name
         async def memberships(interaction: discord.Interaction,
                               season_name:Optional[str]=None):
-            """ Affiche les cotisants
+            """ Affiche la liste des cotisants d'une saison donnée
             """
             async with AjDb() as aj_db:
                 members = await aj_db.query_members_per_presence(season_name, subscriber_only=True)
@@ -219,10 +225,7 @@ class AjBot():
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await self.send_response_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
-
-
-
+            await self.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenements")
         @app_commands.check(self._is_manager)
@@ -231,7 +234,7 @@ class AjBot():
         async def events(interaction: discord.Interaction,
                          season_name:Optional[str]=None,
                          ):
-            """ Affiche les evenements
+            """ Affiche la liste des evenements d'une saison donnée
             """
             async with AjDb() as aj_db:
                 events = await aj_db.query_events(season_name)
@@ -249,10 +252,7 @@ class AjBot():
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await self.send_response_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
-
-
-
+            await self.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="presence")
         @app_commands.check(self._is_manager)
@@ -261,7 +261,7 @@ class AjBot():
         async def presence(interaction: discord.Interaction,
                            season_name:Optional[str]=None,
                            ):
-            """ Affiche les personne ayant participé à une saison
+            """ Affiche les personne ayant participé à une saison donnée
             """
             async with AjDb() as aj_db:
                 members = await aj_db.query_members_per_presence(season_name)
@@ -280,31 +280,41 @@ class AjBot():
                 reply = "---"
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
-            await self.send_response_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+            await self.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 
-        # # List of context menu commands for the bot
-        # # ========================================================
+        # ========================================================
+        # List of context menu commands for the bot
+        # ========================================================
 
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(self._is_member)
         async def show_name(interaction: discord.Interaction, member: discord.Member):
             await self.send_member_info(interaction=interaction, disc_member=member)
 
+
+        # ========================================================
+        # Error handling
+        # =================================================
+
         @self.client.tree.error
         async def error_report(interaction: discord.Interaction, exception):
             if isinstance(exception, app_commands.CommandOnCooldown):
-                error_message = "Tout doux le foufou !\r\nRenvoie ta commande un peu plus tard."
+                error_message = "Ouh là, tout doux le foufou !\r\n\r\nRenvoie ta commande un peu plus tard."
             else:
-                error_message =f"Hou... un truc chelou c'est passé :\r\n{exception}"
+                error_message =f"Oups ! un truc chelou c'est passé :\r\n{exception}"
 
-            await interaction.response.send_message(error_message, ephemeral=True)
+            await self.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 
-    # # Support functions
-    # # ========================================================
-    async def send_response_basic(self, interaction: discord.Interaction, content:str, ephemeral=False,
-                                  chunk_size=1800, split_on_eol=True):
+
+    # ========================================================
+    # Support functions
+    # ========================================================
+    async def send_response_as_text(self, interaction: discord.Interaction,
+                                    content:str, ephemeral=False, delete_after=None,
+                                    chunk_size=1800, split_on_eol=True):
         """ Send basic command response, handling splitting it if needed (limit = 2000 characters).
+            Can also ensure that split is only perform at eol.
         """
         if chunk_size > 1980:
             raise AjBotException(f"La taille demandée {chunk_size} n'est pas supportée. Max 2000.")
@@ -320,12 +330,12 @@ class AjBot():
                     i -= len(split_last_line[1])
             i += chunk_size
             if first_answer:
-                await interaction.response.send_message(chunk, ephemeral=ephemeral)
+                await interaction.response.send_message(chunk, ephemeral=ephemeral, delete_after=delete_after)
                 first_answer = False
             else:
-                await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral)
+                await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral, delete_after=delete_after)
 
-    async def send_response_view(self, interaction: discord.Interaction,
+    async def send_response_as_view(self, interaction: discord.Interaction,
                                  title:str, summary:str, content:str,
                                  ephemeral=False,):
         """ Send command response as a view
@@ -354,8 +364,9 @@ class AjBot():
         """
         input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
         if len(input_member) != 1:
-            await interaction.response.send_message("Tu peux fournir soit:\r\n* un pseudo\r\n* un nom\r\n* un ID\r\nMais s'il te plait, pas de mélange, c'est pas bon pour ma santé.",
-                                                    ephemeral=True, delete_after=10)
+            await self.send_response_as_text(interaction=interaction,
+                                             content="Tu peux fournir soit:\r\n* un pseudo\r\n* un nom\r\n* un ID\r\nMais s'il te plait, pas de mélange, c'est pas bon pour ma santé.",
+                                             ephemeral=True, delete_after=10)
             return
         input_member = input_member[0]
 
@@ -381,6 +392,7 @@ class AjBot():
             reply = "Voilà ce que j'ai trouvé:"
 
         await interaction.response.send_message(reply, embed=embed, ephemeral=True, delete_after=delete_after)
+        #TODO: transfor embed to view
 
 
     # List of checks that can be used with app commands
