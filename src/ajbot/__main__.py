@@ -11,17 +11,15 @@ from ajbot._internal.config import AjConfig
 
 def _main():
     """ main function """
-    with AjConfig(break_if_missing=True,
-                  save_on_exit=True) as aj_config:
-
-
-        intents = Intents.default()
-        intents.message_content = True
-        intents.members = True
-
-        aj_bot = AjBot(aj_config, intents)
-
+    with AjConfig() as aj_config:
         token = aj_config.discord_token
+        guild = aj_config.discord_guild
+
+    intents = Intents.default()
+    intents.message_content = True
+    intents.members = True
+
+    aj_bot = AjBot(guild=guild, intents=intents)
 
     try:
         aj_bot.client.run(token)

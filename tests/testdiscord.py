@@ -204,9 +204,7 @@ def _main():
     # ajdb = None
     # last_hello_member = None
 
-    with AjConfig(break_if_missing=True,
-                  save_on_exit=False,                                 #TODO: change to True
-                  file_path=Path("tests/.env")/"ajbot") as aj_config: #TODO: remove file_path arg
+    with AjConfig(file_path=Path("tests/.env")/"ajbot") as aj_config: #TODO: remove file_path arg
 
 
         intents = discord.Intents.default()

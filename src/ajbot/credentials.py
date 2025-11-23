@@ -24,7 +24,7 @@ def check_set_discord(aj_config:AjConfig):
         if action.lower() != 'o':
             return token
 
-    elif aj_config.break_if_missing:
+    else:
         raise CredsException("Le token d'accès à Discord n'est pas défini.")
 
     token = pwinput("Entrez le token d'accès à Discord : ")
@@ -32,10 +32,7 @@ def check_set_discord(aj_config:AjConfig):
         aj_config.discord_token = token
         return token
 
-    if aj_config.break_if_missing:
-        raise CredsException("Le token d'accès à Discord n'est pas défini.")
-
-    return None
+    raise CredsException("Le token d'accès à Discord n'est pas défini.")
 
 
 def check_set_db(aj_config:AjConfig):
@@ -55,15 +52,12 @@ def check_set_db(aj_config:AjConfig):
 
     #TODO: Add credential update
 
-    if aj_config.break_if_missing:
-        raise CredsException("Le token d'accès à la base de données n'est pas défini ou n'est pas valide.")
-
-    return None
+    raise CredsException("Le token d'accès à la base de données n'est pas défini ou n'est pas valide.")
 
 
 def _main():
     """ Command line interface to set or update the passwords & credentials in config file. """
-    with AjConfig(break_if_missing=False, save_on_exit=True) as aj_config:
+    with AjConfig(save_on_exit=True) as aj_config:
         _ = check_set_discord(aj_config)
         _ = check_set_db(aj_config)
     return 0

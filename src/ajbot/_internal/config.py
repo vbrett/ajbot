@@ -45,19 +45,16 @@ class AjConfig():
 
     def __init__(self,
                  file_path=_AJ_CONFIG_PATH / _AJ_CONFIG_FILE,
-                 save_on_exit:bool=True,
-                 break_if_missing:bool=False):
+                 save_on_exit:bool=False):
         """
             Initializes the AjConfig object.
         Args:
         file_path:         path to the config file.
         save_on_exit:      if True, save the config on exit.
-        break_if_missing:  if True and secret not found or not valid, raise SecretException.
         """
         self._config_dict = {}
         self._file_path = file_path
         self._save_on_exit = save_on_exit
-        self._break_if_missing = break_if_missing
 
     def __enter__(self):
         return self.open()
@@ -68,7 +65,7 @@ class AjConfig():
     def open(self):
         """ Opens the config file and loads its content.
         """
-        self._config_dict = load_json_file(self._file_path, abort_on_file_missing=self._break_if_missing)
+        self._config_dict = load_json_file(self._file_path, abort_on_file_missing=True)
         return self
 
     def close(self):
@@ -83,12 +80,6 @@ class AjConfig():
             save_json_file(self._config_dict,
                         self._file_path,
                         preserve=False)
-
-    @property
-    def break_if_missing(self):
-        """ Returns whether to break if a config value is missing.
-        """
-        return self._break_if_missing
 
     @property
     def discord_token(self):

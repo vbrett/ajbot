@@ -28,7 +28,7 @@ class AjDb():
         self.aio_session: aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
 
     async def __aenter__(self):
-        with AjConfig(save_on_exit=False, break_if_missing=True) as aj_config:
+        with AjConfig() as aj_config:
             self.db_username = aj_config.db_creds['user']
             # Connect to MariaDB Platform
             self.db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + aj_config.db_connection_string,

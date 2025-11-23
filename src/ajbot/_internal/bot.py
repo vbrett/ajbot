@@ -3,7 +3,6 @@
 from functools import wraps
 from typing import Optional
 from datetime import datetime, timedelta
-# from functools import wraps
 # import tempfile
 # from pathlib import Path
 
@@ -119,12 +118,11 @@ class AjBot():
     client : MyDiscordClient
 
     def __init__(self,
-                 aj_config:AjConfig,
+                 guild,
                  intents:discord.Intents):
 
-        self.aj_config = aj_config
         self.client = MyDiscordClient(intents=intents,
-                                      guild=discord.Object(aj_config.discord_guild))
+                                      guild=discord.Object(guild))
         self.last_hello_member : discord.User = None
         self.last_hello_member_count : int = 0
 
@@ -399,15 +397,21 @@ class AjBot():
     # ========================================================
     def _is_bot_owner(self, interaction: discord.Interaction) -> bool:
         """A check which only allows the bot owner to use the command."""
-        return interaction.user.id == self.aj_config.discord_bot_owner
+        with AjConfig() as aj_config:
+            bot_owner = aj_config.discord_bot_owner
+        return interaction.user.id == bot_owner
 
     def _is_member(self, interaction: discord.Interaction) -> bool:
         """A check which only allows members to use the command."""
-        return any(role.id in self.aj_config.discord_role_member for role in interaction.user.roles)
+        with AjConfig() as aj_config:
+            member_roles = aj_config.discord_role_member
+        return any(role.id in member_roles for role in interaction.user.roles)
 
     def _is_manager(self, interaction: discord.Interaction) -> bool:
         """A check which only allows managers to use the command."""
-        return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
+        with AjConfig() as aj_config:
+            manager_roles = aj_config.discord_role_manager
+        return any(role.id in manager_roles for role in interaction.user.roles)
 
 
 #     @commands.command(name='roles')
@@ -444,57 +448,6 @@ class AjBot():
 #     #         await ctx.reply("Et voilà:",
 #     #                         file=discord.File(fp=sign_sheet,
 #     #                                         filename=sign_sheet_filename))
-
-#     @commands.command(name='seance')
-#     @needs_aj_manage_role
-#     async def _session(self, ctx, *, raw_input_date=None):
-#         """ (Réservé au bureau) Affiche le nombre de présent à une seance. Parametre = date. Si vide, prend la dernière séance enregistrée """
-#         session_dates = [s.date for s in self.ajdb.events.get_in_season_events(AjEvent.EVENT_TYPE_PRESENCE)]
-
-#         if not raw_input_date:
-#             input_date = max(session_dates)
-#         else:
-#             try:
-#                 input_date = AjDate(dateparse(raw_input_date, settings=DATEPARSER_CONFIG))
-#             except TypeError:
-#                 input_date = None
-
-#         if input_date:
-#             # look for closest date with presence
-#             session_date = min(session_dates, key=lambda x: abs(x - input_date))
-
-#             if session_date:
-#                 reply = f"Il y a eu {len([s_date for s_date in session_dates if s_date == session_date])} participants à la séance du {session_date}."
-#             else:
-#                 reply = f"Déso, pas trouvé de séance à la date du {raw_input_date} ou proche de cette date."
-#         else:
-#             reply = f"Mmmm... Ca m'étonnerait que '{raw_input_date}' soit une date."
-
-#         await ctx.reply(reply)
-
-#     @commands.command(name='membre')
-#     @needs_aj_manage_role
-#     async def _member(self, ctx, *, in_member):
-#         """ (Réservé au bureau) Affiche les infos des membres. Parametre = ID, pseudo discord ou nom (complet ou partiel)
-#             paramètre au choix:
-#                 - ID (ex: 12, 124)
-#                 - pseudo_discord (ex: VbrBot)
-#                 - prénom nom ou nom prénom (sans guillement)
-#                   supporte des valeurs approximatives comme
-#                     - nom ou prenom seul
-#                     - nom et/ou prénom approximatif
-#                   retourne alors une liste avec la valeur de match)
-#         """
-#         members = await self.ajdb.members.search(in_member, ctx, 50, False)
-
-#         if members:
-#             reply = "\r\n".join([f"{member:{FORMAT_FULL}}" for member in members])
-#         else:
-#             reply = f"Je connais pas ton {in_member}."
-
-#         await ctx.reply(reply)
-
-
 
 
 if __name__ == "__main__":
