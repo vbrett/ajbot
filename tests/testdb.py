@@ -1,4 +1,4 @@
-""" test deployment of a MariaDB instance
+""" test deployment of a DB instance
 """
 import sys
 import asyncio
@@ -79,21 +79,37 @@ async def _test_query(aj_db_session):
     print(len(matched_items), 'item(s)')
 
 
-async def _test_create_query(aj_db_session):
+async def _test_create_query(aj_db:AjDb):
     event_date = date(2025, 11, 21)
     event_partipant_ids = [2, 3, 36, 155]
 
+    seasons = await aj_db.query_table_content(ajdb_t.Season)
+
     new_event = ajdb_t.Event(date = event_date)
+    [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
 
-    async with aj_db_session.AsyncSessionMaker() as session:
-        async with session.begin():
-            session.add_all([new_event])
+    aj_db.aio_session.add(new_event)
+    aj_db.aio_session.add_all([ajdb_t.MemberEvent(member_id = i, event=new_event, presence = True) for i in event_partipant_ids])
 
-        async with session.begin():
-            for i in event_partipant_ids:
-                new_event.members.append(ajdb_t.MemberEvent(member_id = i))
+    new_event.name = 'Coucou'
 
 
+async def _test_update_query(aj_db:AjDb):
+    query = sa.select(ajdb_t.Event).where(ajdb_t.Event.id == 102)
+    query_result = await aj_db.aio_session.execute(query)
+    my_event = query_result.scalars().one_or_none()
+
+    print(my_event)
+    print('\r\n'.join([str(m) for m in my_event.members]))
+
+    my_event.name += ' ...'
+    await aj_db.aio_session.delete(my_event.members[0])  # remove first member from event
+    await aj_db.aio_session.commit()
+    await aj_db.aio_session.refresh(my_event)
+
+    print("----------------------------------")
+    print(my_event)
+    print('\r\n'.join([str(m) for m in my_event.members]))
 
 
 async def _main():
@@ -106,7 +122,8 @@ async def _main():
         # await _principal_address(aj_db)
 
         # await _test_query(aj_db)
-        await _test_create_query(aj_db)
+        # await _test_create_query(aj_db)
+        await _test_update_query(aj_db)
 
     return 0
 
