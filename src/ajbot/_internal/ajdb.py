@@ -41,10 +41,11 @@ class AjDb():
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        # for AsyncEngine created in function scope, close and
-        # clean-up pooled connections
+        # Commit & close session, flushing all pending changes
+        await self.aio_session.commit()
         await self.aio_session.close()
         self.aio_session = None
+        # Close and clean-up pooled connections
         await self.db_engine.dispose()
         self.AsyncSessionMaker = None
         self.db_username = None
