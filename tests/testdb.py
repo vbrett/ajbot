@@ -3,6 +3,7 @@
 import sys
 import asyncio
 from typing import cast
+from datetime import date
 
 import sqlalchemy as sa
 
@@ -78,17 +79,34 @@ async def _test_query(aj_db_session):
     print(len(matched_items), 'item(s)')
 
 
+async def _test_create_query(aj_db_session):
+    event_date = date(2025, 11, 21)
+    event_partipant_ids = [2, 3, 36, 155]
+
+    new_event = ajdb_t.Event(date = event_date)
+
+    async with aj_db_session.AsyncSessionMaker() as session:
+        async with session.begin():
+            session.add_all([new_event])
+
+        async with session.begin():
+            for i in event_partipant_ids:
+                new_event.members.append(ajdb_t.MemberEvent(member_id = i))
+
+
+
 
 async def _main():
     """ main function - async version
     """
     async with AjDb() as aj_db:
 
-        await _search_member(aj_db, 'vincent')
-        await _season_events(aj_db)
-        await _principal_address(aj_db)
+        # await _search_member(aj_db, 'vincent')
+        # await _season_events(aj_db)
+        # await _principal_address(aj_db)
 
-        await _test_query(aj_db)
+        # await _test_query(aj_db)
+        await _test_create_query(aj_db)
 
     return 0
 
