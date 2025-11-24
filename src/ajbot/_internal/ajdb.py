@@ -4,7 +4,10 @@ Classes generated using:
 sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
-from typing import cast
+from typing import cast, Optional
+from datetime import date
+
+
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 
@@ -206,6 +209,52 @@ class AjDb():
         query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
+
+
+    async def add_update_event(self,
+                               event_id = None,
+                               event_date:Optional[date]=None,
+                               event_name:Optional[str]=None,
+                               participant_ids:Optional[list[int]]=None,):
+        """ add or update an event
+        """
+        query = sa.select(sa.func.max(ajdb_t.Member.id))
+        query_result = await self.aio_session.execute(query)
+        last_valid_member_id = query_result.scalars().one_or_none()
+        unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]
+
+        if unkown_participant_ids:
+            raise AjDbException(f'Unknown participant ids: {', '.join(str(i) for i in unkown_participant_ids)}')
+
+        # create or get event
+        if not event_id:
+            if not event_date:
+                raise AjDbException('Missing event id or date.')
+            db_event = ajdb_t.Event(date=event_date)
+            seasons = await self.query_table_content(ajdb_t.Season)
+            [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
+            self.aio_session.add(db_event)
+        else:
+            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.id == event_id)
+            query_result = await self.aio_session.execute(query)
+            db_event = query_result.scalars().one_or_none()
+            if not db_event:
+                raise AjDbException(f'Unknown event to update: {event_id}')
+
+        # set name
+        db_event.name = event_name
+
+        # delete / add participants
+        for m_e in db_event.members:
+            if m_e.member_id not in participant_ids:
+                await self.aio_session.delete(m_e)
+
+        existing_participant_ids = [m_e.member_id for m_e in db_event.members]
+        for mbr_id in participant_ids:
+            if mbr_id not in existing_participant_ids:
+                db_event.members.append(ajdb_t.MemberEvent(member_id = mbr_id))
+
+
 
 
 if __name__ == '__main__':
