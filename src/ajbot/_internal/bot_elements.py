@@ -111,24 +111,22 @@ class CreateEventModal(dui.Modal, title='Evènement'):
         """
         self = cls()
 
-        self._db_event = None
+        self._db_event_id = None
         async with AjDb() as aj_db:
-            members = await aj_db.query_table_content(ajdb_t.Member)
-            self.last_valid_member_id = max(m.id for m in members)
-
             if input_event:
                 events = await aj_db.query_table_content(ajdb_t.Event)
-                [self._db_event] = [e for e in events if str(e) == input_event]
+                [db_event] = [e for e in events if str(e) == input_event]
+                self._db_event_id = db_event.id
 
-                self.present_members = await aj_db.query_members_per_event_presence(self._db_event.id)
+                self.present_members = await aj_db.query_members_per_event_presence(db_event.id)
                 if self.present_members:
                     self.present_members.sort()
 
 
-        if self._db_event:
-            self.event_date = dui.TextDisplay(str(date(self._db_event.date.year,
-                                                       self._db_event.date.month,
-                                                       self._db_event.date.day)))
+        if db_event:
+            self.event_date = dui.TextDisplay(str(date(db_event.date.year,
+                                                       db_event.date.month,
+                                                       db_event.date.day)))
         else:
             self.event_date = dui.Label(
                                 text='Date',
@@ -148,7 +146,7 @@ class CreateEventModal(dui.Modal, title='Evènement'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.short,
                                                     required=False,
-                                                    default='' if not self._db_event else self._db_event.name,
+                                                    default='' if not db_event else db_event.name,
                                                     max_length=120,
                                                 ),
                         )
@@ -190,15 +188,12 @@ class CreateEventModal(dui.Modal, title='Evènement'):
     async def on_submit(self, interaction: discord.Interaction):
         """ Event triggered when clicking on submit button
         """
-        db_items_to_create = []
-        # event_to_update = False
-        mbr_event_ids_to_delete = []
 
         assert isinstance(self.participants, dui.Label)
         assert isinstance(self.participants.component, dui.TextInput)
 
-        # date
-        if not self._db_event:
+        # check consistency - date
+        if not self._db_event_id:
             assert isinstance(self.event_date, dui.Label)
             assert isinstance(self.event_date.component, dui.TextInput)
 
@@ -207,63 +202,67 @@ class CreateEventModal(dui.Modal, title='Evènement'):
             except date_parser.ParserError:
                 await interaction.response.send_message(f"La date '{self.event_date.component.value}' n'est pas valide.", ephemeral=True)
                 return
-            new_event = ajdb_t.Event(date=event_date)
-            db_items_to_create = [new_event]
 
-        # # name
-        # if not self._db_event:
-        #     new_event.name = self.event_name.component.value
-        # elif self._db_event.name != self.event_name.component.value:
-        #     self._db_event.name = self.event_name.component.value
-        #     event_to_update = True
-
-        # participants
-        participant_ids = [i.strip() for i in self.participants.component.value.split(',') if i.strip()]
-        if participant_ids and any(not isinstance(i, int) for i in participant_ids):
-            await interaction.response.send_message("La liste des participants n'est pas valide.\r\nIl faut une liste de nombres.", ephemeral=True)
-            return
-
-        participant_ids = [int(i) for i in participant_ids]
-        unkown_participants = [m.id for m in participant_ids if m.id > self.last_valid_member_id]
-
-        if unkown_participants:
-            await interaction.response.send_message(f"Les identifiants suivants sont inconnus: {', '.join(unkown_participants)}", ephemeral=True)
-            return
-
-        if not self._db_event:
-            if participant_ids:
-                new_event.members = [ajdb_t.MemberEvent(member_id = p) for p in participant_ids]
-        else:
-            existing_participants = [m_e.member_id for m_e in self._db_event.members]
-            added_mbr_ids = [id for id in participant_ids if id not in existing_participants]
-            # if added_ids or deleted_ids:
-            #     db_to_update = [self._db_event]
-            if added_mbr_ids:
-                db_items_to_create += [ajdb_t.MemberEvent(event_id = self._db_event.id, member_id = id) for id in added_mbr_ids]
-
-            deleted_mbr_ids = [id for id in existing_participants if id not in participant_ids]
-            if deleted_mbr_ids:
-                mbr_event_ids_to_delete += [m_e.id for m_e in self._db_event.members if m_e.member_id in deleted_mbr_ids]
-                # self._db_event.members = [m_e for m_e in self._db_event.members if m_e.member_id not in deleted_ids]
+        # check consistency - event name
+        event_name = None
+        if self.event_name.component.value:
+            event_name = self.event_name.component.value.strip()
+            if not event_name:
+                event_name = None
 
         async with AjDb() as aj_db:
-            if mbr_event_ids_to_delete:
-                query = sa.delete(ajdb_t.MemberEvent).where(ajdb_t.MemberEvent.id in mbr_event_ids_to_delete)
-                await aj_db.aio_session.execute(query)
-            if db_items_to_create:
-                async with aj_db.aio_session.begin():
-                    await aj_db.aio_session.add_all(db_items_to_create)
-            # if event_to_update:
-            #     query = sa.update(ajdb_t.MemberEvent).where(ajdb_t.MemberEvent.id == self._db_event.id).values(self._db_event)
+            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.id == sa.select(sa.func.max(ajdb_t.Member.id)).scalar_subquery())
+            query_result = await aj_db.aio_session.execute(query)
+            last_member = query_result.scalars().one_or_none()
+            last_valid_member_id = last_member.id if last_member else 0
+
+            # check consistency - participants
+            participant_ids = [i.strip() for i in self.participants.component.value.split(',') if i.strip()]
+            if participant_ids and any(not isinstance(i, int) for i in participant_ids):
+                await interaction.response.send_message("La liste des participants n'est pas valide.\r\nIl faut une liste de nombres.", ephemeral=True)
+                return
+
+            participant_ids = [int(i) for i in participant_ids]
+            unkown_participants = [m.id for m in participant_ids if m.id > last_valid_member_id]
+
+            if unkown_participants:
+                await interaction.response.send_message(f"Les identifiants suivants sont inconnus: {', '.join(unkown_participants)}", ephemeral=True)
+                return
+
+            # create or get event
+            if not self._db_event_id:
+                db_event = ajdb_t.Event(date=event_date)
+                seasons = await aj_db.query_table_content(ajdb_t.Season)
+                [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
+                await aj_db.aio_session.add(db_event)
+            else:
+                query = sa.select(ajdb_t.Event).where(ajdb_t.Event.id == self._db_event_id)
+                query_result = await aj_db.aio_session.execute(query)
+                db_event = query_result.scalars().one_or_none()
+                if not db_event:
+                    await interaction.response.send_message("L'évènement à mettre à jour n'a pas été trouvé.", ephemeral=True)
+                    return
+
+            # set name
+            db_event.name = event_name
+
+            # delete / add participants
+            for m_e in db_event.members:
+                if m_e.member_id not in participant_ids:
+                    await aj_db.aio_session.delete(m_e)
+
+            existing_participant_ids = [m_e.member_id for m_e in db_event.members]
+            for mbr_id in participant_ids:
+                if mbr_id not in existing_participant_ids:
+                    db_event.members.append(ajdb_t.MemberEvent(member_id = mbr_id))
 
         await interaction.response.send_message("C'est... fait?", ephemeral=True)
 
     def __init__(self):
-        self._db_event = None
+        self._db_event_id = None
         self.event_date = None
         self.event_name = None
         self.present_members = None
-        self.last_valid_member_id = None
         self.participants = None
         super().__init__()
 
