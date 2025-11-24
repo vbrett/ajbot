@@ -226,12 +226,18 @@ class Season(Base):
         return hash(self.id)
 
     def __eq__(self, other):
-        return ((self.start, self.end) ==
-                (other.start, other.end))
+        try:
+            return ((self.start, self.end) ==
+                    (other.start, other.end))
+        except AttributeError:
+            return NotImplemented
 
     def __lt__(self, other):
-        return ((self.start, self.end) <
-                (other.start, other.end))
+        try:
+            return ((self.start, self.end) <
+                    (other.start, other.end))
+        except AttributeError:
+            return NotImplemented
 
     def __str__(self):
         return f'{self}'
@@ -327,10 +333,16 @@ class Member(Base):
         return hash(self.id)
 
     def __eq__(self, other):
-        return self.id == other.id
+        try:
+            return self.id == other.id
+        except AttributeError:
+            return NotImplemented
 
     def __lt__(self, other):
-        return self.id < other.id
+        try:
+            return self.id < other.id
+        except AttributeError:
+            return NotImplemented
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -368,6 +380,8 @@ class AssoRole(Base):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
     discord_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='asso_role', lazy='selectin')
     members: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='asso_role', lazy='selectin')
+
+    #TODO: implement __str__ & __format__
 
 
 class Membership(Base):
@@ -425,7 +439,7 @@ class Event(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
     date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True)
-    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=True, index=True)
+    season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, index=True)
     season: orm.Mapped['Season'] = orm.relationship('Season', back_populates='events', lazy='selectin')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
@@ -456,10 +470,16 @@ class Event(Base):
         return hash(self.id)
 
     def __eq__(self, other):
-        return self.date == other.date
+        try:
+            return self.date == other.date
+        except AttributeError:
+            return NotImplemented
 
     def __lt__(self, other):
-        return self.date < other.date
+        try:
+            return self.date < other.date
+        except AttributeError:
+            return NotImplemented
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -661,12 +681,18 @@ class Credential(Base):
         return hash(self.id)
 
     def __eq__(self, other):
-        return ((self.last_name.lower(), self.first_name.lower()) ==
-                (other.last_name.lower(), other.first_name.lower()))
+        try:
+            return ((self.last_name.lower(), self.first_name.lower()) ==
+                    (other.last_name.lower(), other.first_name.lower()))
+        except AttributeError:
+            return NotImplemented
 
     def __lt__(self, other):
-        return ((self.last_name.lower(), self.first_name.lower()) <
-                (other.last_name.lower(), other.first_name.lower()))
+        try:
+            return ((self.last_name.lower(), self.first_name.lower()) <
+                    (other.last_name.lower(), other.first_name.lower()))
+        except AttributeError:
+            return NotImplemented
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -813,6 +839,9 @@ class MemberEmail(Base):
     email: orm.Mapped['Email'] = orm.relationship('Email', back_populates='members', lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
+    def __str__(self):
+        return f'{self.id}, member #{self.member_id}, email #{self.email_id}'
+
 
 class MemberPhone(Base):
     """ Junction table between members and phones
@@ -829,6 +858,9 @@ class MemberPhone(Base):
     phone: orm.Mapped['Phone'] = orm.relationship('Phone', back_populates='members', lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
+    def __str__(self):
+        return f'{self.id}, member #{self.member_id}, phone #{self.phone_id}'
+
 
 class MemberAddress(Base):
     """ Junction table between members and addresses
@@ -844,6 +876,9 @@ class MemberAddress(Base):
     address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_addresses.id'), index=True, nullable=False)
     address: orm.Mapped['PostalAddress'] = orm.relationship('PostalAddress', back_populates='members', lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
+
+    def __str__(self):
+        return f'{self.id}, member #{self.member_id}, address #{self.address_id}'
 
 
 class MemberAssoRole(Base):
@@ -879,6 +914,9 @@ class MemberAssoRole(Base):
                     ).label("is_current_role")
                 ).scalar_subquery()
 
+    def __str__(self):
+        return f'{self.id}, member #{self.member_id}, asso role #{self.asso_role_id}'
+
 
 class AssoRoleDiscordRole(Base):
     """ Junction table between Asso and Discord roles
@@ -890,6 +928,9 @@ class AssoRoleDiscordRole(Base):
     asso_role: orm.Mapped['AssoRole'] = orm.relationship('AssoRole', back_populates='discord_roles', lazy='selectin')
     discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
     discord_role: orm.Mapped['DiscordRole'] = orm.relationship('DiscordRole', back_populates='asso_roles', lazy='selectin')
+
+    def __str__(self):
+        return f'{self.id}, asso role #{self.asso_role_id}, discord role #{self.discord_role_id}'
 
 
 class MemberEvent(Base):
@@ -904,6 +945,9 @@ class MemberEvent(Base):
     member: orm.Mapped[Optional['Member']] = orm.relationship('Member', back_populates='events', lazy='selectin')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
+
+    def __str__(self):
+        return f'{self.id}, event #{self.event_id}, member #{self.member_id}'
 
 
 
