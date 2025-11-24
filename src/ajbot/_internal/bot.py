@@ -191,6 +191,18 @@ class AjBot():
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
             await self.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
 
+        @self.client.tree.command(name="gérer_évènement")
+        @app_commands.check(bot.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        @bot.with_event_name
+        async def event_handler(interaction: Interaction,
+                                event:Optional[str]=None,
+                                ):
+            """ Créer un nouvel évènement ou modifie un existant
+            """
+            eventmodal = await bot.CreateEventView.create(event)
+            await interaction.response.send_modal(eventmodal)
+
         @self.client.tree.command(name="presence")
         @app_commands.check(bot.is_manager)
         @app_commands.checks.cooldown(1, 5)
@@ -218,20 +230,6 @@ class AjBot():
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
             await self.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
-
-        @self.client.tree.command(name="gérer_évènement")
-        @app_commands.check(bot.is_manager)
-        @app_commands.checks.cooldown(1, 5)
-        @app_commands.rename(event='évènement')
-        @app_commands.describe(event='évènement à modifier (aucun = crée un nouvel évènement)')
-        @app_commands.autocomplete(event=bot.AutocompleteFactory(ajdb_t.Event).ac)
-        async def event_handler(interaction: Interaction,
-                                event:Optional[str]=None,
-                                ):
-            """ Créer un nouvel évènement ou modifie un existant
-            """
-            eventmodal = await bot.CreateEventModal.create(event)
-            await interaction.response.send_modal(eventmodal)
 
 
         # ========================================================

@@ -77,6 +77,20 @@ def with_season_name(func):
     return wrapper
 
 
+def with_event_name(func):
+    """ Decorator to handle command season parameter with autocomplete
+    """
+    @wraps(func)
+    @app_commands.rename(event='évènement')
+    @app_commands.describe(event='évènement à modifier (aucun = crée un nouvel évènement)')
+    @app_commands.autocomplete(event=AutocompleteFactory(ajdb_t.Event).ac)
+    async def wrapper(*args, event:Optional[str]=None, **kwargs):
+        result = await func(*args, event, **kwargs)
+        return result
+
+    return wrapper
+
+
 # List of checks that can be used with app commands
 # ========================================================
 def is_bot_owner(interaction: Interaction) -> bool:
@@ -100,7 +114,7 @@ def is_manager(interaction: Interaction) -> bool:
 
 # Create event modal view
 # ========================================================
-class CreateEventModal(dui.Modal, title='Evènement'):
+class CreateEventView(dui.Modal, title='Evènement'):
     """ Modal handling event creation / update
     """
     @classmethod
