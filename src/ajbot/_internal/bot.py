@@ -10,10 +10,28 @@ from discord import app_commands, Interaction
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal import bot_elements as bot
+from ajbot._internal import bot_in, bot_out
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal.exceptions import OtherException
 from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
+
+
+def get_discord_members(discord_client, guild_names=None):
+    """ Returns a dictionary of members info from a list of discord guilds.
+        guilds: list of guild names to include members from.
+                If None, all guilds the bot is in are used.
+    """
+    return {"date": discord.utils.utcnow().isoformat(),
+            "members": {guild.name: {member.id: {
+                                                'name': member.name,
+                                                'disp_name': member.display_name,
+                                                'joined_at': member.joined_at.isoformat(),
+                                                'roles': [role.name for role in member.roles]
+                                                }
+                                    for member in guild.members}
+                        for guild in discord_client.guilds
+                        if guild_names is None or guild.name in guild_names}
+            }
 
 class MyDiscordClient(discord.Client):
     """
@@ -81,17 +99,17 @@ class AjBot():
         # General commands
         # ========================================================
         @self.client.tree.command(name="version")
-        @app_commands.check(bot.is_manager)
+        @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
         async def version(interaction: Interaction):
             """ Affiche la version du bot
             """
-            await bot.send_response_as_text(interaction=interaction,
+            await bot_out.send_response_as_text(interaction=interaction,
                                              content=f"Version du bot: {ajbot_version}",
                                              ephemeral=True)
 
         @self.client.tree.command(name="bonjour")
-        @app_commands.check(bot.is_member)
+        @app_commands.check(bot_in.is_member)
         @app_commands.checks.cooldown(1, 5)
         async def hello(interaction: Interaction):
             """C'est toujours bien d'être poli avec moi"""
@@ -106,7 +124,7 @@ class AjBot():
 
             self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(message_list)-1])
             self.last_hello_member = interaction.user
-            await bot.send_response_as_text(interaction=interaction,
+            await bot_out.send_response_as_text(interaction=interaction,
                                            content=message_list[self.last_hello_member_count],
                                            ephemeral=True)
 
@@ -114,7 +132,7 @@ class AjBot():
         # Member related commands
         # ========================================================
         @self.client.tree.command(name="cqui")
-        @app_commands.check(bot.is_member)
+        @app_commands.check(bot_in.is_member)
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(disc_member='pseudo')
         @app_commands.describe(disc_member='pseudo discord')
@@ -128,7 +146,7 @@ class AjBot():
                       str_member:Optional[str]=None):
             """ Retrouve l'identité d'un membre. Retourne le, la ou les membres qui correspond(ent) le plus aux infos fournies.
             """
-            await bot.send_member_info(interaction=interaction,
+            await bot_out.send_member_info(interaction=interaction,
                                         disc_member=disc_member,
                                         int_member=int_member,
                                         str_member=str_member)
@@ -138,9 +156,9 @@ class AjBot():
         # ========================================================
 
         @self.client.tree.command(name="cotisants")
-        @app_commands.check(bot.is_manager)
+        @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot.with_season_name
+        @bot_in.with_season_name
         async def memberships(interaction: Interaction,
                               season_name:Optional[str]=None):
             """ Affiche la liste des cotisants d'une saison donnée
@@ -154,19 +172,19 @@ class AjBot():
                 else:
                     summary = f"{len(members)} personne(s) ont déjà cotisé à cette saison :"
 
-                format_style = FormatTypes.FULLSIMPLE if bot.is_manager(interaction) else FormatTypes.RESTRICTED
+                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
                 reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in members)
             else:
                 summary = "Mais il n'y a eu personne cette saison ;-("
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await bot.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
+            await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenements")
-        @app_commands.check(bot.is_manager)
+        @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot.with_season_name
+        @bot_in.with_season_name
         async def events(interaction: Interaction,
                          season_name:Optional[str]=None,
                          ):
@@ -181,31 +199,31 @@ class AjBot():
                 else:
                     summary = f"Il y a déjà eu {len(events)} évènement(s) lors de cette saison :"
 
-                format_style = FormatTypes.FULLSIMPLE if bot.is_manager(interaction) else FormatTypes.RESTRICTED
+                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
                 reply = '- ' + '\n- '.join(f'{e:{format_style}}' for e in events)
             else:
                 summary = "Mais il n'y a eu aucun évènement cette saison ;-("
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await bot.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
+            await bot_out.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="gérer_évènement")
-        @app_commands.check(bot.is_manager)
+        @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot.with_event_name
+        @bot_in.with_event_name
         async def event_handler(interaction: Interaction,
                                 event:Optional[str]=None,
                                 ):
             """ Créer un nouvel évènement ou modifie un existant
             """
-            eventmodal = await bot.CreateEventView.create(event)
+            eventmodal = await bot_out.CreateEventView.create(event)
             await interaction.response.send_modal(eventmodal)
 
         @self.client.tree.command(name="presence")
-        @app_commands.check(bot.is_manager)
+        @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot.with_season_name
+        @bot_in.with_season_name
         async def presence(interaction: Interaction,
                            season_name:Optional[str]=None,
                            ):
@@ -221,14 +239,14 @@ class AjBot():
                 else:
                     summary = f"{len(members)} personne(s) sont déjà venus lors de cette saison :"
 
-                format_style = FormatTypes.FULLSIMPLE if bot.is_manager(interaction) else FormatTypes.RESTRICTED
+                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
                 reply = '- ' + '\n- '.join(f'{m:{format_style}} - {m.season_presence_count(season_name)} participation(s)' for m in members)
             else:
                 summary = "Mais il n'y a eu personne cette saison ;-("
                 reply = "---"
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
-            await bot.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+            await bot_out.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 
         # ========================================================
@@ -236,9 +254,9 @@ class AjBot():
         # ========================================================
 
         @self.client.tree.context_menu(name='Info membre')
-        @app_commands.check(bot.is_member)
+        @app_commands.check(bot_in.is_member)
         async def show_name(interaction: Interaction, member: discord.Member):
-            await bot.send_member_info(interaction=interaction, disc_member=member)
+            await bot_out.send_member_info(interaction=interaction, disc_member=member)
 
 
         # ========================================================
@@ -252,7 +270,7 @@ class AjBot():
             else:
                 error_message =f"😱 Oups ! un truc chelou c'est passé.\r\n{exception}"
 
-            await bot.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
+            await bot_out.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 
 
 #     @commands.command(name='roles')
@@ -262,7 +280,7 @@ class AjBot():
 #         with tempfile.TemporaryDirectory() as temp_dir:
 #             json_filename = "members.json"
 #             member_info_json_file = Path(temp_dir) / json_filename
-#             save_json_file(bot.get_discord_members(discord_client=self.bot,
+#             save_json_file(get_discord_members(discord_client=self.bot,
 #                                         guild_names=([ctx.guild.name] if ctx.guild else None)),
 #                         member_info_json_file, preserve=False)
 #             await ctx.reply("Et voilà:",
