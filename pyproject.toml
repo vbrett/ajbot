@@ -5,6 +5,7 @@ build-backend = 'hatchling.build'
 [project.scripts]
 aj_bot = 'ajbot.__main__:_main'
 aj_creds = 'ajbot.credentials:_main'
+aj_testdb = 'ajbot._internal.ajmariadb:_main'
 
 [tool.hatch.build.targets.pyinstaller]
 require-runtime-dependencies = true
@@ -17,22 +18,18 @@ zip = true
 name = 'ajbot'
 dynamic = ['version']
 dependencies = ['discord.py',
-                'google-api-python-client',
-                'google-auth-httplib2',
-                'google-auth-oauthlib',
-                'vbrpytools >= 3.7.0',
+                'sqlalchemy[asyncio]', 'aiomysql',
+                'vbrpytools >= 3.8.0',
                 'humanize',
                 'dateparser',
                 'thefuzz[speedup]',
-                'motor',
-                'pydantic',
                 'pwinput',
                ]
 description = 'Discord for personal use'
 readme = 'README.md'
 requires-python = '>=3.13'
 license = {file = 'LICENSE'}
-keywords = ['tools', 'discord','personal']
+keywords = ['tools', 'discord','personal', 'mariaDB', 'bot']
 authors = [
   { name='Vincent Brettnacher', email='vincent.brettnacher@veoneer.com' },
 ]
