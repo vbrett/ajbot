@@ -5,15 +5,14 @@ from typing import Optional
 # from pathlib import Path
 
 import discord
-from discord import app_commands, Interaction, ui as dui
+from discord import app_commands, Interaction
 # from dateparser import parse as dateparse
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
 from ajbot._internal import bot_elements as bot
 from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
-from ajbot._internal.exceptions import AjBotException, OtherException
+from ajbot._internal.exceptions import OtherException
 from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
 
 class MyDiscordClient(discord.Client):
@@ -87,7 +86,7 @@ class AjBot():
         async def version(interaction: Interaction):
             """ Affiche la version du bot
             """
-            await self.send_response_as_text(interaction=interaction,
+            await bot.send_response_as_text(interaction=interaction,
                                              content=f"Version du bot: {ajbot_version}",
                                              ephemeral=True)
 
@@ -107,7 +106,7 @@ class AjBot():
 
             self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(message_list)-1])
             self.last_hello_member = interaction.user
-            await self.send_response_as_text(interaction=interaction,
+            await bot.send_response_as_text(interaction=interaction,
                                            content=message_list[self.last_hello_member_count],
                                            ephemeral=True)
 
@@ -129,7 +128,7 @@ class AjBot():
                       str_member:Optional[str]=None):
             """ Retrouve l'identité d'un membre. Retourne le, la ou les membres qui correspond(ent) le plus aux infos fournies.
             """
-            await self.send_member_info(interaction=interaction,
+            await bot.send_member_info(interaction=interaction,
                                         disc_member=disc_member,
                                         int_member=int_member,
                                         str_member=str_member)
@@ -162,7 +161,7 @@ class AjBot():
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await self.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
+            await bot.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenements")
         @app_commands.check(bot.is_manager)
@@ -189,7 +188,7 @@ class AjBot():
                 reply = '---'
 
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await self.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
+            await bot.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="gérer_évènement")
         @app_commands.check(bot.is_manager)
@@ -229,7 +228,7 @@ class AjBot():
                 reply = "---"
 
             # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
-            await self.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+            await bot.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 
         # ========================================================
@@ -239,7 +238,7 @@ class AjBot():
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(bot.is_member)
         async def show_name(interaction: Interaction, member: discord.Member):
-            await self.send_member_info(interaction=interaction, disc_member=member)
+            await bot.send_member_info(interaction=interaction, disc_member=member)
 
 
         # ========================================================
@@ -253,122 +252,7 @@ class AjBot():
             else:
                 error_message =f"😱 Oups ! un truc chelou c'est passé.\r\n{exception}"
 
-            await self.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
-
-
-    # ========================================================
-    # Support functions
-    # ========================================================
-    async def send_response_as_text(self, interaction: Interaction,
-                                    content:str, ephemeral=False, delete_after=None,
-                                    chunk_size=1800, split_on_eol=True):
-        """ Send basic command response, handling splitting it if needed (limit = 2000 characters).
-            Can also ensure that split is only perform at eol.
-        """
-        if chunk_size > 1980:
-            raise AjBotException(f"La taille demandée {chunk_size} n'est pas supportée. Max 2000.")
-
-        first_answer = True
-        i = 0
-        while i < len(content):
-            chunk = content[i:i + chunk_size]
-            if split_on_eol and (i + chunk_size) < len(content):
-                split_last_line = chunk.rsplit('\n', 1)
-                if len(split_last_line) > 1:
-                    chunk = split_last_line[0]
-                    i -= len(split_last_line[1])
-            i += chunk_size
-            if first_answer:
-                await interaction.response.send_message(chunk, ephemeral=ephemeral, delete_after=delete_after)
-                first_answer = False
-            else:
-                await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral, delete_after=delete_after)
-
-    async def send_response_as_view(self, interaction: Interaction,
-                                 title:str, summary:str, content:str,
-                                 ephemeral=False,):
-        """ Send command response as a view
-        """
-        view = dui.LayoutView()
-        container = dui.Container()
-        view.add_item(container)
-
-        container.add_item(dui.TextDisplay(f'# __{title}__'))
-        container.add_item(dui.TextDisplay(f'## {summary}'))
-        container.add_item(dui.TextDisplay(f'>>> {content}'))
-
-        timestamp = discord.utils.format_dt(interaction.created_at, 'F')
-        footer = dui.TextDisplay(f'-# Généré par {interaction.user} (ID: {interaction.user.id}) | {timestamp}')
-
-        container.add_item(footer)
-        await interaction.response.send_message(view=view, ephemeral=ephemeral)
-
-
-    async def send_member_info(self, interaction: Interaction,
-                               disc_member:discord.Member=None,
-                               int_member:int=None,
-                               str_member:str=None,
-                               delete_after=None):
-        """ Affiche les infos des membres
-        """
-        input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
-        if len(input_member) != 1:
-            input_types="un (et un seul) élément parmi:\r\n* un pseudo\r\n* un nom\r\n* un ID"
-            if len(input_member) == 0:
-                message = f"😓 Alors là, je vais avoir du mal à trouver sans un minimum d'info, à savoir {input_types}"
-            else:
-                message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
-            await self.send_response_as_text(interaction=interaction,
-                                             content=message,
-                                             ephemeral=True)
-            return
-        [input_member] = input_member
-
-        async with AjDb() as aj_db:
-            members = await aj_db.query_members_per_id_info(input_member, 50, False)
-
-        embed = None
-        view = None
-        reply = None
-        if members:
-            if len(members) == 1:
-                class EditButton(dui.Button):
-                    """ Class that creates a edit button
-                    """
-                    def __init__(self):
-                        super().__init__(style=discord.ButtonStyle.primary, label='Editer', row=2)
-
-                    async def callback(self, interaction: discord.Interaction):
-                        await interaction.response.send_message(content="Pas encore disponible", ephemeral=True, delete_after=10)
-
-                [member] = members
-                is_self = member.discord_pseudo.name == interaction.user.name
-                format_style = FormatTypes.FULLSIMPLE if (is_self or bot.is_manager(interaction)) else FormatTypes.RESTRICTED
-                view = dui.LayoutView()
-                container = dui.Container()
-                view.add_item(container)
-
-                container.add_item(dui.Section(dui.TextDisplay(format(member, format_style)),
-                                               accessory=EditButton()))
-            else:
-                #TODO: transform embed to view - once view can support tables
-                embed = discord.Embed(color=discord.Color.orange())
-                format_style = FormatTypes.FULLSIMPLE if (bot.is_manager(interaction)) else FormatTypes.RESTRICTED
-                embed.add_field(name = 'id', inline=True,
-                                value = '\n'.join(str(m.id) for m in members)
-                               )
-                embed.add_field(name = 'Discord', inline=True,
-                                value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '' for m in members)
-                               )
-                embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
-                                value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '' for m in members)
-                               )
-
-                reply = "Voilà ce que j'ai trouvé:"
-        else:
-            reply = f"Je ne connais pas ton ou ta {input_member}."
-
-        await interaction.response.send_message(content=reply, embed=embed, view=view, ephemeral=True, delete_after=delete_after)
+            await bot.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 
 
 #     @commands.command(name='roles')
