@@ -10,11 +10,10 @@ from discord import app_commands, Interaction
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal import bot_in, bot_out
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal.exceptions import OtherException
 from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
-
+from ajbot._internal.ajdb import AjDb
+from ajbot._internal import bot_in, bot_out
+from ajbot._internal.exceptions import OtherException
 
 def get_discord_members(discord_client, guild_names=None):
     """ Returns a dictionary of members info from a list of discord guilds.

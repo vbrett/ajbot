@@ -9,6 +9,7 @@ from discord import Interaction, app_commands
 from ajbot._internal.config import AjConfig
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
+from ajbot._internal import bot_config
 from ajbot._internal.exceptions import OtherException
 
 
@@ -16,7 +17,7 @@ from ajbot._internal.exceptions import OtherException
 # ========================================================
 class AutocompleteFactory():
     """ create an autocomplete function based on the content of a db table
-        Choice list is limited to 25, so keep the last 25 if needed
+        Note that choice list size is limited, so all matches may not be always returned
     """
     def __init__(self, table_class, attr_name=None, refresh_rate_in_sec=60):
         self._table = table_class
@@ -40,7 +41,7 @@ class AutocompleteFactory():
         return [
                 app_commands.Choice(name=value, value=value)
                 for value in self._values if current.lower() in value.lower()
-               ][-25:]  #Discord supports only 25 elements. #TODO: set as a config parameter
+               ][-bot_config.AUTOCOMPLETE_LIST_SIZE:]
 
 
 def with_season_name(func):
