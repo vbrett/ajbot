@@ -12,6 +12,7 @@ from discord import app_commands, Interaction
 from ajbot import __version__ as ajbot_version
 from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
 from ajbot._internal.ajdb import AjDb
+from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
 from ajbot._internal.exceptions import OtherException
 
@@ -130,7 +131,7 @@ class AjBot():
 
         # Member related commands
         # ========================================================
-        @self.client.tree.command(name="cqui")
+        @self.client.tree.command(name="qui-est-ce")
         @app_commands.check(bot_in.is_member)
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(disc_member='pseudo')
@@ -145,7 +146,7 @@ class AjBot():
                       str_member:Optional[str]=None):
             """ Retrouve l'identité d'un membre. Retourne le, la ou les membres qui correspond(ent) le plus aux infos fournies.
             """
-            await bot_out.send_member_info(interaction=interaction,
+            await bot_out.display_member(interaction=interaction,
                                         disc_member=disc_member,
                                         int_member=int_member,
                                         str_member=str_member)
@@ -157,7 +158,9 @@ class AjBot():
         @self.client.tree.command(name="cotisants")
         @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot_in.with_season_name
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(ajdb_t.Season, 'name').ac)
         async def memberships(interaction: Interaction,
                               season_name:Optional[str]=None):
             """ Affiche la liste des cotisants d'une saison donnée
@@ -180,53 +183,35 @@ class AjBot():
             # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
             await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
-        @self.client.tree.command(name="evenements")
+        @self.client.tree.command(name="evenement")
         @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot_in.with_season_name
+        @app_commands.rename(event_str='évènement')
+        @app_commands.describe(event_str='évènement à afficher')
+        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(ajdb_t.Event).ac)
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(ajdb_t.Season, 'name').ac)
         async def events(interaction: Interaction,
+                         event_str:Optional[str]=None,
                          season_name:Optional[str]=None,
                          ):
-            """ Affiche la liste des evenements d'une saison donnée
+            """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
             """
-            async with AjDb() as aj_db:
-                events = await aj_db.query_events(season_name)
-
-            if events:
-                if season_name:
-                    summary = f"Il y a eu {len(events)} évènement(s) lors de la saison {season_name} :"
-                else:
-                    summary = f"Il y a déjà eu {len(events)} évènement(s) lors de cette saison :"
-
-                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
-                reply = '- ' + '\n- '.join(f'{e:{format_style}}' for e in events)
-            else:
-                summary = "Mais il n'y a eu aucun évènement cette saison ;-("
-                reply = '---'
-
-            # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await bot_out.send_response_as_view(interaction=interaction, title="Evènements", summary=summary, content=reply, ephemeral=True)
-
-        @self.client.tree.command(name="gérer_évènement")
-        @app_commands.check(bot_in.is_manager)
-        @app_commands.checks.cooldown(1, 5)
-        @bot_in.with_event_name
-        async def event_handler(interaction: Interaction,
-                                event:Optional[str]=None,
-                                ):
-            """ Créer un nouvel évènement ou modifie un existant
-            """
-            eventmodal = await bot_out.CreateEventView.create(event)
-            await interaction.response.send_modal(eventmodal)
+            await bot_out.display_event(interaction=interaction,
+                                        season_name=season_name,
+                                        event_str=event_str)
 
         @self.client.tree.command(name="presence")
         @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @bot_in.with_season_name
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(ajdb_t.Season, 'name').ac)
         async def presence(interaction: Interaction,
                            season_name:Optional[str]=None,
                            ):
-            """ Affiche les personne ayant participé à une saison donnée
+            """ Affiche les personnes ayant participé à une saison donnée
             """
             async with AjDb() as aj_db:
                 members = await aj_db.query_members_per_season_presence(season_name)
@@ -255,7 +240,7 @@ class AjBot():
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(bot_in.is_member)
         async def show_name(interaction: Interaction, member: discord.Member):
-            await bot_out.send_member_info(interaction=interaction, disc_member=member)
+            await bot_out.display_member(interaction=interaction, disc_member=member)
 
 
         # ========================================================

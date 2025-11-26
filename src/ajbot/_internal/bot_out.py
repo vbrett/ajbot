@@ -6,23 +6,21 @@ import dateutil.parser as date_parser
 import discord
 from discord import Interaction, ui as dui
 
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
-from ajbot._internal import bot_in
-from ajbot._internal.exceptions import AjBotException, OtherException
 from ajbot._internal.config import FormatTypes
+from ajbot._internal.ajdb import AjDb
+from ajbot._internal import bot_in, bot_config
+from ajbot._internal.exceptions import OtherException
 
 
-# Display functions
+# Generic Display functions
 # ========================================================
 async def send_response_as_text(interaction: Interaction,
                                 content:str, ephemeral=False, delete_after=None,
-                                chunk_size=1800, split_on_eol=True):
-    """ Send basic command response, handling splitting it if needed (limit = 2000 characters).
+                                chunk_size=bot_config.CONTENT_MAX_SIZE, split_on_eol=True):
+    """ Send basic command response, handling splitting it if needed based on discord limit.
         Can also ensure that split is only perform at eol.
     """
-    if chunk_size > 1980:
-        raise AjBotException(f"La taille demandée {chunk_size} n'est pas supportée. Max 2000.")
+    assert (chunk_size <= bot_config.CONTENT_MAX_SIZE), f"La taille demandée {chunk_size} n'est pas supportée. Max {bot_config.CONTENT_MAX_SIZE}."
 
     first_answer = True
     i = 0
@@ -60,11 +58,12 @@ async def send_response_as_view(interaction: Interaction,
     await interaction.response.send_message(view=view, ephemeral=ephemeral)
 
 
-async def send_member_info(interaction: Interaction,
-                           disc_member:discord.Member=None,
-                           int_member:int=None,
-                           str_member:str=None,
-                           delete_after=None):
+# Member, event,.. detail display
+# ========================================================
+async def display_member(interaction: Interaction,
+                         disc_member:discord.Member=None,
+                         int_member:int=None,
+                         str_member:str=None):
     """ Affiche les infos des membres
     """
     input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
@@ -83,72 +82,152 @@ async def send_member_info(interaction: Interaction,
     async with AjDb() as aj_db:
         members = await aj_db.query_members_per_id_info(input_member, 50, False)
 
-    embed = None
-    view = None
-    reply = None
-    if members:
-        if len(members) == 1:
-            class EditButton(dui.Button):
-                """ Class that creates a edit button
-                """
-                def __init__(self):
-                    super().__init__(style=discord.ButtonStyle.primary, label='Editer', row=2)
+        if members:
+            if len(members) == 1:
+                class EditButton(dui.Button):
+                    """ Class that creates a edit button
+                    """
+                    def __init__(self):
+                        super().__init__(style=discord.ButtonStyle.primary,
+                                         label='Editer',
+                                         disabled = not bot_in.is_manager(interaction))
 
-                async def callback(self, interaction: discord.Interaction):
-                    await interaction.response.send_message(content="Pas encore disponible", ephemeral=True, delete_after=10)
+                    async def callback(self, interaction: discord.Interaction):
+                        await send_response_as_text(interaction, content="Pas encore disponible", ephemeral=True, delete_after=10)
 
-            [member] = members
-            is_self = member.discord_pseudo.name == interaction.user.name
-            format_style = FormatTypes.FULLSIMPLE if (is_self or bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
-            view = dui.LayoutView()
-            container = dui.Container()
-            view.add_item(container)
+                [member] = members
+                is_self = member.discord_pseudo.name == interaction.user.name
+                format_style = FormatTypes.FULLSIMPLE if (is_self or bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
+                view = dui.LayoutView()
+                container = dui.Container()
+                view.add_item(container)
 
-            container.add_item(dui.Section(dui.TextDisplay(format(member, format_style)),
-                                            accessory=EditButton()))
+                container.add_item(dui.Section(dui.TextDisplay(format(member, format_style)),
+                                                accessory=EditButton()))
+                await interaction.response.send_message(view=view, ephemeral=True)
+            else:
+                embed = discord.Embed(color=discord.Color.orange())
+                format_style = FormatTypes.FULLSIMPLE if (bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
+                embed.add_field(name = 'Id', inline=True,
+                                value = '\n'.join(str(m.id) for m in members)
+                                )
+                embed.add_field(name = 'Discord', inline=True,
+                                value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '-' for m in members)
+                                )
+                embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
+                                value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '-' for m in members)
+                                )
+
+                await interaction.response.send_message(content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
         else:
-            #TODO: transform embed to view - once view can support tables
-            embed = discord.Embed(color=discord.Color.orange())
-            format_style = FormatTypes.FULLSIMPLE if (bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
-            embed.add_field(name = 'id', inline=True,
-                            value = '\n'.join(str(m.id) for m in members)
-                            )
-            embed.add_field(name = 'Discord', inline=True,
-                            value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '' for m in members)
-                            )
-            embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
-                            value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '' for m in members)
-                            )
-
-            reply = "Voilà ce que j'ai trouvé:"
-    else:
-        reply = f"Je ne connais pas ton ou ta {input_member}."
-
-    await interaction.response.send_message(content=reply, embed=embed, view=view, ephemeral=True, delete_after=delete_after)
+            await send_response_as_text(interaction=interaction,
+                                        content=f"Je ne connais pas ton ou ta {input_member}.",
+                                        ephemeral=True)
 
 
-# Create event modal view
+async def display_event(interaction: Interaction,
+                        season_name:str=None,
+                        event_str:str=None):
+    """ Affiche les infos des évènements
+    """
+    input_event = [x for x in [season_name, event_str] if x is not None]
+
+    if len(input_event) == 0:
+        eventmodal = await CreateEventView.create()
+        await interaction.response.send_modal(eventmodal)
+        return
+
+    if len(input_event) > 1:
+        input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
+        message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
+        await send_response_as_text(interaction=interaction,
+                                    content=message,
+                                    ephemeral=True)
+        return
+
+    async with AjDb() as aj_db:
+        events = await aj_db.query_events(season_name=season_name, event_str=event_str)
+
+        if events:
+            format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
+            if len(events) == 1:
+                [event] = events
+                class _EditButton(dui.Button):
+                    """ Class that creates a edit button
+                    """
+                    def __init__(self):
+                        super().__init__(style=discord.ButtonStyle.primary,
+                                         label='Editer',
+                                         disabled = not bot_in.is_manager(interaction))
+
+                    async def callback(self, interaction: discord.Interaction):
+                        eventmodal = await CreateEventView.create(event)
+                        await interaction.response.send_modal(eventmodal)
+
+                class _DeleteButton(dui.Button):
+                    """ Class that creates a edit button
+                    """
+                    def __init__(self):
+                        super().__init__(style=discord.ButtonStyle.red,
+                                         label='Supprimer',
+                                         disabled = not bot_in.is_manager(interaction))
+
+                    async def callback(self, interaction: discord.Interaction):
+                        await send_response_as_text(interaction=interaction, content="Pas encore disponible", ephemeral=True)
+
+                view = dui.LayoutView()
+                container = dui.Container()
+                view.add_item(container)
+
+                participants = [m.member for m in event.members]
+                participants.sort(key=lambda x:x.credential)
+                message1 = f"# {event:{format_style}}"
+                message2 = f"## {len(participants)} participant" + ('' if not participants else (('s' if len(participants) > 1 else '') + " :"))
+                container.add_item(dui.Section(dui.TextDisplay(message1), accessory=_EditButton()))
+                container.add_item(dui.Section(dui.TextDisplay(message2), accessory=_DeleteButton()))
+                if participants:
+                    container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f'{m:{format_style}}' for m in participants)))
+                await interaction.response.send_message(view=view, ephemeral=True)
+            else:
+                embed = discord.Embed(color=discord.Color.blue())
+                embed.add_field(name = 'date', inline=True,
+                                value = '\n'.join(str(e.date) for e in events)
+                                )
+                embed.add_field(name = 'Nom', inline=True,
+                                value = '\n'.join(e.name if e.name else '-' for e in events)
+                                )
+                embed.add_field(name = 'Présence', inline=True,
+                                value = '\n'.join(str(len(e.members)) for e in events)
+                                )
+
+                await interaction.response.send_message(content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
+        else:
+            await send_response_as_text(interaction=interaction,
+                                        content="Je n'ai trouvé aucun évènement.",
+                                        ephemeral=True)
+
+
+
+# Member, event.. edit modals
 # ========================================================
 class CreateEventView(dui.Modal, title='Evènement'):
     """ Modal handling event creation / update
     """
     @classmethod
-    async def create(cls, input_event_name:str=None):
+    async def create(cls, db_event=None):
         """ awaitable class factory
         """
         self = cls()
 
         self._db_event_id = None
-        db_event = None
-        async with AjDb() as aj_db:
-            if input_event_name:
-                events = await aj_db.query_table_content(ajdb_t.Event)
-                [db_event] = [e for e in events if str(e) == input_event_name]
-                self._db_event_id = db_event.id
+        present_members = None
+        if db_event:
+            self._db_event_id = db_event.id
 
-                self.present_members = await aj_db.query_members_per_event_presence(db_event.id)
-                if self.present_members:
-                    self.present_members.sort()
+            async with AjDb() as aj_db:
+                present_members = await aj_db.query_members_per_event_presence(db_event.id)
+                if present_members:
+                    present_members.sort()
 
 
         if db_event:
@@ -186,34 +265,14 @@ class CreateEventView(dui.Modal, title='Evènement'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.paragraph,
                                                     required=False,
-                                                    default='' if not self.present_members else ', '.join(str(int(p.id)) for p in self.present_members),
-                                                    max_length=4000,
+                                                    default='' if not present_members else ', '.join(str(int(p.id)) for p in present_members),
+                                                    max_length=bot_config.COMPONENT_TEXT_SIZE,
                                                 ),
                         )
         self.add_item(self.participants)
-
-        # TODO: when (if...) select component supports more than 25 items, or if modal supports more than 5 components, implement it
-        # members.sort()
-        # participants_options = [discord.SelectOption(label=format(m,FormatTypes.FULLSIMPLE),
-        #                                              description='',
-        #                                              default=m in participants) for m in members]
-        #
-        # self.participants = []
-        # for particip_chunk in divide_list(participants_options, 25):
-        #     self.participants.append(dui.Label(
-        #                             text='Participants',
-        #                             description="Liste des participants à l'évènement",
-        #                             component=dui.Select(
-        #                                                 placeholder='choisissez les participants',
-        #                                                 options=particip_chunk,
-        #                                                 max_values=len(particip_chunk)
-        #                                                 ),
-        #                             ))
-        #     self.add_item(self.participants[-1])
-
         return self
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when clicking on submit button
         """
 
@@ -229,7 +288,7 @@ class CreateEventView(dui.Modal, title='Evènement'):
             try:
                 event_date = date_parser.parse(self.event_date.component.value, dayfirst=True).date()
             except date_parser.ParserError:
-                await interaction.response.send_message(f"La date '{self.event_date.component.value}' n'est pas valide.", ephemeral=True)
+                await send_response_as_text(interaction, f"La date '{self.event_date.component.value}' n'est pas valide.", ephemeral=True)
                 return
 
         # check consistency - event name
@@ -243,22 +302,22 @@ class CreateEventView(dui.Modal, title='Evènement'):
         try:
             participant_ids = [int(i.strip()) for i in self.participants.component.value.split(',') if i.strip()]
         except ValueError:
-            await interaction.response.send_message("La liste des participants n'est pas valide.\r\nIl faut une liste de nombres.", ephemeral=True)
+            await send_response_as_text(interaction, "La liste des participants n'est pas valide.\r\nIl faut une liste de nombres.", ephemeral=True)
             return
 
         async with AjDb() as aj_db:
-            await aj_db.add_update_event(event_id=self._db_event_id,
-                                         event_date=event_date,
-                                         event_name=event_name,
-                                         participant_ids=participant_ids,)
+            event = await aj_db.add_update_event(event_id=self._db_event_id,
+                                                 event_date=event_date,
+                                                 event_name=event_name,
+                                                 participant_ids=participant_ids,)
 
-        await interaction.response.send_message("C'est fait!", ephemeral=True)
+
+        await display_event(interaction=interaction, event_str=str(event))
 
     def __init__(self):
         self._db_event_id = None
         self.event_date = None
         self.event_name = None
-        self.present_members = None
         self.participants = None
         super().__init__()
 

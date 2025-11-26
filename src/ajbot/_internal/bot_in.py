@@ -35,41 +35,14 @@ class AutocompleteFactory():
         if not self._values or self._last_refresh < (datetime.now() - timedelta(seconds=self._refresh_in_sec)):
             async with AjDb() as aj_db:
                 db_content = await aj_db.query_table_content(self._table)
+            db_content.sort(reverse=True)
             self._values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
             self._last_refresh = datetime.now()
 
         return [
                 app_commands.Choice(name=value, value=value)
                 for value in self._values if current.lower() in value.lower()
-               ][-bot_config.AUTOCOMPLETE_LIST_SIZE:]
-
-
-def with_season_name(func):
-    """ Decorator to handle command season parameter with autocomplete
-    """
-    @wraps(func)
-    @app_commands.rename(season_name='saison')
-    @app_commands.describe(season_name='la saison à analyser (aucune = saison en cours)')
-    @app_commands.autocomplete(season_name=AutocompleteFactory(ajdb_t.Season, 'name').ac)
-    async def wrapper(*args, season_name:Optional[str]=None, **kwargs):
-        result = await func(*args, season_name, **kwargs)
-        return result
-
-    return wrapper
-
-
-def with_event_name(func):
-    """ Decorator to handle command season parameter with autocomplete
-    """
-    @wraps(func)
-    @app_commands.rename(event='évènement')
-    @app_commands.describe(event='évènement à modifier (aucun = crée un nouvel évènement)')
-    @app_commands.autocomplete(event=AutocompleteFactory(ajdb_t.Event).ac)
-    async def wrapper(*args, event:Optional[str]=None, **kwargs):
-        result = await func(*args, event, **kwargs)
-        return result
-
-    return wrapper
+               ][:bot_config.AUTOCOMPLETE_LIST_SIZE]
 
 
 # List of checks that can be used with app commands

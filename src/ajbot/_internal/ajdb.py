@@ -9,6 +9,7 @@ from datetime import date
 
 
 import sqlalchemy as sa
+from sqlalchemy import orm
 from sqlalchemy.ext import asyncio as aio_sa
 
 import discord
@@ -142,22 +143,37 @@ class AjDb():
         matched_members.sort(key=lambda x: x.credential.fuzzy_match, reverse=True)
         return matched_members
 
-    async def query_events(self, season_name = None):
+    async def query_events(self, season_name:Optional[str] = None,
+                                 event_str:Optional[str] = None):
         ''' retrieve list of events having occured in a given season
             @args
-                season_name = Optional. If empty, use current season
+                season_name = Optional
+                event_str = Optional
+
+                if both empty, return current season
+                if none empty, raise an error
 
             @return
                 [all found events]
         '''
-        if season_name:
+        if season_name and event_str:
+            raise AjDbException('Both season & event name are provided. Only one shall')
+
+        if event_str:
+            query = sa.select(ajdb_t.Event)
+        elif season_name:
             query = sa.select(ajdb_t.Event).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
         else:
             query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
+        query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
 
         query_result = await self.aio_session.execute(query)
 
-        return query_result.scalars().all()
+        events = query_result.scalars().all()
+        if event_str:
+            events = [e for e in events if str(e) == event_str]
+
+        return events
 
     async def query_members_per_season_presence(self, season_name = None, subscriber_only = False):
         ''' retrieve list of members having participated in season
@@ -249,10 +265,15 @@ class AjDb():
             if m_e.member_id not in participant_ids:
                 await self.aio_session.delete(m_e)
 
-        existing_participant_ids = [m_e.member_id for m_e in db_event.members]
+        existing_participant_ids = [m_e.member_id for m_e in await db_event.awaitable_attrs.members]
         for mbr_id in participant_ids:
             if mbr_id not in existing_participant_ids:
                 db_event.members.append(ajdb_t.MemberEvent(member_id = mbr_id))
+
+        await self.aio_session.commit()
+        await self.aio_session.refresh(db_event)
+
+        return db_event
 
 
 
