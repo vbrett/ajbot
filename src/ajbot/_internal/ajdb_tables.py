@@ -17,7 +17,7 @@ from thefuzz import fuzz
 import humanize
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import _AJ_ID_PREFIX, FormatTypes
+from ajbot._internal.config import AJ_ID_PREFIX, FormatTypes
 
 
 class HumanizedDate(datetime.date):
@@ -74,7 +74,7 @@ class AjMemberId(int):
     def __format__(self, _format_spec):
         """ override format
         """
-        return f"{_AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
+        return f"{AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
 
 class SaAjMemberId(sa.types.TypeDecorator):   #pylint: disable=abstract-method,abstract-method
     """ SqlAlchemy class to report member id using specific class

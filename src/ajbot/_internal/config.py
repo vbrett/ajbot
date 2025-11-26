@@ -8,7 +8,7 @@ from vbrpytools.dicjsontools import load_json_file, save_json_file
 
 from ajbot._internal.exceptions import OtherException
 
-_AJ_ID_PREFIX = "AJ-"
+AJ_ID_PREFIX = "AJ-"
 
 _AJ_CONFIG_PATH = Path(".env")
 _AJ_CONFIG_FILE = "ajbot"
