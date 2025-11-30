@@ -16,22 +16,22 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
 from ajbot._internal.exceptions import OtherException
 
-def get_discord_members(discord_client, guild_names=None):
-    """ Returns a dictionary of members info from a list of discord guilds.
-        guilds: list of guild names to include members from.
-                If None, all guilds the bot is in are used.
-    """
-    return {"date": discord.utils.utcnow().isoformat(),
-            "members": {guild.name: {member.id: {
-                                                'name': member.name,
-                                                'disp_name': member.display_name,
-                                                'joined_at': member.joined_at.isoformat(),
-                                                'roles': [role.name for role in member.roles]
-                                                }
-                                    for member in guild.members}
-                        for guild in discord_client.guilds
-                        if guild_names is None or guild.name in guild_names}
-            }
+# def get_discord_members(discord_client, guild_names=None):
+#     """ Returns a dictionary of members info from a list of discord guilds.
+#         guilds: list of guild names to include members from.
+#                 If None, all guilds the bot is in are used.
+#     """
+#     return {"date": discord.utils.utcnow().isoformat(),
+#             "members": {guild.name: {member.id: {
+#                                                 'name': member.name,
+#                                                 'disp_name': member.display_name,
+#                                                 'joined_at': member.joined_at.isoformat(),
+#                                                 'roles': [role.name for role in member.roles]
+#                                                 }
+#                                     for member in guild.members}
+#                         for guild in discord_client.guilds
+#                         if guild_names is None or guild.name in guild_names}
+#             }
 
 class MyDiscordClient(discord.Client):
     """
@@ -105,8 +105,8 @@ class AjBot():
             """ Affiche la version du bot
             """
             await bot_out.send_response_as_text(interaction=interaction,
-                                             content=f"Version du bot: {ajbot_version}",
-                                             ephemeral=True)
+                                                content=f"Version du bot: {ajbot_version}",
+                                                ephemeral=True)
 
         @self.client.tree.command(name="bonjour")
         @app_commands.check(bot_in.is_member)
@@ -146,10 +146,12 @@ class AjBot():
                       str_member:Optional[str]=None):
             """ Retrouve l'identité d'un membre. Retourne le, la ou les membres qui correspond(ent) le plus aux infos fournies.
             """
-            await bot_out.display_member(interaction=interaction,
-                                        disc_member=disc_member,
-                                        int_member=int_member,
-                                        str_member=str_member)
+            async with AjDb() as aj_db:
+                await bot_out.display_member(aj_db=aj_db,
+                                             interaction=interaction,
+                                             disc_member=disc_member,
+                                             int_member=int_member,
+                                             str_member=str_member)
 
 
         # Season related commands
@@ -168,20 +170,20 @@ class AjBot():
             async with AjDb() as aj_db:
                 members = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
 
-            if members:
-                if season_name:
-                    summary = f"{len(members)} personne(s) ont cotisé à la saison {season_name} :"
+                if members:
+                    if season_name:
+                        summary = f"{len(members)} personne(s) ont cotisé à la saison {season_name} :"
+                    else:
+                        summary = f"{len(members)} personne(s) ont déjà cotisé à cette saison :"
+
+                    format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
+                    reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in members)
                 else:
-                    summary = f"{len(members)} personne(s) ont déjà cotisé à cette saison :"
+                    summary = "Mais il n'y a eu personne cette saison ;-("
+                    reply = '---'
 
-                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
-                reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in members)
-            else:
-                summary = "Mais il n'y a eu personne cette saison ;-("
-                reply = '---'
-
-            # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
-            await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
+                # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
+                await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenement")
         @app_commands.check(bot_in.is_manager)
@@ -198,9 +200,11 @@ class AjBot():
                          ):
             """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
             """
-            await bot_out.display_event(interaction=interaction,
-                                        season_name=season_name,
-                                        event_str=event_str)
+            async with AjDb() as aj_db:
+                await bot_out.display_event(aj_db=aj_db,
+                                            interaction=interaction,
+                                            season_name=season_name,
+                                            event_str=event_str)
 
         @self.client.tree.command(name="presence")
         @app_commands.check(bot_in.is_manager)
@@ -216,21 +220,21 @@ class AjBot():
             async with AjDb() as aj_db:
                 members = await aj_db.query_members_per_season_presence(season_name)
 
-            if members:
-                members.sort(key=lambda x: x, reverse=False)
-                if season_name:
-                    summary = f"{len(members)} personne(s) sont venus lors de la saison {season_name} :"
+                if members:
+                    members.sort(key=lambda x: x, reverse=False)
+                    if season_name:
+                        summary = f"{len(members)} personne(s) sont venus lors de la saison {season_name} :"
+                    else:
+                        summary = f"{len(members)} personne(s) sont déjà venus lors de cette saison :"
+
+                    format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
+                    reply = '- ' + '\n- '.join(f'{m:{format_style}} - {m.season_presence_count(season_name)} participation(s)' for m in members)
                 else:
-                    summary = f"{len(members)} personne(s) sont déjà venus lors de cette saison :"
+                    summary = "Mais il n'y a eu personne cette saison ;-("
+                    reply = "---"
 
-                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
-                reply = '- ' + '\n- '.join(f'{m:{format_style}} - {m.season_presence_count(season_name)} participation(s)' for m in members)
-            else:
-                summary = "Mais il n'y a eu personne cette saison ;-("
-                reply = "---"
-
-            # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
-            await bot_out.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+                # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
+                await bot_out.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 
         # ========================================================
@@ -240,7 +244,10 @@ class AjBot():
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(bot_in.is_member)
         async def show_name(interaction: Interaction, member: discord.Member):
-            await bot_out.display_member(interaction=interaction, disc_member=member)
+            async with AjDb() as aj_db:
+                await bot_out.display_member(aj_db=aj_db,
+                                             interaction=interaction,
+                                             disc_member=member)
 
 
         # ========================================================

@@ -353,18 +353,18 @@ class Member(Base):
         mbr_id = self.id
         mbr_creds = self.credential
         mbr_disc = self.discord_pseudo
-        mbr_email = self.email_principal.email if self.email_principal else None
-        mbr_address = self.address_principal.address if self.address_principal else None
-        mbr_phone = self.phone_principal.phone if self.phone_principal else None
-
-        mbr_asso_info = '' if self.current_season_has_subscribed else 'non ' #pylint: disable=using-constant-test #variable is not constant
-        mbr_asso_info += f'cotisant, {self.season_presence_count()} participation(s) cette saison.'
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
                 return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc,] if x])
 
             case FormatTypes.FULLCOMPLETE:
+                mbr_email = self.email_principal.email if self.email_principal else None
+                mbr_address = self.address_principal.address if self.address_principal else None
+                mbr_phone = self.phone_principal.phone if self.phone_principal else None
+
+                mbr_asso_info = '' if self.current_season_has_subscribed else 'non ' #pylint: disable=using-constant-test #variable is not constant
+                mbr_asso_info += f'cotisant, {self.season_presence_count()} participation(s) cette saison.'
                 return '\n'.join([f'{x:{format_spec}}'for x in [mbr_id, mbr_creds, mbr_disc, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:

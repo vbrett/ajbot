@@ -1,14 +1,11 @@
 """ List of function to handle app command inputs (decorator, checks, param,...)
 """
-from functools import wraps
-from typing import Optional
 from datetime import datetime, timedelta
 
 from discord import Interaction, app_commands
 
 from ajbot._internal.config import AjConfig
 from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_config
 from ajbot._internal.exceptions import OtherException
 
@@ -35,9 +32,9 @@ class AutocompleteFactory():
         if not self._values or self._last_refresh < (datetime.now() - timedelta(seconds=self._refresh_in_sec)):
             async with AjDb() as aj_db:
                 db_content = await aj_db.query_table_content(self._table)
-            db_content.sort(reverse=True)
-            self._values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
-            self._last_refresh = datetime.now()
+                db_content.sort(reverse=True)
+                self._values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
+                self._last_refresh = datetime.now()
 
         return [
                 app_commands.Choice(name=value, value=value)
