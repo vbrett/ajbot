@@ -70,15 +70,18 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def query_table_content(self, table):
+    async def query_table_content(self, table, *options):
         ''' retrieve complete table
             @arg:
                 class of the table to retrieve
+                options: options to pass to query (typically, load strategy override)
 
             @return
                 [all found rows]
         '''
         query = sa.select(table)
+        if options:
+            query = query.options(*options)
         query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
@@ -247,7 +250,7 @@ class AjDb():
             if not event_date:
                 raise AjDbException('Missing event id or date.')
             db_event = ajdb_t.Event(date=event_date)
-            seasons = await self.query_table_content(ajdb_t.Season)
+            seasons = await self.query_table_content(ajdb_t.Season, ajdb_t.Season.events, ajdb_t.Season.memberships)
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
             self.aio_session.add(db_event)
         else:

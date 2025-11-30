@@ -9,6 +9,8 @@ from discord import app_commands, Interaction
 # from dateparser import parse as dateparse
 # from vbrpytools.dicjsontools import save_json_file
 
+from sqlalchemy import orm
+
 from ajbot import __version__ as ajbot_version
 from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
 from ajbot._internal.ajdb import AjDb
@@ -162,7 +164,9 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(ajdb_t.Season, 'name').ac)
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
+                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+                                                                          attr_name='name').ac)
         async def memberships(interaction: Interaction,
                               season_name:Optional[str]=None):
             """ Affiche la liste des cotisants d'une saison donnée
@@ -190,10 +194,13 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(event_str='évènement')
         @app_commands.describe(event_str='évènement à afficher')
-        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(ajdb_t.Event).ac)
+        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(table_class=ajdb_t.Event,
+                                                                        options=[orm.lazyload(ajdb_t.Event.members), orm.lazyload(ajdb_t.Event.season)]).ac)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(ajdb_t.Season, 'name').ac)
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
+                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+                                                                          attr_name='name').ac)
         async def events(interaction: Interaction,
                          event_str:Optional[str]=None,
                          season_name:Optional[str]=None,
@@ -211,7 +218,9 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(ajdb_t.Season, 'name').ac)
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
+                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+                                                                          attr_name='name').ac)
         async def presence(interaction: Interaction,
                            season_name:Optional[str]=None,
                            ):

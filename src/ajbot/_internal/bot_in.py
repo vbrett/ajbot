@@ -16,8 +16,9 @@ class AutocompleteFactory():
     """ create an autocomplete function based on the content of a db table
         Note that choice list size is limited, so all matches may not be always returned
     """
-    def __init__(self, table_class, attr_name=None, refresh_rate_in_sec=60):
+    def __init__(self, table_class, options=None, attr_name=None, refresh_rate_in_sec=60):
         self._table = table_class
+        self._options = options if options else []
         self._attr = attr_name
         self._values = None
         self._last_refresh = None
@@ -31,7 +32,7 @@ class AutocompleteFactory():
         """
         if not self._values or self._last_refresh < (datetime.now() - timedelta(seconds=self._refresh_in_sec)):
             async with AjDb() as aj_db:
-                db_content = await aj_db.query_table_content(self._table)
+                db_content = await aj_db.query_table_content(self._table, *self._options)
                 db_content.sort(reverse=True)
                 self._values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
                 self._last_refresh = datetime.now()
