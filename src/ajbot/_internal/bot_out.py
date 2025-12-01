@@ -15,7 +15,9 @@ from ajbot._internal.exceptions import OtherException
 # Generic Display functions
 # ========================================================
 async def send_response_as_text(interaction: Interaction,
-                                content:str, ephemeral=False, delete_after=None,
+                                content:str,
+                                deferred:bool=False,
+                                ephemeral=False, delete_after=None,
                                 chunk_size=bot_config.CONTENT_MAX_SIZE, split_on_eol=True):
     """ Send basic command response, handling splitting it if needed based on discord limit.
         Can also ensure that split is only perform at eol.
@@ -33,7 +35,10 @@ async def send_response_as_text(interaction: Interaction,
                 i -= len(split_last_line[1])
         i += chunk_size
         if first_answer:
-            await interaction.response.send_message(chunk, ephemeral=ephemeral, delete_after=delete_after)
+            if deferred:
+                await interaction.followup.send(chunk, ephemeral=ephemeral, delete_after=delete_after)
+            else:
+                await interaction.response.send_message(chunk, ephemeral=ephemeral, delete_after=delete_after)
             first_answer = False
         else:
             await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral, delete_after=delete_after)
@@ -128,9 +133,12 @@ async def display_member(aj_db:AjDb,
 async def display_event(aj_db:AjDb,
                         interaction: Interaction,
                         season_name:str=None,
-                        event_str:str=None):
+                        event_str:str=None,
+                        already_deferred:bool=False):
     """ Affiche les infos des évènements
     """
+    if not already_deferred:
+        await interaction.response.defer(ephemeral=True)
     input_event = [x for x in [season_name, event_str] if x is not None]
 
     if len(input_event) == 0:
@@ -142,6 +150,7 @@ async def display_event(aj_db:AjDb,
         input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
         message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
         await send_response_as_text(interaction=interaction,
+                                    deferred=True,
                                     content=message,
                                     ephemeral=True)
         return
@@ -167,7 +176,7 @@ async def display_event(aj_db:AjDb,
                                                                                                   disabled = not bot_in.is_manager(interaction))))
             if participants:
                 container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f'{m:{format_style}}' for m in participants)))
-            await interaction.response.send_message(view=view, ephemeral=True)
+            await interaction.followup.send(view=view, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.blue())
             embed.add_field(name = 'date', inline=True,
@@ -180,9 +189,10 @@ async def display_event(aj_db:AjDb,
                             value = '\n'.join(str(len(e.members)) for e in events)
                             )
 
-            await interaction.response.send_message(content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
+            await interaction.followup.send(content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
     else:
         await send_response_as_text(interaction=interaction,
+                                    deferred=True,
                                     content="Je n'ai trouvé aucun évènement.",
                                     ephemeral=True)
 
@@ -283,6 +293,7 @@ class CreateEventView(dui.Modal, title='Evènement'):
     async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when clicking on submit button
         """
+        await interaction.response.defer(ephemeral=True)
         async with AjDb() as aj_db:
 
             assert isinstance(self.participants, dui.Label)
@@ -322,7 +333,8 @@ class CreateEventView(dui.Modal, title='Evènement'):
 
             await display_event(aj_db=aj_db,
                                 interaction=interaction,
-                                event_str=str(event))
+                                event_str=str(event),
+                                already_deferred=True)
 
     def __init__(self):
         self._db_event_id = None

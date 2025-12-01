@@ -1,7 +1,7 @@
 services:
 
   backend:
-    image: ajbot:0.0.0a4
+    image: ajbot:0.0.0b0
     restart: unless-stopped
     pull_policy: never
     container_name: ajbot
