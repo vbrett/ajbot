@@ -16,8 +16,8 @@ from ajbot._internal.exceptions import OtherException
 # ========================================================
 async def send_response_as_text(interaction: Interaction,
                                 content:str,
-                                deferred:bool=False,
-                                ephemeral=False, delete_after=None,
+                                embed=None,
+                                ephemeral=False,
                                 chunk_size=bot_config.CONTENT_MAX_SIZE, split_on_eol=True):
     """ Send basic command response, handling splitting it if needed based on discord limit.
         Can also ensure that split is only perform at eol.
@@ -35,32 +35,48 @@ async def send_response_as_text(interaction: Interaction,
                 i -= len(split_last_line[1])
         i += chunk_size
         if first_answer:
-            if deferred:
-                await interaction.followup.send(chunk, ephemeral=ephemeral, delete_after=delete_after)
-            else:
-                await interaction.response.send_message(chunk, ephemeral=ephemeral, delete_after=delete_after)
             first_answer = False
         else:
-            await interaction.followup.send('(...)\n' + chunk, ephemeral=ephemeral, delete_after=delete_after)
+            chunk = '(...)\n' + chunk
+            embed=None  # Empty embed so it is only send with the first chunk (even though, I doubt we will ever have embed with 2000+ content)
+
+        if interaction.response.type:
+            await interaction.followup.send(content=chunk, embed=embed, ephemeral=ephemeral)
+        else:
+            await interaction.response.send_message(content=chunk, embed=embed, ephemeral=ephemeral)
+
 
 async def send_response_as_view(interaction: Interaction,
-                                title:str, summary:str, content:str,
+                                container:dui.Container=None,
+                                title:str=None, summary:str=None, content:str=None,
                                 ephemeral=False,):
     """ Send command response as a view
     """
-    view = dui.LayoutView()
-    container = dui.Container()
-    view.add_item(container)
+    assert container is not None or title is not None or summary is not None or content is not None
 
-    container.add_item(dui.TextDisplay(f'# __{title}__'))
-    container.add_item(dui.TextDisplay(f'## {summary}'))
-    container.add_item(dui.TextDisplay(f'>>> {content}'))
+    if not container:
+        view = dui.LayoutView()
+        container = dui.Container()
+        view.add_item(container)
+
+        if title:
+            container.add_item(dui.TextDisplay(f'# __{title}__'))
+        if summary:
+            container.add_item(dui.TextDisplay(f'## {summary}'))
+        if content:
+            container.add_item(dui.TextDisplay(f'>>> {content}'))
 
     timestamp = discord.utils.format_dt(interaction.created_at, 'F')
     footer = dui.TextDisplay(f'-# Généré par {interaction.user} (ID: {interaction.user.id}) | {timestamp}')
 
     container.add_item(footer)
-    await interaction.response.send_message(view=view, ephemeral=ephemeral)
+
+    if interaction.response.type:
+        message_fct = interaction.followup.send
+    else:
+        message_fct = interaction.response.send_message
+
+    await message_fct(view=container.view, ephemeral=ephemeral)
 
 
 # Member, event,.. detail display
@@ -72,6 +88,9 @@ async def display_member(aj_db:AjDb,
                          str_member:str=None):
     """ Affiche les infos des membres
     """
+    if not interaction.response.type:
+        await interaction.response.defer(ephemeral=True,)
+
     input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
     if len(input_member) != 1:
         input_types="un (et un seul) élément parmi:\r\n* un pseudo\r\n* un nom\r\n* un ID"
@@ -89,27 +108,18 @@ async def display_member(aj_db:AjDb,
 
     if members:
         if len(members) == 1:
-            class EditButton(dui.Button):
-                """ Class that creates a edit button
-                """
-                def __init__(self):
-                    super().__init__(style=discord.ButtonStyle.primary,
-                                        label='Editer',
-                                        disabled = not bot_in.is_manager(interaction))
-
-                async def callback(self, interaction: discord.Interaction):
-                    await send_response_as_text(interaction, content="Pas encore disponible", ephemeral=True, delete_after=10)
-
             [member] = members
-            is_self = member.discord_pseudo.name == interaction.user.name
+            is_self = False if not member.discord_pseudo else (member.discord_pseudo.name == interaction.user.name)
             format_style = FormatTypes.FULLSIMPLE if (is_self or bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
             view = dui.LayoutView()
             container = dui.Container()
             view.add_item(container)
 
             container.add_item(dui.Section(dui.TextDisplay(format(member, format_style)),
-                                            accessory=EditButton()))
-            await interaction.response.send_message(view=view, ephemeral=True)
+                                           accessory=EditMemberButton(member=member,
+                                                                      disabled = (not is_self and not bot_in.is_manager(interaction))
+                                                                     )))
+            await send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.orange())
             format_style = FormatTypes.FULLSIMPLE if (bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
@@ -123,7 +133,7 @@ async def display_member(aj_db:AjDb,
                             value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '-' for m in members)
                             )
 
-            await interaction.response.send_message(content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
+            await send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
     else:
         await send_response_as_text(interaction=interaction,
                                     content=f"Je ne connais pas ton ou ta {input_member}.",
@@ -133,12 +143,12 @@ async def display_member(aj_db:AjDb,
 async def display_event(aj_db:AjDb,
                         interaction: Interaction,
                         season_name:str=None,
-                        event_str:str=None,
-                        already_deferred:bool=False):
+                        event_str:str=None):
     """ Affiche les infos des évènements
     """
-    if not already_deferred:
-        await interaction.response.defer(ephemeral=True)
+    if not interaction.response.type:
+        await interaction.response.defer(ephemeral=True,)
+
     input_event = [x for x in [season_name, event_str] if x is not None]
 
     if len(input_event) == 0:
@@ -150,7 +160,6 @@ async def display_event(aj_db:AjDb,
         input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
         message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
         await send_response_as_text(interaction=interaction,
-                                    deferred=True,
                                     content=message,
                                     ephemeral=True)
         return
@@ -176,7 +185,7 @@ async def display_event(aj_db:AjDb,
                                                                                                   disabled = not bot_in.is_manager(interaction))))
             if participants:
                 container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f'{m:{format_style}}' for m in participants)))
-            await interaction.followup.send(view=view, ephemeral=True)
+            await send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.blue())
             embed.add_field(name = 'date', inline=True,
@@ -189,16 +198,27 @@ async def display_event(aj_db:AjDb,
                             value = '\n'.join(str(len(e.members)) for e in events)
                             )
 
-            await interaction.followup.send(content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
+            await send_response_as_text(interaction, content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
     else:
         await send_response_as_text(interaction=interaction,
-                                    deferred=True,
                                     content="Je n'ai trouvé aucun évènement.",
                                     ephemeral=True)
 
 
 # Buttons
 # ========================================================
+class EditMemberButton(dui.Button):
+    """ Class that creates a edit button
+    """
+    def __init__(self, member, disabled):
+        self._member = member
+        super().__init__(style=discord.ButtonStyle.primary,
+                         label='Editer',
+                         disabled = disabled)
+
+    async def callback(self, interaction: discord.Interaction):
+        async with AjDb() as aj_db:
+            await send_response_as_text(interaction, content="Pas encore disponible", ephemeral=True)
 class EditEventButton(dui.Button):
     """ Class that creates a edit button
     """
@@ -210,8 +230,8 @@ class EditEventButton(dui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         async with AjDb() as aj_db:
-            eventmodal = await CreateEventView.create(aj_db=aj_db, db_event=self._event)
-            await interaction.response.send_modal(eventmodal)
+            event_modal = await CreateEventView.create(aj_db=aj_db, db_event=self._event)
+            await interaction.response.send_modal(event_modal)
 
 class DeleteEventButton(dui.Button):
     """ Class that creates a edit button
@@ -293,7 +313,6 @@ class CreateEventView(dui.Modal, title='Evènement'):
     async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when clicking on submit button
         """
-        await interaction.response.defer(ephemeral=True)
         async with AjDb() as aj_db:
 
             assert isinstance(self.participants, dui.Label)
@@ -333,8 +352,7 @@ class CreateEventView(dui.Modal, title='Evènement'):
 
             await display_event(aj_db=aj_db,
                                 interaction=interaction,
-                                event_str=str(event),
-                                already_deferred=True)
+                                event_str=str(event))
 
     def __init__(self):
         self._db_event_id = None
