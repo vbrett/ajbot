@@ -155,6 +155,47 @@ class AjBot():
                                              int_member=int_member,
                                              str_member=str_member)
 
+        @self.client.tree.command(name="roles")
+        @app_commands.check(bot_in.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        async def roles(interaction: Interaction,):
+            """ Affiche les membres qui n'ont pas le bon role
+            """
+            if not interaction.response.type:
+                await interaction.response.defer(ephemeral=True,)
+
+            async with AjDb() as aj_db:
+                discord_wrong_roles = {}
+                aj_discord = await aj_db.query_table_content(ajdb_t.DiscordPseudo)
+
+                for discord_member in interaction.guild.members:
+                    matched_members = [d.member for d in aj_discord if d.name == discord_member.name]
+
+                    assert (len(matched_members) <= 1), f"Plusieurs membres AJDB correspondent au pseudo Discord {discord_member} !"
+                    if len(matched_members) == 0:
+                        if discord_member.roles:
+                            discord_wrong_roles[discord_member.name] = {'expected': None,
+                                                                        'actual': ','.join(r.name for r in discord_member.roles if r.name != "@everyone"),
+                                                                        }
+
+
+                    # if not member.bot:
+                    #     db_member = await aj_db.get_member_by_discord_id(member.id)
+                    #     if db_member:
+                    #         if db_member in subscribers:
+                    #             # Should have the subscriber role
+                    #             if not bot_in.has_subscriber_role(member):
+                    #                 await bot_out.add_subscriber_role(interaction=interaction,
+                    #                                                   discord_member=member)
+                    #         else:
+                    #             # Should not have the subscriber role
+                    #             if bot_in.has_subscriber_role(member):
+                    #                 await bot_out.remove_subscriber_role(interaction=interaction,
+                    #                                                      discord_member=member)
+
+
+                await bot_out.send_response_as_text(interaction=interaction, content=str(discord_wrong_roles), ephemeral=True)
+
 
         # Season related commands
         # ========================================================
@@ -186,7 +227,6 @@ class AjBot():
                     summary = "Mais il n'y a eu personne cette saison ;-("
                     reply = '---'
 
-                # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
                 await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenement")
@@ -242,7 +282,6 @@ class AjBot():
                     summary = "Mais il n'y a eu personne cette saison ;-("
                     reply = "---"
 
-                # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
                 await bot_out.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 
