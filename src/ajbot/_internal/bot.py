@@ -159,6 +159,30 @@ class AjBot():
         # Season related commands
         # ========================================================
 
+        @self.client.tree.command(name="evenement")
+        @app_commands.check(bot_in.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        @app_commands.rename(event_str='évènement')
+        @app_commands.describe(event_str='évènement à afficher')
+        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(table_class=ajdb_t.Event,
+                                                                        options=[orm.lazyload(ajdb_t.Event.members), orm.lazyload(ajdb_t.Event.season)]).ac)
+        @app_commands.rename(season_name='saison')
+        @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
+                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+                                                                          attr_name='name').ac)
+        async def events(interaction: Interaction,
+                         event_str:Optional[str]=None,
+                         season_name:Optional[str]=None,
+                         ):
+            """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
+            """
+            async with AjDb() as aj_db:
+                await bot_out.display_event(aj_db=aj_db,
+                                            interaction=interaction,
+                                            season_name=season_name,
+                                            event_str=event_str)
+
         @self.client.tree.command(name="cotisants")
         @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
@@ -188,30 +212,6 @@ class AjBot():
 
                 # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
                 await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
-
-        @self.client.tree.command(name="evenement")
-        @app_commands.check(bot_in.is_manager)
-        @app_commands.checks.cooldown(1, 5)
-        @app_commands.rename(event_str='évènement')
-        @app_commands.describe(event_str='évènement à afficher')
-        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(table_class=ajdb_t.Event,
-                                                                        options=[orm.lazyload(ajdb_t.Event.members), orm.lazyload(ajdb_t.Event.season)]).ac)
-        @app_commands.rename(season_name='saison')
-        @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
-                                                                          attr_name='name').ac)
-        async def events(interaction: Interaction,
-                         event_str:Optional[str]=None,
-                         season_name:Optional[str]=None,
-                         ):
-            """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
-            """
-            async with AjDb() as aj_db:
-                await bot_out.display_event(aj_db=aj_db,
-                                            interaction=interaction,
-                                            season_name=season_name,
-                                            event_str=event_str)
 
         @self.client.tree.command(name="presence")
         @app_commands.check(bot_in.is_manager)
