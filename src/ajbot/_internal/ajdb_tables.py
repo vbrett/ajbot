@@ -593,6 +593,11 @@ class DiscordRole(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
+    is_member: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False)
+    is_past_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
+    is_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
+    is_manager: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
+    is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
 
     asso_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='discord_role', lazy='selectin')
 

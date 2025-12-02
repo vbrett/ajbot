@@ -4,8 +4,8 @@
   "settings": {
     "width": 4000,
     "height": 4000,
-    "scrollTop": -774.1493,
-    "scrollLeft": -385.3794,
+    "scrollTop": -1030.1493,
+    "scrollLeft": -2152.3794,
     "zoomLevel": 0.82,
     "show": 511,
     "database": 1,
@@ -641,11 +641,21 @@
         "comment": "",
         "columnIds": [
           "KixkFKfBPK3ugeY9XgzSG",
-          "J6Gdyq_zI_MZP34c-UOKM"
+          "J6Gdyq_zI_MZP34c-UOKM",
+          "Ev_vzwxTWhVF4dGgpeijN",
+          "Kk90xSAFamxjDy5j6GHiZ",
+          "WhiYjkZY8dMQSG2j5OKU3",
+          "iE6cyQI-Ml0CRLRnFpH2l",
+          "l8wK0WVfdT1Uwdq8vHg8q"
         ],
         "seqColumnIds": [
           "KixkFKfBPK3ugeY9XgzSG",
-          "J6Gdyq_zI_MZP34c-UOKM"
+          "J6Gdyq_zI_MZP34c-UOKM",
+          "Ev_vzwxTWhVF4dGgpeijN",
+          "Kk90xSAFamxjDy5j6GHiZ",
+          "WhiYjkZY8dMQSG2j5OKU3",
+          "iE6cyQI-Ml0CRLRnFpH2l",
+          "l8wK0WVfdT1Uwdq8vHg8q"
         ],
         "ui": {
           "x": 2674.6812,
@@ -656,7 +666,7 @@
           "color": ""
         },
         "meta": {
-          "updateAt": 1762957692224,
+          "updateAt": 1764710506556,
           "createAt": 1761981166055
         }
       },
@@ -5064,6 +5074,106 @@
           "updateAt": 1762963660588,
           "createAt": 1762943988118
         }
+      },
+      "Ev_vzwxTWhVF4dGgpeijN": {
+        "id": "Ev_vzwxTWhVF4dGgpeijN",
+        "tableId": "zCgD1SIsjFR5dk_cePL6o",
+        "name": "is_member",
+        "comment": "",
+        "dataType": "BOOL",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1764700556061,
+          "createAt": 1764700543968
+        }
+      },
+      "WhiYjkZY8dMQSG2j5OKU3": {
+        "id": "WhiYjkZY8dMQSG2j5OKU3",
+        "tableId": "zCgD1SIsjFR5dk_cePL6o",
+        "name": "is_subscriber",
+        "comment": "",
+        "dataType": "BOOL",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 69,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1764710519913,
+          "createAt": 1764700558234
+        }
+      },
+      "Kk90xSAFamxjDy5j6GHiZ": {
+        "id": "Kk90xSAFamxjDy5j6GHiZ",
+        "tableId": "zCgD1SIsjFR5dk_cePL6o",
+        "name": "is_past_subscriber",
+        "comment": "",
+        "dataType": "BOOL",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 96,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1764710520447,
+          "createAt": 1764700572020
+        }
+      },
+      "iE6cyQI-Ml0CRLRnFpH2l": {
+        "id": "iE6cyQI-Ml0CRLRnFpH2l",
+        "tableId": "zCgD1SIsjFR5dk_cePL6o",
+        "name": "is_manager",
+        "comment": "",
+        "dataType": "BOOL",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 62,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1764710519319,
+          "createAt": 1764700584409
+        }
+      },
+      "l8wK0WVfdT1Uwdq8vHg8q": {
+        "id": "l8wK0WVfdT1Uwdq8vHg8q",
+        "tableId": "zCgD1SIsjFR5dk_cePL6o",
+        "name": "is_owner",
+        "comment": "",
+        "dataType": "BOOL",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1764710516419,
+          "createAt": 1764710506555
+        }
       }
     },
     "relationshipEntities": {
@@ -5833,8 +5943,8 @@
           "columnIds": [
             "KixkFKfBPK3ugeY9XgzSG"
           ],
-          "x": 2883.6812,
-          "y": 1114.9233,
+          "x": 2901.6812,
+          "y": 1234.9233,
           "direction": 8
         },
         "end": {

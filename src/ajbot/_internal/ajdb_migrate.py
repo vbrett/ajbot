@@ -37,7 +37,18 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         lut_tables.append(ajdb_t.StreetType(name=val['val']))
 
     for val in ajdb_xls.dict_from_table('discord_role'):
-        lut_tables.append(ajdb_t.DiscordRole(name=val['val'], id=int(val['id']),))
+        new_discord_role = ajdb_t.DiscordRole(name=val['val'],
+                                             id=int(val['id']),
+                                             is_member=bool(val['is_member']))
+        lut_tables.append(new_discord_role)
+        if val.get('is_past_subscriber') is not None:
+            new_discord_role.is_past_subscriber=bool(val.get('is_past_subscriber'))
+        if val.get('is_subscriber') is not None:
+            new_discord_role.is_subscriber=bool(val.get('is_subscriber'))
+        if val.get('is_manager') is not None:
+            new_discord_role.is_manager=bool(val.get('is_manager'))
+        if val.get('is_owner') is not None:
+            new_discord_role.is_owner=bool(val.get('is_owner'))
     for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = ajdb_t.AssoRole(name=val['asso'])
         lut_tables.append(new_asso_role)
