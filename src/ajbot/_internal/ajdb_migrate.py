@@ -185,12 +185,16 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 
         # Event
         if val['entree']['categorie'] == 'Evènement' and not val['entree'].get('detail'):
-            new_event = ajdb_t.Event()
-            event_tables.append(new_event)
-            new_event.date   = cast(datetime, val['date']).date()
-            new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.date >= elt.start
-                                                                                           and new_event.date <= elt.end][0]
-            new_event.name   = val['entree']['nom']
+            matched_event = [elt for elt in event_tables if isinstance(elt, ajdb_t.Event) and elt.date == cast(datetime, val['date']).date()]
+            if matched_event:
+                matched_event[0].name = val['entree']['nom']
+            else:
+                new_event = ajdb_t.Event()
+                event_tables.append(new_event)
+                new_event.date   = cast(datetime, val['date']).date()
+                new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.date >= elt.start
+                                                                                                and new_event.date <= elt.end][0]
+                new_event.name   = val['entree']['nom']
 
         # Event - Member
         if (   (    val['entree']['categorie'] == 'Evènement'
