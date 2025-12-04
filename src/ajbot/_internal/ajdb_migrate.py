@@ -221,15 +221,21 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 
         # Member - Asso role
         if val['entree']['categorie'] == 'Info Membre' and val.get('membre') and val['membre'].get('asso_role'):
-            timestamp = cast(datetime, val['date']).date()
+
+            start = cast(datetime, val['date']).date()
+            end = None
+            if val['entree'].get('detail'):
+                end = cast(datetime, val['entree']['detail']).date()
             member_id = val['membre']['id']
-            matched_role = [elt for elt in lut_tables if isinstance(elt, ajdb_t.AssoRole) and elt.name == val['membre']['asso_role']]
-            if len([elt for elt in event_tables if isinstance(elt, ajdb_t.MemberAssoRole)
-                                                   and elt.member_id == member_id
-                                                   and elt.asso_role == matched_role[0]]) == 0:
+            [matched_role] = [elt for elt in lut_tables if isinstance(elt, ajdb_t.AssoRole) and elt.name == val['membre']['asso_role']]
+            previous_member_asso_roles = [elt for elt in event_tables if isinstance(elt, ajdb_t.MemberAssoRole) and elt.member_id == member_id and not elt.end]
+
+            assert len(previous_member_asso_roles) <= 1, f"Erreur dans la DB: Plusieurs rôles asso actifs pour le membre {member_id} !:\n{', '.join(m.member.name for m in previous_member_asso_roles)}"
+            if len([elt for elt in previous_member_asso_roles if elt.asso_role == matched_role]) == 0:
                 new_event = ajdb_t.MemberAssoRole(member_id = member_id,
-                                                   asso_role = matched_role[0],
-                                                   start = timestamp)
+                                                  asso_role = matched_role,
+                                                  start = start,
+                                                  end = end)
                 event_tables.append(new_event)
 
     async with aj_db.AsyncSessionMaker() as session:
@@ -245,7 +251,7 @@ async def _main():
     """ main function
     """
     async with AjDb() as aj_db:
-        ajdb_xls_file = Path('aj_xls2db/Annuaire & Suivi.xlsx')
+        ajdb_xls_file = Path(sys.argv[1])
         try:
             ajdb_xls = ExcelWorkbook(ajdb_xls_file)
         except FileNotFoundError:
