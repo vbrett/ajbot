@@ -38,17 +38,8 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
 
     for val in ajdb_xls.dict_from_table('discord_role'):
         new_discord_role = ajdb_t.DiscordRole(name=val['val'],
-                                             id=int(val['id']),
-                                             is_member=bool(val['is_member']))
+                                             id=int(val['id']),)
         lut_tables.append(new_discord_role)
-        if val.get('is_past_subscriber') is not None:
-            new_discord_role.is_past_subscriber=bool(val.get('is_past_subscriber'))
-        if val.get('is_subscriber') is not None:
-            new_discord_role.is_subscriber=bool(val.get('is_subscriber'))
-        if val.get('is_manager') is not None:
-            new_discord_role.is_manager=bool(val.get('is_manager'))
-        if val.get('is_owner') is not None:
-            new_discord_role.is_owner=bool(val.get('is_owner'))
     for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = ajdb_t.AssoRole(name=val['asso'])
         lut_tables.append(new_asso_role)
@@ -58,6 +49,16 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
                                 if isinstance(elt, ajdb_t.DiscordRole) and elt.name == d_role]
                 lut_tables.append(ajdb_t.AssoRoleDiscordRole(asso_role=new_asso_role,
                                                           discord_role=matched_role[0]))
+        if val.get('is_member') is not None:
+            new_asso_role.is_member=bool(val.get('is_member'))
+        if val.get('is_past_subscriber') is not None:
+            new_asso_role.is_past_subscriber=bool(val.get('is_past_subscriber'))
+        if val.get('is_subscriber') is not None:
+            new_asso_role.is_subscriber=bool(val.get('is_subscriber'))
+        if val.get('is_manager') is not None:
+            new_asso_role.is_manager=bool(val.get('is_manager'))
+        if val.get('is_owner') is not None:
+            new_asso_role.is_owner=bool(val.get('is_owner'))
 
     async with aj_db.AsyncSessionMaker() as session:
         async with session.begin():

@@ -171,7 +171,7 @@ class AjBot():
                 for discord_member in interaction.guild.members:
                     matched_members = [d.member for d in aj_discord if d.name == discord_member.name]
 
-                    assert (len(matched_members) <= 1), f"Plusieurs membres AJDB correspondent au pseudo Discord {discord_member} !"
+                    assert (len(matched_members) <= 1), f"Erreur dans la DB: Plusieurs membres correspondent au même pseudo Discord {discord_member}:\n{', '.join(m.name for m in matched_members)}"
                     if len(matched_members) == 0:
                         if discord_member.roles:
                             discord_wrong_roles[discord_member.name] = {'expected': None,
