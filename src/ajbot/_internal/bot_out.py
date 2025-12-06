@@ -146,15 +146,15 @@ async def display_event(aj_db:AjDb,
                         event_str:str=None):
     """ Affiche les infos des évènements
     """
-    if not interaction.response.type:
-        await interaction.response.defer(ephemeral=True,)
-
     input_event = [x for x in [season_name, event_str] if x is not None]
 
     if len(input_event) == 0:
         eventmodal = await CreateEventView.create(aj_db=aj_db)
         await interaction.response.send_modal(eventmodal)
         return
+
+    if not interaction.response.type:
+        await interaction.response.defer(ephemeral=True,)
 
     if len(input_event) > 1:
         input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
