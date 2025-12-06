@@ -250,7 +250,7 @@ class AjDb():
             if not event_date:
                 raise AjDbException('Missing event id or date.')
             db_event = ajdb_t.Event(date=event_date)
-            seasons = await self.query_table_content(ajdb_t.Season, ajdb_t.Season.events, ajdb_t.Season.memberships)
+            seasons = await self.query_table_content(ajdb_t.Season, orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships))
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
             self.aio_session.add(db_event)
         else:
