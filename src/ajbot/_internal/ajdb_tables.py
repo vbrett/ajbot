@@ -284,13 +284,13 @@ class Member(Base):
 #     logs_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
 
     @hybrid_property
-    def current_season_has_subscribed(self):
+    def is_subscriber(self):
         """ return true if member has subscribed to current season 
         """
         return any(m.is_in_current_season for m in self.memberships)
 
-    @current_season_has_subscribed.expression
-    def current_season_has_subscribed(cls):      #pylint: disable=no-self-argument   #function is a class factory
+    @is_subscriber.expression
+    def is_subscriber(cls):      #pylint: disable=no-self-argument   #function is a class factory
         """ SQL version
         """
         return  sa.select(
@@ -298,11 +298,11 @@ class Member(Base):
                     sa.and_(
                         Membership.member_id == cls.id,
                         Membership.is_in_current_season)).correlate(cls), True), else_=False,
-                    ).label("current_season_has_subscribed")
+                    ).label("is_subscriber")
                 )
 
     def season_presence_count(self, season_name = None):
-        """ return numnber of related events in provided season. Current if empty
+        """ return number of related events in provided season. Current if empty
         """
         return len([mbr_evt for mbr_evt in self.events
                     if mbr_evt.member_id == self.id and
@@ -312,19 +312,20 @@ class Member(Base):
     def current_season_not_subscriber_presence_count(self):
         """ return number of presence if member has not currently subscribed
         """
-        if self.current_season_has_subscribed:  #pylint: disable=using-constant-test #variable is not constant
+        if self.is_subscriber:  #pylint: disable=using-constant-test #variable is not constant
             return ""
         return self.season_presence_count()
 
     @hybrid_property
-    def current_season_asso_roles(self):
-        """ return number of presence in current season events 
+    def current_asso_role(self):
+        """ return current role
         """
         current_member_asso_roles = [ar.asso_role for ar in self.asso_roles if ar.is_current_role]
+        assert(len(current_member_asso_roles) <= 1)
         if current_member_asso_roles:
-            return current_member_asso_roles
+            return [current_member_asso_roles]
 
-        # if self.current_season_has_subscribed:
+        # if self.is_subscriber:
         #     return [ar for ar in ][0]
 
         return [] #TODO to implement this
@@ -363,7 +364,7 @@ class Member(Base):
                 mbr_address = self.address_principal.address if self.address_principal else None
                 mbr_phone = self.phone_principal.phone if self.phone_principal else None
 
-                mbr_asso_info = '' if self.current_season_has_subscribed else 'non ' #pylint: disable=using-constant-test #variable is not constant
+                mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
                 mbr_asso_info += f'cotisant, {self.season_presence_count()} participation(s) cette saison.'
                 return '\n'.join([f'{x:{format_spec}}'for x in [mbr_id, mbr_creds, mbr_disc, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
