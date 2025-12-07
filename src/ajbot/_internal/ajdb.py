@@ -46,8 +46,13 @@ class AjDb():
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         # Commit & close session, flushing all pending changes
-        await self.aio_session.commit()
-        await self.aio_session.close()
+        try:
+            await self.aio_session.commit()
+        except Exception:
+            await self.aio_session.rollback()
+            raise
+        finally:
+            await self.aio_session.close()
         self.aio_session = None
         # Close and clean-up pooled connections
         await self.db_engine.dispose()
