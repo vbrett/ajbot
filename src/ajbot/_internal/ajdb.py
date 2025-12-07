@@ -5,7 +5,7 @@ sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
 from typing import cast, Optional
-from datetime import date
+from datetime import date, datetime,timedelta
 
 
 import sqlalchemy as sa
@@ -20,6 +20,8 @@ from ajbot._internal.config import AjConfig
 from ajbot._internal import ajdb_tables as ajdb_t
 
 
+cache_db = {}
+cache_time = {}
 
 class AjDb():
     """ Context manager which manage AJ database
@@ -75,7 +77,7 @@ class AjDb():
     # DB Queries
     # ==========
 
-    async def query_table_content(self, table, *options):
+    async def query_table_content(self, table, *options, cache_active:bool=True):
         ''' retrieve complete table
             @arg:
                 class of the table to retrieve
@@ -84,12 +86,25 @@ class AjDb():
             @return
                 [all found rows]
         '''
+
+        global cache_db, cache_time
+        key = table.__name__
+        now = datetime.now()
+        with AjConfig() as aj_config:
+            if cache_active and key in cache_db and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
+                return cache_db[key]
+
         query = sa.select(table)
         if options:
             query = query.options(*options)
         query_result = await self.aio_session.execute(query)
+        query_result = query_result.scalars().all()
 
-        return query_result.scalars().all()
+        if cache_active:
+            cache_db[key] = query_result
+            cache_time[key] = datetime.now()
+
+        return query_result
 
     async def query_members_per_id_info(self,
                      lookup_val = None,

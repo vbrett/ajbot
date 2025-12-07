@@ -21,6 +21,7 @@
             "password": ""
         },
         "db_name": "",
+        "db_cache_time_sec": 3600,
         "db_echo": false
     }
 }

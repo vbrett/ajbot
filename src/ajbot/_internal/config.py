@@ -28,6 +28,7 @@ _KEY_DB_CREDS_USR = "user"
 _KEY_DB_CREDS_PWD = "password"
 _KEY_DB_NAME = "db_name"
 _KEY_DB_ECHO = "db_echo"
+_KEY_CACHE_TIME_SEC = "db_cache_time_sec"
 
 @dataclass
 class FormatTypes():
@@ -138,6 +139,12 @@ class AjConfig():
         database = quote_plus(self._config_dict[_KEY_DB][_KEY_DB_NAME])
 
         return user + ':' + password + '@' + host + ':' + str(port) + '/' + database + '?charset=utf8mb4'
+
+    @property
+    def db_cache_time_sec(self):
+        """ return the cache time in seconds
+        """
+        return self._config_dict[_KEY_DB][_KEY_CACHE_TIME_SEC]
 
     @property
     def db_echo(self):
