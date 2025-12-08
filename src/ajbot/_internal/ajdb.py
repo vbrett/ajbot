@@ -4,6 +4,7 @@ Classes generated using:
 sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
+from functools import wraps
 from typing import cast, Optional
 from datetime import date, datetime,timedelta
 
@@ -19,9 +20,26 @@ from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
 from ajbot._internal import ajdb_tables as ajdb_t
 
+def cached_async_method(func):
+    """ Decorator to handle cached data
+    """
+    cache_data = {}
+    cache_time = {}
 
-cache_db = {}
-cache_time = {}
+    @wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        key = (args, tuple(kwargs.items()))
+        now = datetime.now()
+
+        with AjConfig() as aj_config:
+            if key in cache_data and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
+                return cache_data[key]
+
+        cache_data[key] = await func(self, *args, **kwargs)
+        cache_time[key] = now
+        return cache_data[key]
+    return wrapper
+
 
 class AjDb():
     """ Context manager which manage AJ database
@@ -77,6 +95,7 @@ class AjDb():
     # DB Queries
     # ==========
 
+    @cached_async_method
     async def query_table_content(self, table, *options, cache_active:bool=True):
         ''' retrieve complete table
             @arg:
@@ -87,22 +106,11 @@ class AjDb():
                 [all found rows]
         '''
 
-        global cache_db, cache_time
-        key = table.__name__
-        now = datetime.now()
-        with AjConfig() as aj_config:
-            if cache_active and key in cache_db and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
-                return cache_db[key]
-
         query = sa.select(table)
         if options:
             query = query.options(*options)
         query_result = await self.aio_session.execute(query)
         query_result = query_result.scalars().all()
-
-        if cache_active:
-            cache_db[key] = query_result
-            cache_time[key] = datetime.now()
 
         return query_result
 
