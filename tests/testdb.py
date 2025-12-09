@@ -112,17 +112,24 @@ async def _test_update_query(aj_db:AjDb):
     print('\r\n'.join([str(m) for m in my_event.members]))
 
 
-async def _test_cache(aj_db:AjDb):
-    seasons = await aj_db.query_table_content(ajdb_t.Season)
-    print(f'First query - found {len(seasons)} seasons')
-    seasons = await aj_db.query_table_content(ajdb_t.Season)
-    print(f'First query - found {len(seasons)} seasons')
+async def _test_cache():
+    async with AjDb() as aj_db:
+        seasons = await aj_db.query_table_content(ajdb_t.Season)
+        print(f'First query - found {len(seasons)} seasons')
+
+    async with AjDb() as aj_db:
+        for i, season in enumerate(seasons):
+            seasons[i] = await aj_db.aio_session.merge(season, load=False)
+        print(f'First query - found {len(seasons)} seasons')
 
 
 async def _main():
     """ main function - async version
     """
     async with AjDb() as aj_db:
+        """
+        execute all within same ajdb session
+        """
 
         # await _search_member(aj_db, 'vincent')
         # await _season_events(aj_db)
@@ -131,7 +138,7 @@ async def _main():
         # await _test_query(aj_db)
         # await _test_create_query(aj_db)
         # await _test_update_query(aj_db)
-        await _test_cache(aj_db)
+    await _test_cache()
 
     return 0
 
