@@ -27,17 +27,20 @@ def cached_async_method(func):
     cache_time = {}
 
     @wraps(func)
-    async def wrapper(self, *args, **kwargs):
-        key = (args, tuple(kwargs.items()))
-        now = datetime.now()
+    async def wrapper(self, *args, disable_cache:bool=False, **kwargs):
+        if not disable_cache:
+            key = (args, tuple(kwargs.items()))
+            now = datetime.now()
+            with AjConfig() as aj_config:
+                if key in cache_data and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
+                    return cache_data[key]
 
-        with AjConfig() as aj_config:
-            if key in cache_data and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
-                return cache_data[key]
+        result = await func(self, *args, **kwargs)
 
-        cache_data[key] = await func(self, *args, **kwargs)
-        cache_time[key] = now
-        return cache_data[key]
+        if not disable_cache:
+            cache_data[key] = result
+            cache_time[key] = now
+        return result
     return wrapper
 
 
@@ -96,7 +99,7 @@ class AjDb():
     # ==========
 
     @cached_async_method
-    async def query_table_content(self, table, *options, cache_active:bool=True):
+    async def query_table_content(self, table, *lazyload_options):
         ''' retrieve complete table
             @arg:
                 class of the table to retrieve
@@ -107,8 +110,9 @@ class AjDb():
         '''
 
         query = sa.select(table)
-        if options:
-            query = query.options(*options)
+        if lazyload_options:
+            for lazyload_option in lazyload_options:
+                query = query.options(orm.lazyload(lazyload_option))
         query_result = await self.aio_session.execute(query)
         query_result = query_result.scalars().all()
 
@@ -278,7 +282,7 @@ class AjDb():
             if not event_date:
                 raise AjDbException('Missing event id or date.')
             db_event = ajdb_t.Event(date=event_date)
-            seasons = await self.query_table_content(ajdb_t.Season, orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships))
+            seasons = await self.query_table_content(ajdb_t.Season, ajdb_t.Season.events, ajdb_t.Season.memberships)
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
             self.aio_session.add(db_event)
         else:
