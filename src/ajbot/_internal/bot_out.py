@@ -104,7 +104,7 @@ async def display_member(aj_db:AjDb,
         return
     [input_member] = input_member
 
-    members = await aj_db.query_members_per_id_info(input_member, 50, False)
+    members = await aj_db.query_members(input_member, 50, False)
 
     if members:
         if len(members) == 1:
@@ -164,7 +164,10 @@ async def display_event(aj_db:AjDb,
                                     ephemeral=True)
         return
 
-    events = await aj_db.query_events(season_name=season_name, event_str=event_str)
+    if event_str:
+        events = await aj_db.query_events(event_str=event_str, lazyload=False)
+    else:
+        events = await aj_db.query_events_per_season(season_name=season_name, lazyload=False)
 
     if events:
         format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED

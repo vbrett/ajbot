@@ -13,12 +13,17 @@ from ajbot._internal.exceptions import OtherException
 # Autocomplete & command parameters functions & decorators
 # ========================================================
 class AutocompleteFactory():
-    """ create an autocomplete function based on the content of a db table
+    """ create an autocomplete function based on the result of a db query
+    @arg:
+        method: name of the AjDb async method to call to get the list of possible values
+                Method shall be decorated with @cached_ajdb_method
+        attr_name: if set, use this attribute of the returned object as the value (otherwise
+                   the string representation of the object is used)
+
         Note that choice list size is limited, so all matches may not be always returned
     """
-    def __init__(self, table_class, options=None, attr_name=None):
-        self._table = table_class
-        self._options = options if options else []
+    def __init__(self, method, attr_name=None):
+        self._method = method
         self._attr = attr_name
 
     async def ac(self,
@@ -28,7 +33,7 @@ class AutocompleteFactory():
         """ AutoComplete function
         """
         async with AjDb() as aj_db:
-            db_content = await aj_db.query_table_content(self._table, *self._options)
+            db_content = await getattr(aj_db, self._method)(keep_detached=True)
             db_content.sort(reverse=True)
             values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
 

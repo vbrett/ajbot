@@ -203,8 +203,7 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[ajdb_t.Season.events, ajdb_t.Season.memberships],
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def memberships(interaction: Interaction,
                               season_name:Optional[str]=None):
@@ -232,12 +231,10 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(event_str='évènement')
         @app_commands.describe(event_str='évènement à afficher')
-        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(table_class=ajdb_t.Event,
-                                                                        options=[ajdb_t.Event.members, ajdb_t.Event.season]).ac)
+        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(method="query_events").ac)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[ajdb_t.Season.events, ajdb_t.Season.memberships],
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def events(interaction: Interaction,
                          event_str:Optional[str]=None,
@@ -256,8 +253,7 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[ajdb_t.Season.events, ajdb_t.Season.memberships],
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def presence(interaction: Interaction,
                            season_name:Optional[str]=None,

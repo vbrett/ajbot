@@ -12,7 +12,7 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal.config import FormatTypes
 
 async def _search_member(aj_db:AjDb, lookup_val):
-    query_result = await aj_db.query_members_per_id_info(lookup_val)
+    query_result = await aj_db.query_members(lookup_val)
     print('')
     print('')
     print('-------------------')
@@ -83,7 +83,7 @@ async def _test_create_query(aj_db:AjDb):
     event_date = date(2025, 11, 21)
     event_partipant_ids = [2, 3, 36, 155]
 
-    seasons = await aj_db.query_table_content(ajdb_t.Season)
+    seasons = await aj_db.query_seasons()
 
     new_event = ajdb_t.Event(date = event_date)
     [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
@@ -114,7 +114,7 @@ async def _test_update_query(aj_db:AjDb):
 
 async def _test_cache():
     async with AjDb() as aj_db:
-        seasons = await aj_db.query_table_content(ajdb_t.Season)
+        seasons = await aj_db.query_seasons()
         print(f'First query - found {len(seasons)} seasons')
 
     async with AjDb() as aj_db:
