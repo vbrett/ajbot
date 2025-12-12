@@ -109,6 +109,8 @@ class AjDb():
     # DB Queries
     # ==========
 
+    # General
+    # -------
     @cached_ajdb_method
     async def query_table_content(self, table, *lazyload_options):
         ''' retrieve complete table
@@ -129,6 +131,33 @@ class AjDb():
 
         return query_result
 
+
+    # Seasons
+    # -------
+    @cached_ajdb_method
+    async def query_seasons(self, lazyload:bool=True):
+        ''' retrieve list of seasons
+            @args
+                lazyload = if True, use lazyload for events and memberships
+
+            @return
+                [all found seasons]
+        '''
+        query = sa.select(ajdb_t.Season)
+        if lazyload:
+            query = query.options(orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships))
+        else:
+            query = query.options(orm.selectinload(ajdb_t.Season.events), orm.selectinload(ajdb_t.Season.memberships))
+
+        query_result = await self.aio_session.execute(query)
+
+        seasons = query_result.scalars().all()
+
+        return seasons
+
+
+    # Members
+    # -------
     async def query_members(self,
                      lookup_val = None,
                      match_crit = 50,
@@ -190,79 +219,6 @@ class AjDb():
         return matched_members
 
 
-    @cached_ajdb_method
-    async def query_seasons(self, lazyload:bool=True):
-        ''' retrieve list of seasons
-            @args
-                lazyload = if True, use lazyload for events and memberships
-
-            @return
-                [all found seasons]
-        '''
-        query = sa.select(ajdb_t.Season)
-        if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships))
-        else:
-            query = query.options(orm.selectinload(ajdb_t.Season.events), orm.selectinload(ajdb_t.Season.memberships))
-
-        query_result = await self.aio_session.execute(query)
-
-        seasons = query_result.scalars().all()
-
-        return seasons
-
-
-    @cached_ajdb_method
-    async def query_events(self, event_str:Optional[str] = None, lazyload:bool=True):
-        ''' retrieve all events or with a given name
-            @args
-                event_str = Optional. if empty, return all events
-                lazyload = if True, use lazyload for members
-
-            @return
-                [all found events]
-        '''
-        query = sa.select(ajdb_t.Event)
-        if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
-        else:
-            query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
-
-        query_result = await self.aio_session.execute(query)
-
-        events = query_result.scalars().all()
-        if event_str:
-            events = [e for e in events if str(e) == event_str]
-
-        return events
-
-
-    @cached_ajdb_method
-    async def query_events_per_season(self, season_name:Optional[str] = None, lazyload:bool=True):
-        ''' retrieve list of events having occured in a given season
-            @args
-                season_name = Optional.if empty, return current season
-                lazyload = if True, use lazyload for members
-
-            @return
-                [all found events]
-        '''
-        if season_name:
-            query = sa.select(ajdb_t.Event).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
-        else:
-            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
-        if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
-        else:
-            query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
-
-        query_result = await self.aio_session.execute(query)
-
-        events = query_result.scalars().all()
-
-        return events
-
-
     async def query_members_per_season_presence(self, season_name = None, subscriber_only = False):
         ''' retrieve list of members having participated in season
             @args
@@ -313,6 +269,59 @@ class AjDb():
         query_result = await self.aio_session.execute(query)
 
         return query_result.scalars().all()
+
+
+    # Events
+    # -------
+    @cached_ajdb_method
+    async def query_events(self, event_str:Optional[str] = None, lazyload:bool=True):
+        ''' retrieve all events or with a given name
+            @args
+                event_str = Optional. if empty, return all events
+                lazyload = if True, use lazyload for members
+
+            @return
+                [all found events]
+        '''
+        query = sa.select(ajdb_t.Event)
+        if lazyload:
+            query = query.options(orm.lazyload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+        else:
+            query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+
+        query_result = await self.aio_session.execute(query)
+
+        events = query_result.scalars().all()
+        if event_str:
+            events = [e for e in events if str(e) == event_str]
+
+        return events
+
+
+    @cached_ajdb_method
+    async def query_events_per_season(self, season_name:Optional[str] = None, lazyload:bool=True):
+        ''' retrieve list of events having occured in a given season
+            @args
+                season_name = Optional.if empty, return current season
+                lazyload = if True, use lazyload for members
+
+            @return
+                [all found events]
+        '''
+        if season_name:
+            query = sa.select(ajdb_t.Event).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
+        else:
+            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
+        if lazyload:
+            query = query.options(orm.lazyload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+        else:
+            query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+
+        query_result = await self.aio_session.execute(query)
+
+        events = query_result.scalars().all()
+
+        return events
 
 
     async def add_update_event(self,
