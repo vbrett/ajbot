@@ -88,6 +88,9 @@ class AjBot():
         # ========================================================
         @self.client.event
         async def on_ready():
+            # preload in cache some semi-permanent data from DB
+            async with AjDb() as aj_db:
+                _ = await aj_db.query_asso_roles(lazyload=True)
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
 

@@ -112,15 +112,14 @@ async def _test_update_query(aj_db:AjDb):
     print('\r\n'.join([str(m) for m in my_event.members]))
 
 
-async def _test_cache():
+async def _test_misc():
     async with AjDb() as aj_db:
-        seasons = await aj_db.query_seasons()
-        print(f'First query - found {len(seasons)} seasons')
+        roles = await aj_db.query_asso_roles(lazyload=False)
+        print(f'First query - found {len(roles)} roles')
+        print('===============================')
+        for r in roles:
+            print(f" - {r.name} - {','.join(str(m.id) for m in r.members)}")
 
-    async with AjDb() as aj_db:
-        for i, season in enumerate(seasons):
-            seasons[i] = await aj_db.aio_session.merge(season, load=False)
-        print(f'First query - found {len(seasons)} seasons')
 
 
 async def _main():
@@ -138,7 +137,8 @@ async def _main():
         # await _test_query(aj_db)
         # await _test_create_query(aj_db)
         # await _test_update_query(aj_db)
-    await _test_cache()
+
+    await _test_misc()
 
     return 0
 

@@ -132,8 +132,6 @@ class AjDb():
         return query_result
 
 
-    # Seasons
-    # -------
     @cached_ajdb_method
     async def query_seasons(self, lazyload:bool=True):
         ''' retrieve list of seasons
@@ -150,10 +148,29 @@ class AjDb():
             query = query.options(orm.selectinload(ajdb_t.Season.events), orm.selectinload(ajdb_t.Season.memberships))
 
         query_result = await self.aio_session.execute(query)
+        query_result = query_result.scalars().all()
 
-        seasons = query_result.scalars().all()
+        return query_result
 
-        return seasons
+    @cached_ajdb_method
+    async def query_asso_roles(self, lazyload:bool=True):
+        ''' retrieve list of asso roles
+            @args
+                lazyload = if True, use lazyload for events and memberships
+
+            @return
+                [all found roles]
+        '''
+        query = sa.select(ajdb_t.AssoRole)
+        if lazyload:
+            query = query.options(orm.lazyload(ajdb_t.AssoRole.discord_roles), orm.lazyload(ajdb_t.AssoRole.members, ajdb_t.MemberAssoRole.member))
+        else:
+            query = query.options(orm.selectinload(ajdb_t.AssoRole.discord_roles), orm.selectinload(ajdb_t.AssoRole.members, ajdb_t.MemberAssoRole.member))
+
+        query_result = await self.aio_session.execute(query)
+        query_result = query_result.scalars().all()
+
+        return query_result
 
 
     # Members
