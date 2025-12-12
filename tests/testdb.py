@@ -9,7 +9,7 @@ import sqlalchemy as sa
 
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
-from ajbot._internal.config import FormatTypes
+from ajbot._internal.config import AjConfig, FormatTypes
 
 async def _search_member(aj_db:AjDb, lookup_val):
     query_result = await aj_db.query_members(lookup_val)
@@ -113,14 +113,43 @@ async def _test_update_query(aj_db:AjDb):
 
 
 async def _test_misc():
-    async with AjDb() as aj_db:
-        roles = await aj_db.query_asso_roles(lazyload=False)
-        print(f'First query - found {len(roles)} roles')
-        print('===============================')
-        for r in roles:
-            print(f" - {r.name} - {','.join(str(m.id) for m in r.members)}")
+    # discord_roles = {config._KEY_OWNERS: [],
+    #                  config._KEY_MANAGERS: [],
+    #                  config._KEY_MEMBERS: []}
+    # asso_roles = {}
+    # async with AjDb() as aj_db:
+    #     mapped_roles = await aj_db.query_discord_asso_roles()
+    #     for mr in mapped_roles:
+    #         mr = cast(ajdb_t.AssoRoleDiscordRole, mr)
+    #         if mr.asso_role.is_owner and mr.discord_role_id not in discord_roles[config._KEY_OWNERS]:
+    #             discord_roles[config._KEY_OWNERS].append(mr.discord_role_id)
+    #         if mr.asso_role.is_manager and mr.discord_role_id not in discord_roles[config._KEY_MANAGERS]:
+    #             discord_roles[config._KEY_MANAGERS].append(mr.discord_role_id)
+    #         if mr.asso_role.is_member and mr.discord_role_id not in discord_roles[config._KEY_MEMBERS]:
+    #             discord_roles[config._KEY_MEMBERS].append(mr.discord_role_id)
+    #         if mr.asso_role.is_subscriber:
+    #             assert discord_roles.get(config._KEY_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple subscriber discord roles mapped!"
+    #             assert asso_roles.get(config._KEY_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple subscriber asso roles mapped!"
+    #             discord_roles[config._KEY_SUBSCRIBER] = mr.discord_role_id
+    #             asso_roles[config._KEY_SUBSCRIBER] = mr.asso_role_id
+    #         if mr.asso_role.is_past_subscriber:
+    #             assert discord_roles.get(config._KEY_PAST_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple past subscriber discord roles mapped!"
+    #             assert asso_roles.get(config._KEY_PAST_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple past subscriber asso roles mapped!"
+    #             discord_roles[config._KEY_PAST_SUBSCRIBER] = mr.discord_role_id
+    #             asso_roles[config._KEY_PAST_SUBSCRIBER] = mr.asso_role_id
 
-
+    # print(asso_roles)
+    # print(discord_roles)
+    with AjConfig(save_on_exit=True) as aj_config:
+        async with AjDb(aj_config=aj_config) as aj_db:
+            await aj_config.udpate_roles(aj_db=aj_db)
+    print('Discord Owners roles:', aj_config.discord_owners)
+    print('Discord Managers roles:', aj_config.discord_managers)
+    print('Discord Members roles:', aj_config.discord_members)
+    print('Discord Subscriber role:', aj_config.discord_subscriber)
+    print('Discord Past subscriber role:', aj_config.discord_past_subscriber)
+    print('Asso Subscriber role:', aj_config.asso_subscriber)
+    print('Asso Past subscriber role:', aj_config.asso_past_subscriber)
 
 async def _main():
     """ main function - async version

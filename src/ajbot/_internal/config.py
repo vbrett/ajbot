@@ -17,9 +17,15 @@ _KEY_CREDS = "creds"
 
 _KEY_DISCORD = "discord"
 _KEY_GUILD = "guild"
-_KEY_OWNER = "owner"
-_KEY_ROLE_MANAGER = "role_manager"
-_KEY_ROLE_MEMBER = "role_member"
+_KEY_ROLES = "roles"
+_KEY_OWNERS = "owners"
+_KEY_MANAGERS = "managers"
+_KEY_MEMBERS = "members"
+_KEY_SUBSCRIBER = "subscriber"
+_KEY_PAST_SUBSCRIBER = "past_subscriber"
+
+_KEY_ASSO = "asso"
+
 
 _KEY_DB = "db"
 _KEY_DB_HOST = "host"
@@ -82,6 +88,36 @@ class AjConfig():
                         self._file_path,
                         preserve=False)
 
+    async def udpate_roles(self, aj_db):
+        """ Load from DB the roles mapping and update config accordingly.
+        """
+        discord_roles = {_KEY_OWNERS: [],
+                        _KEY_MANAGERS: [],
+                        _KEY_MEMBERS: []}
+        asso_roles = {}
+        mapped_roles = await aj_db.query_discord_asso_roles()
+        for mr in mapped_roles:
+            # mr = cast(ajdb_t.AssoRoleDiscordRole, mr)
+            if mr.asso_role.is_owner and mr.discord_role_id not in discord_roles[_KEY_OWNERS]:
+                discord_roles[_KEY_OWNERS].append(mr.discord_role_id)
+            if mr.asso_role.is_manager and mr.discord_role_id not in discord_roles[_KEY_MANAGERS]:
+                discord_roles[_KEY_MANAGERS].append(mr.discord_role_id)
+            if mr.asso_role.is_member and mr.discord_role_id not in discord_roles[_KEY_MEMBERS]:
+                discord_roles[_KEY_MEMBERS].append(mr.discord_role_id)
+            if mr.asso_role.is_subscriber:
+                assert discord_roles.get(_KEY_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple subscriber discord roles mapped!"
+                assert asso_roles.get(_KEY_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple subscriber asso roles mapped!"
+                discord_roles[_KEY_SUBSCRIBER] = mr.discord_role_id
+                asso_roles[_KEY_SUBSCRIBER] = mr.asso_role_id
+            if mr.asso_role.is_past_subscriber:
+                assert discord_roles.get(_KEY_PAST_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple past subscriber discord roles mapped!"
+                assert asso_roles.get(_KEY_PAST_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple past subscriber asso roles mapped!"
+                discord_roles[_KEY_PAST_SUBSCRIBER] = mr.discord_role_id
+                asso_roles[_KEY_PAST_SUBSCRIBER] = mr.asso_role_id
+
+        self._config_dict[_KEY_DISCORD][_KEY_ROLES] = discord_roles
+        self._config_dict[_KEY_ASSO][_KEY_ROLES] = asso_roles
+
     @property
     def discord_token(self):
         """ Returns the Discord token from config.
@@ -100,22 +136,46 @@ class AjConfig():
         return self._config_dict[_KEY_DISCORD].get(_KEY_GUILD)
 
     @property
-    def discord_bot_owner(self):
-        """ Returns the Discord bot owner ID from config.
+    def discord_owners(self):
+        """ Returns from config the Discord roles IDs having owner attribute.
         """
-        return self._config_dict[_KEY_DISCORD].get(_KEY_OWNER)
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_OWNERS)
 
     @property
-    def discord_role_manager(self):
-        """ Returns the Discord role manager IDs from config.
+    def discord_managers(self):
+        """ Returns from config the Discord roles IDs having manager attribute.
         """
-        return self._config_dict[_KEY_DISCORD].get(_KEY_ROLE_MANAGER)
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_MANAGERS)
 
     @property
-    def discord_role_member(self):
-        """ Returns the Discord role member IDs from config.
+    def discord_members(self):
+        """ Returns from config the Discord roles IDs having member attribute.
         """
-        return self._config_dict[_KEY_DISCORD].get(_KEY_ROLE_MEMBER)
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_MEMBERS)
+
+    @property
+    def discord_subscriber(self):
+        """ Returns from config the *single* Discord role IDs having subscriber attribute.
+        """
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_SUBSCRIBER)
+
+    @property
+    def discord_past_subscriber(self):
+        """ Returns from config the *single* Discord role IDs having past subscriber attribute.
+        """
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_PAST_SUBSCRIBER)
+
+    @property
+    def asso_subscriber(self):
+        """ Returns from config the asso role IDs having subscriber attribute.
+        """
+        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_SUBSCRIBER)
+
+    @property
+    def asso_past_subscriber(self):
+        """ Returns from config the asso role IDs having past subscriber attribute.
+        """
+        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_PAST_SUBSCRIBER)
 
     @property
     def db_creds(self):

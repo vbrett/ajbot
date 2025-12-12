@@ -10,7 +10,7 @@ from discord import app_commands, Interaction
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
+from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
@@ -88,9 +88,14 @@ class AjBot():
         # ========================================================
         @self.client.event
         async def on_ready():
-            # preload in cache some semi-permanent data from DB
-            async with AjDb() as aj_db:
-                _ = await aj_db.query_asso_roles(lazyload=True)
+            # preload in config & cache some semi-permanent data from DB
+            with AjConfig(save_on_exit=True) as aj_config:
+                async with AjDb(aj_config=aj_config) as aj_db:
+                    await aj_config.udpate_roles(aj_db=aj_db)
+
+                    _ = await aj_db.query_asso_roles(lazyload=True)
+                    _ = await aj_db.query_seasons(lazyload=True)
+
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
 

@@ -7,7 +7,7 @@ then manually reformated
 from functools import wraps
 from typing import cast, Optional
 from datetime import date, datetime,timedelta
-
+from contextlib import nullcontext
 
 import sqlalchemy as sa
 from sqlalchemy import orm
@@ -23,7 +23,7 @@ from ajbot._internal import ajdb_tables as ajdb_t
 def cached_ajdb_method(func):
     """ Decorator to handle cached AjDb data
     @arg:
-        force_refresh_cache: if True, refresh cache even if not expired
+        refresh_cache: if True, refresh cache even if not expired
         keep_detached: if False, merge cached data with current session to avoid DetachedInstanceError
     @return:
         cached data if available and not expired
@@ -32,11 +32,11 @@ def cached_ajdb_method(func):
     cache_time = {}
 
     @wraps(func)
-    async def wrapper(self, *args, force_refresh_cache:bool=False, keep_detached:bool=False, **kwargs):
+    async def wrapper(self, *args, refresh_cache:bool=False, keep_detached:bool=False, **kwargs):
         key = (func.__name__, args, tuple(kwargs.items()))
         now = datetime.now()
-        if not force_refresh_cache:
-            with AjConfig() as aj_config:
+        if not refresh_cache:
+            with AjConfig() if not self.aj_config else nullcontext(self.aj_config) as aj_config:
                 if key in cache_data and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
                     if not keep_detached:
                         # merge cached data with current session to avoid DetachedInstanceError
@@ -59,14 +59,15 @@ class AjDb():
     """ Context manager which manage AJ database
         Create DB engine and async session maker on enter, and dispose engine on exit
     """
-    def __init__(self):
+    def __init__(self, aj_config:AjConfig=None):
         self.db_engine: aio_sa.AsyncEngine = None
         self.db_username:str = None
         self.AsyncSessionMaker:aio_sa.async_sessionmaker = None   #pylint: disable=invalid-name   #variable is a class factory
         self.aio_session: aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
+        self.aj_config = aj_config
 
     async def __aenter__(self):
-        with AjConfig() as aj_config:
+        with AjConfig() if not self.aj_config else nullcontext(self.aj_config) as aj_config:
             self.db_username = aj_config.db_creds['user']
             # Connect to MariaDB Platform
             self.db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + aj_config.db_connection_string,
@@ -166,6 +167,20 @@ class AjDb():
             query = query.options(orm.lazyload(ajdb_t.AssoRole.discord_roles), orm.lazyload(ajdb_t.AssoRole.members, ajdb_t.MemberAssoRole.member))
         else:
             query = query.options(orm.selectinload(ajdb_t.AssoRole.discord_roles), orm.selectinload(ajdb_t.AssoRole.members, ajdb_t.MemberAssoRole.member))
+
+        query_result = await self.aio_session.execute(query)
+        query_result = query_result.scalars().all()
+
+        return query_result
+
+
+    async def query_discord_asso_roles(self):
+        ''' retrieve list of dicord & asso roles and how their are mapped
+
+            @return
+                [all found roles]
+        '''
+        query = sa.select(ajdb_t.AssoRoleDiscordRole)
 
         query_result = await self.aio_session.execute(query)
         query_result = query_result.scalars().all()

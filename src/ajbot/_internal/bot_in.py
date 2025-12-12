@@ -48,19 +48,19 @@ class AutocompleteFactory():
 def is_bot_owner(interaction: Interaction) -> bool:
     """A check which only allows the bot owner to use the command."""
     with AjConfig() as aj_config:
-        bot_owner = aj_config.discord_bot_owner
-    return interaction.user.id == bot_owner
+        owner_roles = aj_config.discord_owners
+    return any(role.id in owner_roles for role in interaction.user.roles)
 
 def is_member(interaction: Interaction) -> bool:
     """A check which only allows members to use the command."""
     with AjConfig() as aj_config:
-        member_roles = aj_config.discord_role_member
+        member_roles = aj_config.discord_members
     return any(role.id in member_roles for role in interaction.user.roles)
 
 def is_manager(interaction: Interaction) -> bool:
     """A check which only allows managers to use the command."""
     with AjConfig() as aj_config:
-        manager_roles = aj_config.discord_role_manager
+        manager_roles = aj_config.discord_managers
     return any(role.id in manager_roles for role in interaction.user.roles)
 
 
