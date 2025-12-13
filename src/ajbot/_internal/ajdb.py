@@ -369,12 +369,12 @@ class AjDb():
         unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]
 
         if unkown_participant_ids:
-            raise AjDbException(f'Unknown participant ids: {', '.join(str(i) for i in unkown_participant_ids)}')
+            raise AjDbException(f'ID asso inconnu(s): {', '.join(str(i) for i in unkown_participant_ids)}')
 
         # create or get event
         if not event_id:
             if not event_date:
-                raise AjDbException('Missing event id or date.')
+                raise AjDbException('Evnènement ou date manquante.')
             db_event = ajdb_t.Event(date=event_date)
             seasons = await self.query_seasons(lazyload=True)
             [db_event.season_id] = [s.id for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
@@ -384,7 +384,7 @@ class AjDb():
             query_result = await self.aio_session.execute(query)
             db_event = query_result.scalars().one_or_none()
             if not db_event:
-                raise AjDbException(f'Unknown event to update: {event_id}')
+                raise AjDbException(f'Evènement inconnu: {event_id}')
 
         # set name
         db_event.name = event_name
