@@ -23,7 +23,8 @@
     "asso": {
         "roles": {
             "subscriber": 1234567890123456789,
-            "past_subscriber": 1234567890123456789
+            "past_subscriber": 1234567890123456789,
+            "member": 1234567890123456789
         }
     },
     "db": {

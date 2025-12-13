@@ -21,8 +21,9 @@ _KEY_ROLES = "roles"
 _KEY_OWNERS = "owners"
 _KEY_MANAGERS = "managers"
 _KEY_MEMBERS = "members"
-_KEY_SUBSCRIBER = "subscriber"
-_KEY_PAST_SUBSCRIBER = "past_subscriber"
+_KEY_DEFAULT_SUBSCRIBER = "subscriber"
+_KEY_DEFAULT_PAST_SUBSCRIBER = "past_subscriber"
+_KEY_DEFAULT_MEMBER = "member"
 
 _KEY_ASSO = "asso"
 
@@ -91,32 +92,35 @@ class AjConfig():
     async def udpate_roles(self, aj_db):
         """ Load from DB the roles mapping and update config accordingly.
         """
-        discord_roles = {_KEY_OWNERS: [],
+        discord_roles_cfg = {_KEY_OWNERS: [],
                         _KEY_MANAGERS: [],
                         _KEY_MEMBERS: []}
-        asso_roles = {}
-        mapped_roles = await aj_db.query_discord_asso_roles()
-        for mr in mapped_roles:
-            # mr = cast(ajdb_t.AssoRoleDiscordRole, mr)
-            if mr.asso_role.is_owner and mr.discord_role_id not in discord_roles[_KEY_OWNERS]:
-                discord_roles[_KEY_OWNERS].append(mr.discord_role_id)
-            if mr.asso_role.is_manager and mr.discord_role_id not in discord_roles[_KEY_MANAGERS]:
-                discord_roles[_KEY_MANAGERS].append(mr.discord_role_id)
-            if mr.asso_role.is_member and mr.discord_role_id not in discord_roles[_KEY_MEMBERS]:
-                discord_roles[_KEY_MEMBERS].append(mr.discord_role_id)
-            if mr.asso_role.is_subscriber:
-                assert discord_roles.get(_KEY_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple subscriber discord roles mapped!"
-                assert asso_roles.get(_KEY_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple subscriber asso roles mapped!"
-                discord_roles[_KEY_SUBSCRIBER] = mr.discord_role_id
-                asso_roles[_KEY_SUBSCRIBER] = mr.asso_role_id
-            if mr.asso_role.is_past_subscriber:
-                assert discord_roles.get(_KEY_PAST_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple past subscriber discord roles mapped!"
-                assert asso_roles.get(_KEY_PAST_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple past subscriber asso roles mapped!"
-                discord_roles[_KEY_PAST_SUBSCRIBER] = mr.discord_role_id
-                asso_roles[_KEY_PAST_SUBSCRIBER] = mr.asso_role_id
+        asso_roles_cfg = {}
+        asso_roles = await aj_db.query_asso_roles(lazyload=False)
+        for role in asso_roles:
+            if role.is_owner:
+                discord_roles_cfg[_KEY_OWNERS] += [dr.discord_role_id for dr in role.discord_roles if dr.discord_role_id not in discord_roles_cfg[_KEY_OWNERS]]
+            if role.is_manager:
+                discord_roles_cfg[_KEY_MANAGERS] += [dr.discord_role_id for dr in role.discord_roles if dr.discord_role_id not in discord_roles_cfg[_KEY_MANAGERS]]
+            if role.is_member:
+                discord_roles_cfg[_KEY_MEMBERS] += [dr.discord_role_id for dr in role.discord_roles if dr.discord_role_id not in discord_roles_cfg[_KEY_MEMBERS]]
+                if not role.is_owner and not role.is_manager and not role.is_subscriber and not role.is_past_subscriber:
+                    # default member role
+                    assert _KEY_DEFAULT_MEMBER not in asso_roles_cfg, "Multiple default member asso roles mapped!"
+                    asso_roles_cfg[_KEY_DEFAULT_MEMBER] = role.id
+            if role.is_subscriber:
+                assert _KEY_DEFAULT_SUBSCRIBER not in asso_roles_cfg, "Multiple subscriber asso roles mapped!"
+                assert len(role.discord_roles) == 1, "Multiple discord roles mapped to subscriber role!"
+                discord_roles_cfg[_KEY_DEFAULT_SUBSCRIBER] = role.discord_roles[0].discord_role_id
+                asso_roles_cfg[_KEY_DEFAULT_SUBSCRIBER] = role.id
+            if role.is_past_subscriber:
+                assert _KEY_DEFAULT_PAST_SUBSCRIBER not in asso_roles_cfg, "Multiple subscriber asso roles mapped!"
+                assert len(role.discord_roles) == 1, "Multiple discord roles mapped to past subscriber role!"
+                discord_roles_cfg[_KEY_DEFAULT_PAST_SUBSCRIBER] = role.discord_roles[0].discord_role_id
+                asso_roles_cfg[_KEY_DEFAULT_PAST_SUBSCRIBER] = role.id
 
-        self._config_dict[_KEY_DISCORD][_KEY_ROLES] = discord_roles
-        self._config_dict[_KEY_ASSO][_KEY_ROLES] = asso_roles
+        self._config_dict[_KEY_DISCORD][_KEY_ROLES] = discord_roles_cfg
+        self._config_dict[_KEY_ASSO][_KEY_ROLES] = asso_roles_cfg
 
     @property
     def discord_token(self):
@@ -157,25 +161,31 @@ class AjConfig():
     def discord_subscriber(self):
         """ Returns from config the *single* Discord role IDs having subscriber attribute.
         """
-        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_SUBSCRIBER)
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_DEFAULT_SUBSCRIBER)
 
     @property
     def discord_past_subscriber(self):
         """ Returns from config the *single* Discord role IDs having past subscriber attribute.
         """
-        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_PAST_SUBSCRIBER)
+        return self._config_dict[_KEY_DISCORD][_KEY_ROLES].get(_KEY_DEFAULT_PAST_SUBSCRIBER)
 
     @property
     def asso_subscriber(self):
         """ Returns from config the asso role IDs having subscriber attribute.
         """
-        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_SUBSCRIBER)
+        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_DEFAULT_SUBSCRIBER)
+
+    @property
+    def asso_member_default(self):
+        """ Returns from config the asso role ID corresponding to member.
+        """
+        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_DEFAULT_MEMBER)
 
     @property
     def asso_past_subscriber(self):
         """ Returns from config the asso role IDs having past subscriber attribute.
         """
-        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_PAST_SUBSCRIBER)
+        return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_DEFAULT_PAST_SUBSCRIBER)
 
     @property
     def db_creds(self):
