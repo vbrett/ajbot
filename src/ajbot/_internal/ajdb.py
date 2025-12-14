@@ -113,7 +113,7 @@ class AjDb():
     # General
     # -------
     @cached_ajdb_method
-    async def query_table_content(self, table, *lazyload_options):
+    async def query_table_content(self, table, *options):
         ''' retrieve complete table
             @arg:
                 class of the table to retrieve
@@ -124,9 +124,9 @@ class AjDb():
         '''
 
         query = sa.select(table)
-        if lazyload_options:
-            for lazyload_option in lazyload_options:
-                query = query.options(orm.lazyload(lazyload_option))
+        if options:
+            for option in options:
+                query = query.options(option)
         query_result = await self.aio_session.execute(query)
         query_result = query_result.scalars().all()
 
