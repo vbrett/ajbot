@@ -211,14 +211,13 @@ class Season(Base):
                 and datetime.datetime.now().date() <= self.end)
 
     @is_current_season.expression
-    def is_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    def _is_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
                         datetime.datetime.now().date() >= cls.start,
-                        datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
+                        sa.or_(cls.end == None,     #pylint: disable=singleton-comparison   #this is SQL syntax
+                               datetime.datetime.now().date() <= cls.end))).correlate(cls), True), else_=False,
                     ).label("is_current_season")
                 ).scalar_subquery()
 
@@ -290,9 +289,7 @@ class Member(Base):
         return any(m.is_in_current_season for m in self.memberships)
 
     @is_subscriber.expression
-    def is_subscriber(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    def _is_subscriber(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
@@ -428,8 +425,6 @@ class Membership(Base):
 
     @is_in_current_season.expression
     def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
@@ -465,8 +460,6 @@ class Event(Base):
 
     @is_in_current_season.expression
     def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
@@ -912,14 +905,13 @@ class MemberAssoRole(Base):
                 and (not self.end or datetime.datetime.now().date() <= self.end))
 
     @is_active.expression
-    def is_active(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    def _is_active(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
                         datetime.datetime.now().date() >= cls.start,
-                        datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
+                        sa.or_(cls.end == None,     #pylint: disable=singleton-comparison   #this is SQL syntax
+                               datetime.datetime.now().date() <= cls.end))).correlate(cls), True), else_=False,
                     ).label("is_active")
                 ).scalar_subquery()
 
