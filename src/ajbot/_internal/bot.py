@@ -91,10 +91,9 @@ class AjBot():
             # preload in config & cache some semi-permanent data from DB
             with AjConfig(save_on_exit=True) as aj_config:
                 async with AjDb(aj_config=aj_config) as aj_db:
-                    await aj_config.udpate_roles(aj_db=aj_db)
-
-                    _ = await aj_db.query_asso_roles(lazyload=True)
+                    _ = await aj_db.query_asso_roles(lazyload=False)
                     _ = await aj_db.query_seasons(lazyload=True)
+                    await aj_config.udpate_roles(aj_db=aj_db)
 
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
