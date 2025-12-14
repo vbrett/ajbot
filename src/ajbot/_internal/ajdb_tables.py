@@ -259,7 +259,12 @@ class Member(Base):
     credential: orm.Mapped[Optional['Credential']] = orm.relationship('Credential', back_populates='member', uselist=False, lazy='selectin')
     discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discord_pseudos.id'), index=True, nullable=True)
     discord_pseudo: orm.Mapped[Optional['DiscordPseudo']] = orm.relationship('DiscordPseudo', back_populates='member', uselist=False, lazy='selectin')
-    asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='member', lazy='selectin')
+    manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='members', lazy='selectin')
+    current_manual_asso_role: orm.Mapped['AssoRole'] = orm.relationship(secondary='JCT_member_asso_role',
+                                                                        secondaryjoin="and_(AssoRole.id == MemberAssoRole.asso_role_id, func.now() >= MemberAssoRole.start, or_(MemberAssoRole.end == None, func.now() <= MemberAssoRole.end))",
+                                                                        viewonly=True,
+                                                                        lazy='selectin')
+
     emails: orm.Mapped[list['MemberEmail']] = orm.relationship('MemberEmail', back_populates='member', lazy='selectin')
     email_principal: orm.Mapped[Optional['MemberEmail']] = orm.relationship('MemberEmail',
                                                                                 primaryjoin="and_(Member.id==MemberEmail.member_id,MemberEmail.principal==True)",
@@ -385,7 +390,7 @@ class AssoRole(Base):
     is_manager: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     discord_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='asso_role', lazy='selectin')
-    members: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='asso_role', lazy='selectin')
+    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin')
 
     #TODO: implement __str__ & __format__
 
@@ -890,9 +895,7 @@ class MemberAssoRole(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='asso_roles', lazy='selectin')
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
-    asso_role: orm.Mapped['AssoRole'] = orm.relationship('AssoRole', back_populates='members', lazy='selectin')
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
     end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)

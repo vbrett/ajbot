@@ -3,9 +3,10 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date
+from datetime import date, datetime
 
 import sqlalchemy as sa
+from sqlalchemy import orm
 
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
@@ -113,51 +114,31 @@ async def _test_update_query(aj_db:AjDb):
 
 
 async def _test_misc():
-    # discord_roles = {config._KEY_OWNERS: [],
-    #                  config._KEY_MANAGERS: [],
-    #                  config._KEY_MEMBERS: []}
-    # asso_roles = {}
-    # async with AjDb() as aj_db:
-    #     mapped_roles = await aj_db.query_discord_asso_roles()
-    #     for mr in mapped_roles:
-    #         mr = cast(ajdb_t.AssoRoleDiscordRole, mr)
-    #         if mr.asso_role.is_owner and mr.discord_role_id not in discord_roles[config._KEY_OWNERS]:
-    #             discord_roles[config._KEY_OWNERS].append(mr.discord_role_id)
-    #         if mr.asso_role.is_manager and mr.discord_role_id not in discord_roles[config._KEY_MANAGERS]:
-    #             discord_roles[config._KEY_MANAGERS].append(mr.discord_role_id)
-    #         if mr.asso_role.is_member and mr.discord_role_id not in discord_roles[config._KEY_MEMBERS]:
-    #             discord_roles[config._KEY_MEMBERS].append(mr.discord_role_id)
-    #         if mr.asso_role.is_subscriber:
-    #             assert discord_roles.get(config._KEY_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple subscriber discord roles mapped!"
-    #             assert asso_roles.get(config._KEY_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple subscriber asso roles mapped!"
-    #             discord_roles[config._KEY_SUBSCRIBER] = mr.discord_role_id
-    #             asso_roles[config._KEY_SUBSCRIBER] = mr.asso_role_id
-    #         if mr.asso_role.is_past_subscriber:
-    #             assert discord_roles.get(config._KEY_PAST_SUBSCRIBER, mr.discord_role_id) == mr.discord_role_id, "Multiple past subscriber discord roles mapped!"
-    #             assert asso_roles.get(config._KEY_PAST_SUBSCRIBER, mr.asso_role_id) == mr.asso_role_id, "Multiple past subscriber asso roles mapped!"
-    #             discord_roles[config._KEY_PAST_SUBSCRIBER] = mr.discord_role_id
-    #             asso_roles[config._KEY_PAST_SUBSCRIBER] = mr.asso_role_id
-
-    # print(asso_roles)
-    # print(discord_roles)
     with AjConfig(save_on_exit=True) as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
-            await aj_config.udpate_roles(aj_db=aj_db)
-    print('Discord Owners roles:', aj_config.discord_owners)
-    print('Discord Managers roles:', aj_config.discord_managers)
-    print('Discord Members roles:', aj_config.discord_members)
-    print('Discord Subscriber role:', aj_config.discord_subscriber)
-    print('Discord Past subscriber role:', aj_config.discord_past_subscriber)
-    print('Asso Subscriber role:', aj_config.asso_subscriber)
-    print('Asso Past subscriber role:', aj_config.asso_past_subscriber)
+            query = sa.select(ajdb_t.Member)
+            # query = query.options(orm.lazyload(ajdb_t.Member.emails),
+            #                       orm.lazyload(ajdb_t.Member.phones),
+            #                       orm.lazyload(ajdb_t.Member.addresses),
+            #                       orm.lazyload(ajdb_t.Member.events),
+            #                       orm.lazyload(ajdb_t.Member.memberships),
+            #                       orm.lazyload(ajdb_t.Member.discord_pseudo),
+            #                       orm.lazyload(ajdb_t.Member.phone_principal),
+            #                       orm.lazyload(ajdb_t.Member.manual_asso_roles)
+            #                      )
+            query_result = await aj_db.aio_session.execute(query)
+            members = query_result.scalars().all()
+            for m in members:
+                print(f"{m} => role: {cast(ajdb_t.Member, m).current_manual_asso_role}")
+
 
 async def _main():
     """ main function - async version
     """
-    async with AjDb() as aj_db:
-        """
-        execute all within same ajdb session
-        """
+    # async with AjDb() as aj_db:
+        # """
+        # execute all within same ajdb session
+        # """
 
         # await _search_member(aj_db, 'vincent')
         # await _season_events(aj_db)
