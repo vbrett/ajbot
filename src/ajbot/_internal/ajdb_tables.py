@@ -17,7 +17,7 @@ from thefuzz import fuzz
 import humanize
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import AJ_ID_PREFIX, FormatTypes
+from ajbot._internal.config import AjConfig, AJ_ID_PREFIX, FormatTypes
 
 
 class HumanizedDate(datetime.date):
@@ -319,21 +319,24 @@ class Member(Base):
         return self.season_presence_count()
 
     @hybrid_property
-    def current_asso_role(self):
-        """ return current role
+    def current_asso_role_id(self):
+        """ return current role id
         """
         # check for manually assigned role
-        active_manually_assigned_roles = [ar.asso_role for ar in self.asso_roles if ar.is_active]
+        active_manually_assigned_roles = [ar.asso_role for ar in self.manual_asso_roles if ar.is_active]
         assert(len(active_manually_assigned_roles) <= 1) , f"Multiple active asso roles for member {self.id}:\r\n{', '.join(str(ar) for ar in active_manually_assigned_roles)}"
         if active_manually_assigned_roles:
-            return active_manually_assigned_roles[0].asso_role
+            asso_role_id = active_manually_assigned_roles[0].id
+        else:
+            with AjConfig() as aj_config:
+                if self.is_subscriber:  #pylint: disable=using-constant-test #variable is not constant
+                    asso_role_id = aj_config.asso_subscriber
+                else:
+                    asso_role_id = aj_config.asso_member_default
 
-        # all_asso_roles = AjDb.query_table_content(AssoRole)
+        return asso_role_id
 
-        # if self.is_subscriber:
-        #     return [ar for ar in ][0]
-
-        return [] #TODO to implement this
+    # current_asso_role: orm.Mapped[list['AssoRole']] = orm.relationship(foreign_keys="Member.current_asso_role_id", lazy='selectin')
 
     def __hash__(self):
         return hash(self.id)
