@@ -432,7 +432,7 @@ class Membership(Base):
         return self.season.is_current_season
 
     @is_in_current_season.expression
-    def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
+    def _is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
@@ -467,7 +467,7 @@ class Event(Base):
         return self.season.is_current_season
 
     @is_in_current_season.expression
-    def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
+    def _is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
