@@ -12,6 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import orm
+from sqlalchemy.orm import foreign
 
 from thefuzz import fuzz
 import humanize
@@ -284,6 +285,7 @@ class Member(Base):
     memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='member', lazy='selectin')
     events: orm.Mapped[list['MemberEvent']] = orm.relationship('MemberEvent', back_populates='member', lazy='selectin')
 
+
 #     logs: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members', lazy='selectin')
 #     logs_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
 
@@ -317,26 +319,6 @@ class Member(Base):
         if self.is_subscriber:  #pylint: disable=using-constant-test #variable is not constant
             return ""
         return self.season_presence_count()
-
-    @hybrid_property
-    def current_asso_role_id(self):
-        """ return current role id
-        """
-        # check for manually assigned role
-        active_manually_assigned_roles = [ar.asso_role for ar in self.manual_asso_roles if ar.is_active]
-        assert(len(active_manually_assigned_roles) <= 1) , f"Multiple active asso roles for member {self.id}:\r\n{', '.join(str(ar) for ar in active_manually_assigned_roles)}"
-        if active_manually_assigned_roles:
-            asso_role_id = active_manually_assigned_roles[0].id
-        else:
-            with AjConfig() as aj_config:
-                if self.is_subscriber:  #pylint: disable=using-constant-test #variable is not constant
-                    asso_role_id = aj_config.asso_subscriber
-                else:
-                    asso_role_id = aj_config.asso_member_default
-
-        return asso_role_id
-
-    # current_asso_role: orm.Mapped[list['AssoRole']] = orm.relationship(foreign_keys="Member.current_asso_role_id", lazy='selectin')
 
     def __hash__(self):
         return hash(self.id)
@@ -958,6 +940,104 @@ class MemberEvent(Base):
 
 
 
+
+# Build a selectable mapping member -> computed asso_role_id using CASE
+members_table = Member.__table__
+roles_table = AssoRole.__table__
+mar_table = MemberAssoRole.__table__
+ms_table = Membership.__table__
+seasons_table = Season.__table__
+
+today = datetime.datetime.now().date()
+
+active_manual_role_cond = sa.and_(
+    mar_table.c.member_id == members_table.c.id,
+    today >= mar_table.c.start,
+    sa.or_(mar_table.c.end == None, today <= mar_table.c.end),
+)
+
+active_manual_role_exists = sa.exists(
+    sa.select(1).select_from(mar_table).where(active_manual_role_cond)
+)
+
+active_manual_role_select = (
+    sa.select(mar_table.c.asso_role_id)
+    .where(active_manual_role_cond)
+    .limit(1)
+    .scalar_subquery()
+)
+
+current_membership_exists = sa.exists(
+    sa.select(1)
+    .select_from(ms_table.join(seasons_table, seasons_table.c.id == ms_table.c.season_id))
+    .where(
+        sa.and_(
+            ms_table.c.member_id == members_table.c.id,
+            today >= seasons_table.c.start,
+            sa.or_(seasons_table.c.end == None, today <= seasons_table.c.end),
+        )
+    )
+)
+
+subscriber_role_select = (
+    sa.select(roles_table.c.id)
+    .where(roles_table.c.is_subscriber == True)
+    .limit(1)
+    .scalar_subquery()
+)
+
+past_membership_exists = sa.exists(
+    sa.select(1)
+    .select_from(ms_table.join(seasons_table, seasons_table.c.id == ms_table.c.season_id))
+    .where(
+        sa.and_(
+            ms_table.c.member_id == members_table.c.id,
+            seasons_table.c.end <= today,
+        )
+    )
+)
+
+past_subscriber_role_select = (
+    sa.select(roles_table.c.id)
+    .where(roles_table.c.is_past_subscriber == True)
+    .limit(1)
+    .scalar_subquery()
+)
+
+default_member_role_select = (
+    sa.select(roles_table.c.id)
+    .where(
+        sa.and_(
+            roles_table.c.is_member == True,
+            sa.or_(roles_table.c.is_subscriber == False, roles_table.c.is_subscriber == None),
+            sa.or_(roles_table.c.is_past_subscriber == False, roles_table.c.is_past_subscriber == None),
+            sa.or_(roles_table.c.is_manager == False, roles_table.c.is_manager == None),
+            sa.or_(roles_table.c.is_owner == False, roles_table.c.is_owner == None),
+        )
+    )
+    .limit(1)
+    .scalar_subquery()
+)
+
+current_asso_role_sq = sa.select(
+    members_table.c.id.label("member_id"),
+    sa.case(
+        (active_manual_role_exists, active_manual_role_select),
+        (current_membership_exists, subscriber_role_select),
+        (past_membership_exists, past_subscriber_role_select),
+        else_=default_member_role_select,
+    ).label("asso_role_id"),
+).subquery("current_asso_role")
+
+Member.current_asso_role = orm.relationship(
+    AssoRole,
+    secondary=current_asso_role_sq,
+    primaryjoin=Member.id == foreign(current_asso_role_sq.c.member_id),
+    secondaryjoin=AssoRole.id == foreign(current_asso_role_sq.c.asso_role_id),
+    viewonly=True,
+    uselist=False,
+    lazy='selectin',
+)
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

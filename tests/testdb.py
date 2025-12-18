@@ -117,8 +117,9 @@ async def _test_misc():
     with AjConfig(save_on_exit=True) as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
 
-            query = sa.select(sa.select(sa.case((sa.exists().where(ajdb_t.Member.current_manual_asso_role != None), "cotisant"), else_="saispo")).scalar_subquery().label("test"))
-            query = query.select_from(ajdb_t.Member)
+            query = sa.select(ajdb_t.Member)
+            # query = sa.select(sa.select(sa.case((sa.exists().where(ajdb_t.Member.current_manual_asso_role != None), "cotisant"), else_="saispo")).scalar_subquery().label("test"))
+            # query = query.select_from(ajdb_t.Member)
             # query = query.options(orm.lazyload(ajdb_t.Member.emails),
             #                       orm.lazyload(ajdb_t.Member.email_principal),
             #                       orm.lazyload(ajdb_t.Member.credential),
