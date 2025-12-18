@@ -18,7 +18,7 @@ from thefuzz import fuzz
 import humanize
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import AjConfig, AJ_ID_PREFIX, FormatTypes
+from ajbot._internal.config import AJ_ID_PREFIX, FormatTypes
 
 
 class HumanizedDate(datetime.date):
@@ -344,10 +344,11 @@ class Member(Base):
         mbr_id = self.id
         mbr_creds = self.credential
         mbr_disc = self.discord_pseudo
+        mbr_role = self.current_asso_role
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
-                return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc,] if x])
+                return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc, mbr_role,] if x])
 
             case FormatTypes.FULLCOMPLETE:
                 mbr_email = self.email_principal.email if self.email_principal else None
@@ -377,7 +378,13 @@ class AssoRole(Base):
     discord_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='asso_role', lazy='selectin')
     members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin')
 
-    #TODO: implement __str__ & __format__
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
 
 
 class Membership(Base):
@@ -948,12 +955,12 @@ mar_table = MemberAssoRole.__table__
 ms_table = Membership.__table__
 seasons_table = Season.__table__
 
-today = datetime.datetime.now().date()
+now_ = datetime.datetime.now()
 
 active_manual_role_cond = sa.and_(
     mar_table.c.member_id == members_table.c.id,
-    today >= mar_table.c.start,
-    sa.or_(mar_table.c.end == None, today <= mar_table.c.end),
+    now_ >= mar_table.c.start,
+    sa.or_(mar_table.c.end == None, now_ <= mar_table.c.end),  #pylint: disable=singleton-comparison   #this is SQL syntax
 )
 
 active_manual_role_exists = sa.exists(
@@ -973,15 +980,15 @@ current_membership_exists = sa.exists(
     .where(
         sa.and_(
             ms_table.c.member_id == members_table.c.id,
-            today >= seasons_table.c.start,
-            sa.or_(seasons_table.c.end == None, today <= seasons_table.c.end),
+            now_ >= seasons_table.c.start,
+            sa.or_(seasons_table.c.end == None, now_ <= seasons_table.c.end),  #pylint: disable=singleton-comparison   #this is SQL syntax
         )
     )
 )
 
 subscriber_role_select = (
     sa.select(roles_table.c.id)
-    .where(roles_table.c.is_subscriber == True)
+    .where(roles_table.c.is_subscriber == True) #pylint: disable=singleton-comparison   #this is SQL syntax
     .limit(1)
     .scalar_subquery()
 )
@@ -992,14 +999,14 @@ past_membership_exists = sa.exists(
     .where(
         sa.and_(
             ms_table.c.member_id == members_table.c.id,
-            seasons_table.c.end <= today,
+            seasons_table.c.end <= now_,
         )
     )
 )
 
 past_subscriber_role_select = (
     sa.select(roles_table.c.id)
-    .where(roles_table.c.is_past_subscriber == True)
+    .where(roles_table.c.is_past_subscriber == True)    #pylint: disable=singleton-comparison   #this is SQL syntax
     .limit(1)
     .scalar_subquery()
 )
@@ -1008,11 +1015,11 @@ default_member_role_select = (
     sa.select(roles_table.c.id)
     .where(
         sa.and_(
-            roles_table.c.is_member == True,
-            sa.or_(roles_table.c.is_subscriber == False, roles_table.c.is_subscriber == None),
-            sa.or_(roles_table.c.is_past_subscriber == False, roles_table.c.is_past_subscriber == None),
-            sa.or_(roles_table.c.is_manager == False, roles_table.c.is_manager == None),
-            sa.or_(roles_table.c.is_owner == False, roles_table.c.is_owner == None),
+        roles_table.c.is_member == True,                                                                    #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_subscriber == False, roles_table.c.is_subscriber == None),              #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_past_subscriber == False, roles_table.c.is_past_subscriber == None),    #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_manager == False, roles_table.c.is_manager == None),                    #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_owner == False, roles_table.c.is_owner == None),                        #pylint: disable=singleton-comparison   #this is SQL syntax
         )
     )
     .limit(1)

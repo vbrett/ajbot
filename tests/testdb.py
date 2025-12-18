@@ -133,7 +133,7 @@ async def _test_misc():
             #                      )
             members = (await aj_db.aio_session.scalars(query)).all()
             for m in members:
-                print(f"{m} => role: {cast(ajdb_t.Member, m).current_manual_asso_role}")
+                print(f"{m}")
 # SELECT
 # 	id m_id,
 # 	CASE
