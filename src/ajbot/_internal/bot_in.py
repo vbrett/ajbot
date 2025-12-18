@@ -13,16 +13,18 @@ from ajbot._internal.exceptions import OtherException
 # Autocomplete & command parameters functions & decorators
 # ========================================================
 class AutocompleteFactory():
-    """ create an autocomplete function based on the content of a db table
+    """ create an autocomplete function based on the result of a db query
+    @arg:
+        method: name of the AjDb async method to call to get the list of possible values
+                Method shall be decorated with @cached_ajdb_method
+        attr_name: if set, use this attribute of the returned object as the value (otherwise
+                   the string representation of the object is used)
+
         Note that choice list size is limited, so all matches may not be always returned
     """
-    def __init__(self, table_class, options=None, attr_name=None, refresh_rate_in_sec=60):
-        self._table = table_class
-        self._options = options if options else []
+    def __init__(self, method, attr_name=None):
+        self._method = method
         self._attr = attr_name
-        self._values = None
-        self._last_refresh = None
-        self._refresh_in_sec = refresh_rate_in_sec
 
     async def ac(self,
                  _interaction: Interaction,
@@ -30,16 +32,14 @@ class AutocompleteFactory():
                 ) -> list[app_commands.Choice[str]]:
         """ AutoComplete function
         """
-        if not self._values or self._last_refresh < (datetime.now() - timedelta(seconds=self._refresh_in_sec)):
-            async with AjDb() as aj_db:
-                db_content = await aj_db.query_table_content(self._table, *self._options)
-                db_content.sort(reverse=True)
-                self._values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
-                self._last_refresh = datetime.now()
+        async with AjDb() as aj_db:
+            db_content = await getattr(aj_db, self._method)(keep_detached=True)
+            db_content.sort(reverse=True)
+            values = [str(row) if not self._attr else str(getattr(row, self._attr)) for row in db_content]
 
         return [
                 app_commands.Choice(name=value, value=value)
-                for value in self._values if current.lower() in value.lower()
+                for value in values if current.lower() in value.lower()
                ][:bot_config.AUTOCOMPLETE_LIST_SIZE]
 
 
@@ -48,19 +48,19 @@ class AutocompleteFactory():
 def is_bot_owner(interaction: Interaction) -> bool:
     """A check which only allows the bot owner to use the command."""
     with AjConfig() as aj_config:
-        bot_owner = aj_config.discord_bot_owner
-    return interaction.user.id == bot_owner
+        owner_roles = aj_config.discord_owners
+    return any(role.id in owner_roles for role in interaction.user.roles)
 
 def is_member(interaction: Interaction) -> bool:
     """A check which only allows members to use the command."""
     with AjConfig() as aj_config:
-        member_roles = aj_config.discord_role_member
+        member_roles = aj_config.discord_members
     return any(role.id in member_roles for role in interaction.user.roles)
 
 def is_manager(interaction: Interaction) -> bool:
     """A check which only allows managers to use the command."""
     with AjConfig() as aj_config:
-        manager_roles = aj_config.discord_role_manager
+        manager_roles = aj_config.discord_managers
     return any(role.id in manager_roles for role in interaction.user.roles)
 
 

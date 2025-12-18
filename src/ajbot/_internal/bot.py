@@ -9,10 +9,8 @@ from discord import app_commands, Interaction
 # from dateparser import parse as dateparse
 # from vbrpytools.dicjsontools import save_json_file
 
-from sqlalchemy import orm
-
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.config import FormatTypes #, DATEPARSER_CONFIG
+from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
@@ -90,6 +88,13 @@ class AjBot():
         # ========================================================
         @self.client.event
         async def on_ready():
+            # preload in config & cache some semi-permanent data from DB
+            with AjConfig(save_on_exit=True) as aj_config:
+                async with AjDb(aj_config=aj_config) as aj_db:
+                    _ = await aj_db.query_asso_roles(lazyload=False)
+                    _ = await aj_db.query_seasons(lazyload=True)
+                    await aj_config.udpate_roles(aj_db=aj_db)
+
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
 
@@ -155,6 +160,47 @@ class AjBot():
                                              int_member=int_member,
                                              str_member=str_member)
 
+        @self.client.tree.command(name="roles")
+        @app_commands.check(bot_in.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        async def roles(interaction: Interaction,):
+            """ Affiche les membres qui n'ont pas le bon role
+            """
+            if not interaction.response.type:
+                await interaction.response.defer(ephemeral=True,)
+
+            async with AjDb() as aj_db:
+                discord_wrong_roles = {}
+                aj_discord = await aj_db.query_table_content(ajdb_t.DiscordPseudo)
+
+                for discord_member in interaction.guild.members:
+                    matched_members = [d.member for d in aj_discord if d.name == discord_member.name]
+
+                    assert (len(matched_members) <= 1), f"Erreur dans la DB: Plusieurs membres correspondent au même pseudo Discord {discord_member}:\n{', '.join(m.name for m in matched_members)}"
+                    if len(matched_members) == 0:
+                        if discord_member.roles:
+                            discord_wrong_roles[discord_member.name] = {'expected': None,
+                                                                        'actual': ','.join(r.name for r in discord_member.roles if r.name != "@everyone"),
+                                                                        }
+
+
+                    # if not member.bot:
+                    #     db_member = await aj_db.get_member_by_discord_id(member.id)
+                    #     if db_member:
+                    #         if db_member in subscribers:
+                    #             # Should have the subscriber role
+                    #             if not bot_in.has_subscriber_role(member):
+                    #                 await bot_out.add_subscriber_role(interaction=interaction,
+                    #                                                   discord_member=member)
+                    #         else:
+                    #             # Should not have the subscriber role
+                    #             if bot_in.has_subscriber_role(member):
+                    #                 await bot_out.remove_subscriber_role(interaction=interaction,
+                    #                                                      discord_member=member)
+
+
+                await bot_out.send_response_as_text(interaction=interaction, content=str(discord_wrong_roles), ephemeral=True)
+
 
         # Season related commands
         # ========================================================
@@ -164,8 +210,7 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def memberships(interaction: Interaction,
                               season_name:Optional[str]=None):
@@ -186,7 +231,6 @@ class AjBot():
                     summary = "Mais il n'y a eu personne cette saison ;-("
                     reply = '---'
 
-                # await self.send_response_basic(interaction, content=reply, ephemeral=True, split_on_eol=True)
                 await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
 
         @self.client.tree.command(name="evenement")
@@ -194,12 +238,10 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(event_str='évènement')
         @app_commands.describe(event_str='évènement à afficher')
-        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(table_class=ajdb_t.Event,
-                                                                        options=[orm.lazyload(ajdb_t.Event.members), orm.lazyload(ajdb_t.Event.season)]).ac)
+        @app_commands.autocomplete(event_str=bot_in.AutocompleteFactory(method="query_events").ac)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def events(interaction: Interaction,
                          event_str:Optional[str]=None,
@@ -218,8 +260,7 @@ class AjBot():
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(table_class=ajdb_t.Season,
-                                                                          options=[orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships)],
+        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def presence(interaction: Interaction,
                            season_name:Optional[str]=None,
@@ -242,7 +283,6 @@ class AjBot():
                     summary = "Mais il n'y a eu personne cette saison ;-("
                     reply = "---"
 
-                # await self.send_response_basic(interaction, content=content, ephemeral=True, split_on_eol=True)
                 await bot_out.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
 
 

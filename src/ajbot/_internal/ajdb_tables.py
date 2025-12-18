@@ -12,6 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import orm
+from sqlalchemy.orm import foreign
 
 from thefuzz import fuzz
 import humanize
@@ -211,14 +212,13 @@ class Season(Base):
                 and datetime.datetime.now().date() <= self.end)
 
     @is_current_season.expression
-    def is_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    def _is_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
                         datetime.datetime.now().date() >= cls.start,
-                        datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
+                        sa.or_(cls.end == None,     #pylint: disable=singleton-comparison   #this is SQL syntax
+                               datetime.datetime.now().date() <= cls.end))).correlate(cls), True), else_=False,
                     ).label("is_current_season")
                 ).scalar_subquery()
 
@@ -260,7 +260,12 @@ class Member(Base):
     credential: orm.Mapped[Optional['Credential']] = orm.relationship('Credential', back_populates='member', uselist=False, lazy='selectin')
     discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discord_pseudos.id'), index=True, nullable=True)
     discord_pseudo: orm.Mapped[Optional['DiscordPseudo']] = orm.relationship('DiscordPseudo', back_populates='member', uselist=False, lazy='selectin')
-    asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='member', lazy='selectin')
+    manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='members', lazy='selectin')
+    current_manual_asso_role: orm.Mapped['AssoRole'] = orm.relationship(secondary='JCT_member_asso_role',
+                                                                        secondaryjoin="and_(AssoRole.id == MemberAssoRole.asso_role_id, func.now() >= MemberAssoRole.start, or_(MemberAssoRole.end == None, func.now() <= MemberAssoRole.end))",
+                                                                        viewonly=True,
+                                                                        lazy='selectin')
+
     emails: orm.Mapped[list['MemberEmail']] = orm.relationship('MemberEmail', back_populates='member', lazy='selectin')
     email_principal: orm.Mapped[Optional['MemberEmail']] = orm.relationship('MemberEmail',
                                                                                 primaryjoin="and_(Member.id==MemberEmail.member_id,MemberEmail.principal==True)",
@@ -280,29 +285,28 @@ class Member(Base):
     memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='member', lazy='selectin')
     events: orm.Mapped[list['MemberEvent']] = orm.relationship('MemberEvent', back_populates='member', lazy='selectin')
 
+
 #     logs: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members', lazy='selectin')
 #     logs_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
 
     @hybrid_property
-    def current_season_has_subscribed(self):
+    def is_subscriber(self):
         """ return true if member has subscribed to current season 
         """
         return any(m.is_in_current_season for m in self.memberships)
 
-    @current_season_has_subscribed.expression
-    def current_season_has_subscribed(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    @is_subscriber.expression
+    def _is_subscriber(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
                         Membership.member_id == cls.id,
                         Membership.is_in_current_season)).correlate(cls), True), else_=False,
-                    ).label("current_season_has_subscribed")
+                    ).label("is_subscriber")
                 )
 
     def season_presence_count(self, season_name = None):
-        """ return numnber of related events in provided season. Current if empty
+        """ return number of related events in provided season. Current if empty
         """
         return len([mbr_evt for mbr_evt in self.events
                     if mbr_evt.member_id == self.id and
@@ -312,22 +316,9 @@ class Member(Base):
     def current_season_not_subscriber_presence_count(self):
         """ return number of presence if member has not currently subscribed
         """
-        if self.current_season_has_subscribed:  #pylint: disable=using-constant-test #variable is not constant
+        if self.is_subscriber:  #pylint: disable=using-constant-test #variable is not constant
             return ""
         return self.season_presence_count()
-
-    @hybrid_property
-    def current_season_asso_roles(self):
-        """ return number of presence in current season events 
-        """
-        current_member_asso_roles = [ar.asso_role for ar in self.asso_roles if ar.is_current_role]
-        if current_member_asso_roles:
-            return current_member_asso_roles
-
-        # if self.current_season_has_subscribed:
-        #     return [ar for ar in ][0]
-
-        return [] #TODO to implement this
 
     def __hash__(self):
         return hash(self.id)
@@ -353,17 +344,18 @@ class Member(Base):
         mbr_id = self.id
         mbr_creds = self.credential
         mbr_disc = self.discord_pseudo
+        mbr_role = self.current_asso_role
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
-                return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc,] if x])
+                return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc, mbr_role,] if x])
 
             case FormatTypes.FULLCOMPLETE:
                 mbr_email = self.email_principal.email if self.email_principal else None
                 mbr_address = self.address_principal.address if self.address_principal else None
                 mbr_phone = self.phone_principal.phone if self.phone_principal else None
 
-                mbr_asso_info = '' if self.current_season_has_subscribed else 'non ' #pylint: disable=using-constant-test #variable is not constant
+                mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
                 mbr_asso_info += f'cotisant, {self.season_presence_count()} participation(s) cette saison.'
                 return '\n'.join([f'{x:{format_spec}}'for x in [mbr_id, mbr_creds, mbr_disc, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
@@ -378,10 +370,21 @@ class AssoRole(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
+    is_member: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False)
+    is_past_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
+    is_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
+    is_manager: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
+    is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     discord_roles: orm.Mapped[list['AssoRoleDiscordRole']] = orm.relationship('AssoRoleDiscordRole', back_populates='asso_role', lazy='selectin')
-    members: orm.Mapped[list['MemberAssoRole']] = orm.relationship('MemberAssoRole', back_populates='asso_role', lazy='selectin')
+    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin')
 
-    #TODO: implement __str__ & __format__
+    def __str__(self):
+        return f'{self}'
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return self.name
 
 
 class Membership(Base):
@@ -418,9 +421,7 @@ class Membership(Base):
         return self.season.is_current_season
 
     @is_in_current_season.expression
-    def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    def _is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
@@ -455,9 +456,7 @@ class Event(Base):
         return self.season.is_current_season
 
     @is_in_current_season.expression
-    def is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    def _is_in_current_season(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
@@ -888,30 +887,27 @@ class MemberAssoRole(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Member'] = orm.relationship('Member', back_populates='asso_roles', lazy='selectin')
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
-    asso_role: orm.Mapped['AssoRole'] = orm.relationship('AssoRole', back_populates='members', lazy='selectin')
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
     end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
     @hybrid_property
-    def is_current_role(self):
-        """ return true if item is current season
+    def is_active(self):
+        """ return true if this role is currently active
         """
         return (    datetime.datetime.now().date() >= self.start
                 and (not self.end or datetime.datetime.now().date() <= self.end))
 
-    @is_current_role.expression
-    def is_current_role(cls):      #pylint: disable=no-self-argument   #function is a class factory
-        """ SQL version
-        """
+    @is_active.expression
+    def _is_active(cls):      #pylint: disable=no-self-argument   #function is a class factory
         return  sa.select(
                     sa.case((sa.exists().where(
                     sa.and_(
                         datetime.datetime.now().date() >= cls.start,
-                        datetime.datetime.now().date() <= cls.end)).correlate(cls), True), else_=False,
-                    ).label("is_current_role")
+                        sa.or_(cls.end == None,     #pylint: disable=singleton-comparison   #this is SQL syntax
+                               datetime.datetime.now().date() <= cls.end))).correlate(cls), True), else_=False,
+                    ).label("is_active")
                 ).scalar_subquery()
 
     def __str__(self):
@@ -951,6 +947,104 @@ class MemberEvent(Base):
 
 
 
+
+# Build a selectable mapping member -> computed asso_role_id using CASE
+members_table = Member.__table__
+roles_table = AssoRole.__table__
+mar_table = MemberAssoRole.__table__
+ms_table = Membership.__table__
+seasons_table = Season.__table__
+
+now_ = datetime.datetime.now()
+
+active_manual_role_cond = sa.and_(
+    mar_table.c.member_id == members_table.c.id,
+    now_ >= mar_table.c.start,
+    sa.or_(mar_table.c.end == None, now_ <= mar_table.c.end),  #pylint: disable=singleton-comparison   #this is SQL syntax
+)
+
+active_manual_role_exists = sa.exists(
+    sa.select(1).select_from(mar_table).where(active_manual_role_cond)
+)
+
+active_manual_role_select = (
+    sa.select(mar_table.c.asso_role_id)
+    .where(active_manual_role_cond)
+    .limit(1)
+    .scalar_subquery()
+)
+
+current_membership_exists = sa.exists(
+    sa.select(1)
+    .select_from(ms_table.join(seasons_table, seasons_table.c.id == ms_table.c.season_id))
+    .where(
+        sa.and_(
+            ms_table.c.member_id == members_table.c.id,
+            now_ >= seasons_table.c.start,
+            sa.or_(seasons_table.c.end == None, now_ <= seasons_table.c.end),  #pylint: disable=singleton-comparison   #this is SQL syntax
+        )
+    )
+)
+
+subscriber_role_select = (
+    sa.select(roles_table.c.id)
+    .where(roles_table.c.is_subscriber == True) #pylint: disable=singleton-comparison   #this is SQL syntax
+    .limit(1)
+    .scalar_subquery()
+)
+
+past_membership_exists = sa.exists(
+    sa.select(1)
+    .select_from(ms_table.join(seasons_table, seasons_table.c.id == ms_table.c.season_id))
+    .where(
+        sa.and_(
+            ms_table.c.member_id == members_table.c.id,
+            seasons_table.c.end <= now_,
+        )
+    )
+)
+
+past_subscriber_role_select = (
+    sa.select(roles_table.c.id)
+    .where(roles_table.c.is_past_subscriber == True)    #pylint: disable=singleton-comparison   #this is SQL syntax
+    .limit(1)
+    .scalar_subquery()
+)
+
+default_member_role_select = (
+    sa.select(roles_table.c.id)
+    .where(
+        sa.and_(
+        roles_table.c.is_member == True,                                                                    #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_subscriber == False, roles_table.c.is_subscriber == None),              #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_past_subscriber == False, roles_table.c.is_past_subscriber == None),    #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_manager == False, roles_table.c.is_manager == None),                    #pylint: disable=singleton-comparison   #this is SQL syntax
+            sa.or_(roles_table.c.is_owner == False, roles_table.c.is_owner == None),                        #pylint: disable=singleton-comparison   #this is SQL syntax
+        )
+    )
+    .limit(1)
+    .scalar_subquery()
+)
+
+current_asso_role_sq = sa.select(
+    members_table.c.id.label("member_id"),
+    sa.case(
+        (active_manual_role_exists, active_manual_role_select),
+        (current_membership_exists, subscriber_role_select),
+        (past_membership_exists, past_subscriber_role_select),
+        else_=default_member_role_select,
+    ).label("asso_role_id"),
+).subquery("current_asso_role")
+
+Member.current_asso_role = orm.relationship(
+    AssoRole,
+    secondary=current_asso_role_sq,
+    primaryjoin=Member.id == foreign(current_asso_role_sq.c.member_id),
+    secondaryjoin=AssoRole.id == foreign(current_asso_role_sq.c.asso_role_id),
+    viewonly=True,
+    uselist=False,
+    lazy='selectin',
+)
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

@@ -92,13 +92,13 @@ class MyAppEventsAndCommands():
 
     # List of checks that can be used with app commands
     # ========================================================
-    def _is_bot_owner(self, interaction: discord.Interaction) -> bool:
+    def _is_owner(self, interaction: discord.Interaction) -> bool:
         """A check which only allows the bot owner to use the command."""
-        return interaction.user.id == self.aj_config.discord_bot_owner
+        return any(role.id in self.aj_config.discord_owners for role in interaction.user.roles)
 
     def _is_manager(self, interaction: discord.Interaction) -> bool:
         """A check which only allows managers to use the command."""
-        return any(role.id in self.aj_config.discord_role_manager for role in interaction.user.roles)
+        return any(role.id in self.aj_config.discord_managers for role in interaction.user.roles)
 
 # Define a modal dialog for reporting issues or feedback
 class ReportModal(discord.ui.Modal, title='Votre Rapport'):
@@ -222,7 +222,7 @@ def _main():
 
         # # List of checks that can be used with app commands
         # # ========================================================
-        # def _is_bot_owner(interaction: discord.Interaction) -> bool:
+        # def _is_owner(interaction: discord.Interaction) -> bool:
         #     """A check which only allows the bot owner to use the command."""
         #     return interaction.user.id == aj_config.discord_bot_owner
 
@@ -311,7 +311,7 @@ def _main():
         # # To make an argument optional, you can either give it a supported default argument
         # # or you can mark it as Optional from the typing standard library. This example does both.
         # @client.tree.command()
-        # @app_commands.check(_is_bot_owner)
+        # @app_commands.check(_is_owner)
         # @app_commands.checks.has_permissions(manage_roles=True)
         # @app_commands.describe(member='The member you want to get the joined date from; defaults to the user who uses the command')
         # async def joined(interaction: discord.Interaction, member: Optional[discord.Member] = None):

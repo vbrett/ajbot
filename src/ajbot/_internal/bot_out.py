@@ -104,7 +104,7 @@ async def display_member(aj_db:AjDb,
         return
     [input_member] = input_member
 
-    members = await aj_db.query_members_per_id_info(input_member, 50, False)
+    members = await aj_db.query_members(input_member, 50, False)
 
     if members:
         if len(members) == 1:
@@ -164,7 +164,10 @@ async def display_event(aj_db:AjDb,
                                     ephemeral=True)
         return
 
-    events = await aj_db.query_events(season_name=season_name, event_str=event_str)
+    if event_str:
+        events = await aj_db.query_events(event_str=event_str, lazyload=False)
+    else:
+        events = await aj_db.query_events_per_season(season_name=season_name, lazyload=False)
 
     if events:
         format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
@@ -252,6 +255,14 @@ class DeleteEventButton(dui.Button):
 class CreateEventView(dui.Modal, title='Evènement'):
     """ Modal handling event creation / update
     """
+
+    def __init__(self):
+        self._db_event_id = None
+        self.event_date = None
+        self.event_name = None
+        self.participants = None
+        super().__init__()
+
     @classmethod
     async def create(cls, aj_db:AjDb, db_event=None):
         """ awaitable class factory
@@ -345,21 +356,19 @@ class CreateEventView(dui.Modal, title='Evènement'):
                 return
 
             event = await aj_db.add_update_event(event_id=self._db_event_id,
-                                                 event_date=event_date,
-                                                 event_name=event_name,
-                                                 participant_ids=participant_ids,)
+                                                event_date=event_date,
+                                                event_name=event_name,
+                                                participant_ids=participant_ids,)
 
 
             await display_event(aj_db=aj_db,
                                 interaction=interaction,
                                 event_str=str(event))
 
-    def __init__(self):
-        self._db_event_id = None
-        self.event_date = None
-        self.event_name = None
-        self.participants = None
-        super().__init__()
+    async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
+        """ Event triggered when an error occurs during modal processing
+        """
+        await send_response_as_text(interaction, f"Une erreur est survenue lors de la création / modification de l'évènement : {error}\nEt il faut tout refaire...", ephemeral=True)
 
 
 if __name__ == "__main__":
