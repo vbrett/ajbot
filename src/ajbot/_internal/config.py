@@ -99,11 +99,11 @@ class AjConfig():
         asso_roles = await aj_db.query_asso_roles(lazyload=False)
         for role in asso_roles:
             if role.is_owner:
-                discord_roles_cfg[_KEY_OWNERS] += [dr.discord_role_id for dr in role.discord_roles if dr.discord_role_id not in discord_roles_cfg[_KEY_OWNERS]]
+                discord_roles_cfg[_KEY_OWNERS] += [dr.id for dr in role.discord_roles if dr.id not in discord_roles_cfg[_KEY_OWNERS]]
             if role.is_manager:
-                discord_roles_cfg[_KEY_MANAGERS] += [dr.discord_role_id for dr in role.discord_roles if dr.discord_role_id not in discord_roles_cfg[_KEY_MANAGERS]]
+                discord_roles_cfg[_KEY_MANAGERS] += [dr.id for dr in role.discord_roles if dr.id not in discord_roles_cfg[_KEY_MANAGERS]]
             if role.is_member:
-                discord_roles_cfg[_KEY_MEMBERS] += [dr.discord_role_id for dr in role.discord_roles if dr.discord_role_id not in discord_roles_cfg[_KEY_MEMBERS]]
+                discord_roles_cfg[_KEY_MEMBERS] += [dr.id for dr in role.discord_roles if dr.id not in discord_roles_cfg[_KEY_MEMBERS]]
                 if not role.is_owner and not role.is_manager and not role.is_subscriber and not role.is_past_subscriber:
                     # default member role
                     assert _KEY_DEFAULT_MEMBER not in asso_roles_cfg, "Multiple default member asso roles mapped!"
@@ -111,12 +111,12 @@ class AjConfig():
             if role.is_subscriber:
                 assert _KEY_DEFAULT_SUBSCRIBER not in asso_roles_cfg, "Multiple subscriber asso roles mapped!"
                 assert len(role.discord_roles) == 1, "Multiple discord roles mapped to subscriber role!"
-                discord_roles_cfg[_KEY_DEFAULT_SUBSCRIBER] = role.discord_roles[0].discord_role_id
+                discord_roles_cfg[_KEY_DEFAULT_SUBSCRIBER] = role.discord_roles[0].id
                 asso_roles_cfg[_KEY_DEFAULT_SUBSCRIBER] = role.id
             if role.is_past_subscriber:
                 assert _KEY_DEFAULT_PAST_SUBSCRIBER not in asso_roles_cfg, "Multiple subscriber asso roles mapped!"
                 assert len(role.discord_roles) == 1, "Multiple discord roles mapped to past subscriber role!"
-                discord_roles_cfg[_KEY_DEFAULT_PAST_SUBSCRIBER] = role.discord_roles[0].discord_role_id
+                discord_roles_cfg[_KEY_DEFAULT_PAST_SUBSCRIBER] = role.discord_roles[0].id
                 asso_roles_cfg[_KEY_DEFAULT_PAST_SUBSCRIBER] = role.id
 
         self._config_dict[_KEY_DISCORD][_KEY_ROLES] = discord_roles_cfg

@@ -174,20 +174,6 @@ class AjDb():
         return query_result
 
 
-    async def query_discord_asso_roles(self):
-        ''' retrieve list of dicord & asso roles and how their are mapped
-
-            @return
-                [all found roles]
-        '''
-        query = sa.select(ajdb_t.AssoRoleDiscordRole)
-
-        query_result = await self.aio_session.execute(query)
-        query_result = query_result.scalars().all()
-
-        return query_result
-
-
     # Members
     # -------
     async def query_members(self,
