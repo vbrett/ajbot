@@ -1,6 +1,5 @@
 """ List of function to handle app command inputs (decorator, checks, param,...)
 """
-from datetime import datetime, timedelta
 
 from discord import Interaction, app_commands
 

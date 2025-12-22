@@ -45,10 +45,10 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         lut_tables.append(new_asso_role)
         if val.get('discord'):
             for d_role in val['discord'].split(','):
-                matched_role = [elt for elt in lut_tables
+                [matched_discord_role] = [elt for elt in lut_tables
                                 if isinstance(elt, ajdb_t.DiscordRole) and elt.name == d_role]
-                lut_tables.append(ajdb_t.AssoRoleDiscordRole(asso_role=new_asso_role,
-                                                          discord_role=matched_role[0]))
+                new_asso_role.discord_roles.append(matched_discord_role)
+
         if val.get('is_member') is not None:
             new_asso_role.is_member=bool(val.get('is_member'))
         if val.get('is_past_subscriber') is not None:
@@ -202,23 +202,25 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                 and val['entree'].get('detail') == 'Vote par pouvoir')
             or (val['entree']['categorie'] == 'Présence')):
 
-            new_event = ajdb_t.MemberEvent()
-            event_tables.append(new_event)
-            new_event.presence = val['entree']['categorie'] == 'Présence'
+            new_memberevent = ajdb_t.MemberEvent()
+            event_tables.append(new_memberevent)
+            new_memberevent.presence = val['entree']['categorie'] == 'Présence'
             matched_event = [elt for elt in event_tables if isinstance(elt, ajdb_t.Event) and elt.date == cast(datetime, val['date']).date()]
             if matched_event:
-                new_event.event = matched_event[0]
+                new_memberevent.event = matched_event[0]
             else:
-                new_event.event = ajdb_t.Event()
-                event_tables.append(new_event.event)
-                new_event.event.date = cast(datetime, val['date']).date()
-                new_event.event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.event.date >= elt.start
-                                                                                                     and new_event.event.date <= elt.end][0]
+                new_event = ajdb_t.Event()
+                event_tables.append(new_event)
+                new_event.date = cast(datetime, val['date']).date()
+                new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.date >= elt.start
+                                                                                                and new_event.date <= elt.end][0]
+                new_memberevent.event = new_event
+
             if val.get('membre'):
-                new_event.member = [elt for elt in member_tables if isinstance(elt, ajdb_t.Member) and elt.id == val['membre']['id']][0]
+                new_memberevent.member = [elt for elt in member_tables if isinstance(elt, ajdb_t.Member) and elt.id == val['membre']['id']][0]
 
             if val.get('commentaire_old'):
-                new_event.comment = val['commentaire_old']
+                new_memberevent.comment = val['commentaire_old']
 
         # Member - Asso role
         if val['entree']['categorie'] == 'Info Membre' and val.get('membre') and val['membre'].get('asso_role'):
@@ -233,11 +235,11 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 
             assert len(previous_member_asso_roles) <= 1, f"Erreur dans la DB: Plusieurs rôles asso actifs pour le membre {member_id} !:\n{', '.join(m.member.name for m in previous_member_asso_roles)}"
             if len([elt for elt in previous_member_asso_roles if elt.asso_role == matched_role]) == 0:
-                new_event = ajdb_t.MemberAssoRole(member_id = member_id,
+                new_memberassorole = ajdb_t.MemberAssoRole(member_id = member_id,
                                                   asso_role = matched_role,
                                                   start = start,
                                                   end = end)
-                event_tables.append(new_event)
+                event_tables.append(new_memberassorole)
 
     async with aj_db.AsyncSessionMaker() as session:
         async with session.begin():

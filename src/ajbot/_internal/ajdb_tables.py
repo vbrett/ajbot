@@ -181,6 +181,9 @@ class Member(Base):
     memberships: orm.Mapped[list['Membership']] = orm.relationship('Membership', back_populates='member', lazy='selectin')
     events: orm.Mapped[list['Event']] = orm.relationship(secondary='JCT_event_member', back_populates='members', lazy='selectin')
 
+    event_members: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='member', lazy='selectin') #AJDB_MIGRATION
+    asso_role_members: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='member', lazy='selectin') #AJDB_MIGRATION
+
 
 #     logs: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.author]', back_populates='members', lazy='selectin')
 #     logs_: orm.Mapped[list['Log']] = orm.relationship('Log', foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
@@ -256,6 +259,7 @@ class AssoRole(Base):
     is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     discord_roles: orm.Mapped[list['DiscordRole']] = orm.relationship(secondary='JCT_asso_discord_role', back_populates='asso_roles', lazy='selectin')
     members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin')
+    member_asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
         return f'{self}'
@@ -313,6 +317,7 @@ class Event(Base):
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
     members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', back_populates='events', lazy='selectin')
+    member_events: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', lazy='selectin') #AJDB_MIGRATION
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship('Transaction', back_populates='events', lazy='selectin')
     # logs: orm.Mapped[list['Log']] = orm.relationship('Log', back_populates='events', lazy='selectin')
     is_in_current_season: orm.Mapped[bool] = orm.column_property(sa.exists().where(
@@ -747,6 +752,10 @@ class MemberAssoRole(Base):
     end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
+    asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_roles', lazy='selectin') #AJDB_MIGRATION
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_members', lazy='selectin') #AJDB_MIGRATION
+
+
     def __str__(self):
         return f'{self.id}, member #{self.member_id}, asso role #{self.asso_role_id}'
 
@@ -774,6 +783,9 @@ class MemberEvent(Base):
     member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
+
+    event: orm.Mapped['Event'] = orm.relationship(back_populates='member_events', lazy='selectin') #AJDB_MIGRATION
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='event_members', lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
         return f'{self.id}, event #{self.event_id}, member #{self.member_id}'
