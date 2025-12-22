@@ -3,10 +3,10 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 import sqlalchemy as sa
-from sqlalchemy import orm
+# from sqlalchemy import orm
 
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
@@ -117,57 +117,13 @@ async def _test_misc():
     with AjConfig(save_on_exit=True) as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
 
-            query = sa.select(ajdb_t.Member)
-            # query = sa.select(sa.select(sa.case((sa.exists().where(ajdb_t.Member.current_manual_asso_role != None), "cotisant"), else_="saispo")).scalar_subquery().label("test"))
-            # query = query.select_from(ajdb_t.Member)
-            # query = query.options(orm.lazyload(ajdb_t.Member.emails),
-            #                       orm.lazyload(ajdb_t.Member.email_principal),
-            #                       orm.lazyload(ajdb_t.Member.credential),
-            #                       orm.lazyload(ajdb_t.Member.phones),
-            #                       orm.lazyload(ajdb_t.Member.addresses),
-            #                       orm.lazyload(ajdb_t.Member.events),
-            #                       orm.lazyload(ajdb_t.Member.memberships),
-            #                       orm.lazyload(ajdb_t.Member.discord_pseudo),
-            #                       orm.lazyload(ajdb_t.Member.phone_principal),
-            #                       orm.lazyload(ajdb_t.Member.manual_asso_roles)
-            #                      )
-            members = (await aj_db.aio_session.scalars(query)).all()
-            for m in members:
-                print(f"{m}")
-# SELECT
-# 	id m_id,
-# 	CASE
-# 		WHEN EXISTS (SELECT asso_role_id FROM JCT_member_asso_role WHERE (member_id = m_id AND start <= NOW() AND (end IS NULL OR end >= NOW())))
-# 		THEN  (SELECT asso_role_id FROM JCT_member_asso_role WHERE (member_id = m_id AND start <= NOW() AND (end IS NULL OR end >= NOW())))
+            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.last_presence > (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))
+            print(query)
 
-# 		WHEN EXISTS (SELECT 1 FROM JCT_member_asso_role mar
-#                      WHERE mar.member_id = m_id AND mar.start <= NOW() AND (mar.end IS NULL OR mar.end >= NOW())
-#             		)
-# 		THEN (SELECT JCT_member_asso_role.asso_role_id FROM JCT_member_asso_role
-#                      WHERE JCT_member_asso_role.member_id = m_id AND JCT_member_asso_role.start <= NOW() AND (JCT_member_asso_role.end IS NULL OR JCT_member_asso_role.end >= NOW())
-#             		)
-
-# 		WHEN EXISTS (
-#             		SELECT 1 FROM memberships ms
-#             		WHERE ms.member_id = m_id AND EXISTS(SELECT 1 FROM seasons WHERE ms.season_id = seasons.id
-#                                                          							 AND seasons.start <= NOW()
-#                                                          							 AND (seasons.end IS NULL OR seasons.end >= NOW()))
-#             		)
-#         THEN (SELECT id FROM asso_roles WHERE is_subscriber = TRUE)
-
-# 		WHEN EXISTS (
-#             		SELECT 1 FROM memberships ms
-#             		WHERE ms.member_id = m_id AND EXISTS(SELECT 1 FROM seasons WHERE ms.season_id = seasons.id
-#                                                          							 AND seasons.end <= NOW())
-#             		)
-#         THEN (SELECT id FROM asso_roles WHERE is_past_subscriber = TRUE)
-
-#         ELSE (SELECT id FROM asso_roles WHERE is_member = TRUE AND is_subscriber = FALSE AND is_past_subscriber = FALSE AND is_manager = FALSE AND is_owner = FALSE)
-# 	END AS "current_asso_role"
-
-# FROM members
-# WHERE 1
-
+            items = (await aj_db.aio_session.scalars(query)).all()
+            # items = await aj_db.query_members_per_season_presence()
+            for i in items:
+                print(f"{i} - {i.last_presence if i.last_presence else ''}")
 
 async def _main():
     """ main function - async version
