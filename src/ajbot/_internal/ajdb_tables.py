@@ -879,5 +879,22 @@ Member.is_subscriber = orm.column_property(sa.exists().where(
                         Membership.member_id == Member.id,
                         Membership.is_in_current_season)))
 
+Member.last_presence = orm.column_property(
+    sa.select(sa.func.max(Event.date))
+    .select_from(
+        Event.__table__.join(
+            MemberEvent,
+            MemberEvent.event_id == Event.id,
+        )
+    )
+    .where(
+        sa.and_(
+            MemberEvent.member_id == Member.id,
+            MemberEvent.presence == True,             #pylint: disable=singleton-comparison
+        )
+    )
+    .scalar_subquery()
+)
+
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

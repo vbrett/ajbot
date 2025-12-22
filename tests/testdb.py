@@ -117,11 +117,12 @@ async def _test_misc():
     with AjConfig(save_on_exit=True) as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
 
-            query = sa.select(ajdb_t.Membership)
-            # items = (await aj_db.aio_session.scalars(query)).all()
-            items = await aj_db.query_members_per_season_presence()
+            query = sa.select(ajdb_t.Member)
+
+            items = (await aj_db.aio_session.scalars(query)).all()
+            # items = await aj_db.query_members_per_season_presence()
             for i in items:
-                print(f"{i}", '!!!!!' if cast(ajdb_t.Member, i).is_subscriber else '')
+                print(f"{i} - {i.last_presence if i.last_presence else ''}")
 
 
 # SELECT
