@@ -127,10 +127,7 @@ class AjDb():
         if options:
             for option in options:
                 query = query.options(option)
-        query_result = await self.aio_session.execute(query)
-        query_result = query_result.scalars().all()
-
-        return query_result
+        return (await self.aio_session.scalars(query)).all()
 
 
     @cached_ajdb_method
@@ -148,10 +145,7 @@ class AjDb():
         else:
             query = query.options(orm.selectinload(ajdb_t.Season.events), orm.selectinload(ajdb_t.Season.memberships))
 
-        query_result = await self.aio_session.execute(query)
-        query_result = query_result.scalars().all()
-
-        return query_result
+        return (await self.aio_session.scalars(query)).all()
 
     @cached_ajdb_method
     async def query_asso_roles(self, lazyload:bool=True):
@@ -168,10 +162,7 @@ class AjDb():
         else:
             query = query.options(orm.selectinload(ajdb_t.AssoRole.discord_roles), orm.selectinload(ajdb_t.AssoRole.members))
 
-        query_result = await self.aio_session.execute(query)
-        query_result = query_result.scalars().all()
-
-        return query_result
+        return (await self.aio_session.scalars(query)).all()
 
 
     # Members
@@ -215,9 +206,7 @@ class AjDb():
             raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
 
 
-        query_result = await self.aio_session.execute(query)
-
-        matched_members = query_result.scalars().all()
+        matched_members = (await self.aio_session.scalars(query)).all()
 
         if len(matched_members) <= 1:
             return matched_members
@@ -261,14 +250,9 @@ class AjDb():
                         .where(ajdb_t.Season.is_current_season)\
                         .group_by(ajdb_t.Member)
 
-        query_result = await self.aio_session.execute(query)
-
-        members = query_result.scalars().all()
+        members = (await self.aio_session.scalars(query)).all()
         if subscriber_only:
-            members = [m for m in members
-                       if any(mb for mb in cast(ajdb_t.Member, m).memberships
-                              if ((not season_name and mb.is_in_current_season and mb.member == m)
-                                  or mb.is_in_current_season and mb.season.name == season_name))]
+            members = [m for m in members if cast(ajdb_t.Member, m).is_subscriber]
         return members
 
     async def query_members_per_event_presence(self, event_id):
@@ -284,9 +268,7 @@ class AjDb():
                     .where(ajdb_t.Event.id == event_id)\
                     .group_by(ajdb_t.Member)
 
-        query_result = await self.aio_session.execute(query)
-
-        return query_result.scalars().all()
+        return (await self.aio_session.scalars(query)).all()
 
 
     # Events
@@ -303,13 +285,11 @@ class AjDb():
         '''
         query = sa.select(ajdb_t.Event)
         if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+            query = query.options(orm.lazyload(ajdb_t.Event.members))
         else:
-            query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+            query = query.options(orm.selectinload(ajdb_t.Event.members))
 
-        query_result = await self.aio_session.execute(query)
-
-        events = query_result.scalars().all()
+        events = (await self.aio_session.scalars(query)).all()
         if event_str:
             events = [e for e in events if str(e) == event_str]
 
@@ -331,13 +311,11 @@ class AjDb():
         else:
             query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
         if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+            query = query.options(orm.lazyload(ajdb_t.Event.members))
         else:
-            query = query.options(orm.selectinload(ajdb_t.Event.members, ajdb_t.MemberEvent.member))
+            query = query.options(orm.selectinload(ajdb_t.Event.members))
 
-        query_result = await self.aio_session.execute(query)
-
-        events = query_result.scalars().all()
+        events = (await self.aio_session.scalars(query)).all()
 
         return events
 
@@ -350,8 +328,7 @@ class AjDb():
         """ add or update an event
         """
         query = sa.select(sa.func.max(ajdb_t.Member.id))
-        query_result = await self.aio_session.execute(query)
-        last_valid_member_id = query_result.scalars().one_or_none()
+        last_valid_member_id = (await self.aio_session.scalars(query)).one_or_none()
         unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]
 
         if unkown_participant_ids:
@@ -367,8 +344,7 @@ class AjDb():
             self.aio_session.add(db_event)
         else:
             query = sa.select(ajdb_t.Event).where(ajdb_t.Event.id == event_id)
-            query_result = await self.aio_session.execute(query)
-            db_event = query_result.scalars().one_or_none()
+            db_event = (await self.aio_session.scalars(query)).one_or_none()
             if not db_event:
                 raise AjDbException(f'Evènement inconnu: {event_id}')
 

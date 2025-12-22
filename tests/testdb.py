@@ -3,10 +3,10 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date, datetime
+from datetime import date
 
 import sqlalchemy as sa
-from sqlalchemy import orm
+# from sqlalchemy import orm
 
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
@@ -117,23 +117,13 @@ async def _test_misc():
     with AjConfig(save_on_exit=True) as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
 
-            query = sa.select(ajdb_t.Member)
-            # query = sa.select(sa.select(sa.case((sa.exists().where(ajdb_t.Member.current_manual_asso_role != None), "cotisant"), else_="saispo")).scalar_subquery().label("test"))
-            # query = query.select_from(ajdb_t.Member)
-            # query = query.options(orm.lazyload(ajdb_t.Member.emails),
-            #                       orm.lazyload(ajdb_t.Member.email_principal),
-            #                       orm.lazyload(ajdb_t.Member.credential),
-            #                       orm.lazyload(ajdb_t.Member.phones),
-            #                       orm.lazyload(ajdb_t.Member.addresses),
-            #                       orm.lazyload(ajdb_t.Member.events),
-            #                       orm.lazyload(ajdb_t.Member.memberships),
-            #                       orm.lazyload(ajdb_t.Member.discord_pseudo),
-            #                       orm.lazyload(ajdb_t.Member.phone_principal),
-            #                       orm.lazyload(ajdb_t.Member.manual_asso_roles)
-            #                      )
-            members = (await aj_db.aio_session.scalars(query)).all()
-            for m in members:
-                print(f"{m}")
+            query = sa.select(ajdb_t.Membership)
+            # items = (await aj_db.aio_session.scalars(query)).all()
+            items = await aj_db.query_members_per_season_presence()
+            for i in items:
+                print(f"{i}", '!!!!!' if cast(ajdb_t.Member, i).is_subscriber else '')
+
+
 # SELECT
 # 	id m_id,
 # 	CASE
