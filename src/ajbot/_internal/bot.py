@@ -1,6 +1,7 @@
 """ Discord bot
 """
 from typing import Optional, cast
+from datetime import datetime, timedelta
 # import tempfile
 # from pathlib import Path
 
@@ -174,8 +175,8 @@ class AjBot():
                     discord_role_mismatches = {}
                     aj_members = await aj_db.query_table_content(ajdb_t.Member)
                     aj_discord_roles = await aj_db.query_table_content(ajdb_t.DiscordRole)
-                    default_asso_role = aj_config.asso_member_default
-                    default_discord_role_ids = [dr.id for dr in aj_discord_roles if default_asso_role in [ar.id for ar in cast(ajdb_t.DiscordRole, dr).asso_roles]]
+                    default_asso_role_id = aj_config.asso_member_default
+                    default_discord_role_ids = [dr.id for dr in aj_discord_roles if default_asso_role_id in [ar.id for ar in cast(ajdb_t.DiscordRole, dr).asso_roles]]
 
                     for discord_member in interaction.guild.members:
                         actual_role_ids = [r.id for r in discord_member.roles if r.name != "@everyone"]
@@ -183,18 +184,34 @@ class AjBot():
                         matched_members = [cast(ajdb_t.Member, d) for d in aj_members if d.discord_pseudo and d.discord_pseudo.name == discord_member.name]
                         assert (len(matched_members) <= 1), f"Erreur dans la DB: Plusieurs membres correspondent au même pseudo Discord {discord_member}:\n{', '.join(m.name for m in matched_members)}"
                         if len(matched_members) == 0:
+                            member = None
+                            # discord user not found in db, expected discord role is default
                             expected_role_ids = default_discord_role_ids
                         else:
-                            expected_role_ids = [dr.id for dr in cast(ajdb_t.AssoRole, matched_members[0].current_asso_role).discord_roles]
+                            # discord user found in db, check using asso role
+                            member = matched_members[0]
+                            if (not member.is_subscriber
+                                and member.is_past_subscriber
+                                and (   not member.last_presence
+                                     or member.last_presence < (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))):
+                                # user is a past subscriber but has not participated for some time, expected discord role is default
+                                expected_role_ids = default_discord_role_ids
+                            else:
+                                # expected discord role(s) are the ones mapped to user asso role
+                                expected_role_ids = [dr.id for dr in cast(ajdb_t.AssoRole, member.current_asso_role).discord_roles]
 
-                        if set(expected_role_ids) != set(actual_role_ids):
-                            discord_role_mismatches[discord_member.name] = {'expected': '; '.join(f"{interaction.guild.get_role(id) or id}" for id in expected_role_ids),
-                                                                            'actual':   '; '.join(f"{interaction.guild.get_role(id) or id}" for id in actual_role_ids  ),
-                                                                        }
+                        expected_role_ids = set(expected_role_ids)
+                        actual_role_ids = set(actual_role_ids)
+                        if expected_role_ids != actual_role_ids:
+                            expected_role_key = '; '.join(f"{interaction.guild.get_role(id) or id}" for id in expected_role_ids)
+                            discord_role_mismatches.setdefault(expected_role_key, [])
+                            discord_role_mismatches[expected_role_key].append(  f"{member if member else discord_member.name} - "
+                                                                                + '; '.join(f"{interaction.guild.get_role(id) or id}" for id in actual_role_ids))
 
                     if discord_role_mismatches:
-                        summary = f"{len(discord_role_mismatches)} personne(s) n'ont pas le bon rôle :"
-                        reply = '\n'.join(f"- {k} :\n  - attendu(s): {v['expected']}\n  - actuel(s): {v['actual']}" for k, v in discord_role_mismatches.items())
+                        summary = "Des roles ne sont pas correctements attribués :"
+                        reply = '\n'.join(f"- Attendu(s): {k}\n  - {'\n  - '.join(e for e in v)}" for k, v in discord_role_mismatches.items())
+                        # reply = '\n'.join(f"- {u['who']} :\n  - attendu(s): {u['expected']}\n  - actuel(s): {u['actual']}" for u in discord_role_mismatches)
                     else:
                         summary = "Parfait ! Tout le monde a le bon rôle !"
                         reply = None

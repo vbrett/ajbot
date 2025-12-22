@@ -26,7 +26,7 @@ _KEY_DEFAULT_PAST_SUBSCRIBER = "past_subscriber"
 _KEY_DEFAULT_MEMBER = "member"
 
 _KEY_ASSO = "asso"
-
+_KEY_ROLE_RESET_TIME_DAYS = "role_reset_time_days"
 
 _KEY_DB = "db"
 _KEY_DB_HOST = "host"
@@ -186,6 +186,12 @@ class AjConfig():
         """ Returns from config the asso role IDs having past subscriber attribute.
         """
         return self._config_dict[_KEY_ASSO][_KEY_ROLES].get(_KEY_DEFAULT_PAST_SUBSCRIBER)
+
+    @property
+    def asso_role_reset_duration_days(self):
+        """ Returns from config the duration in days a user role should be reset.
+        """
+        return self._config_dict[_KEY_ASSO][_KEY_ROLE_RESET_TIME_DAYS]
 
     @property
     def db_creds(self):
