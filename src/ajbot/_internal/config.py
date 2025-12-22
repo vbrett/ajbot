@@ -8,6 +8,19 @@ from vbrpytools.dicjsontools import load_json_file, save_json_file
 
 from ajbot._internal.exceptions import OtherException
 
+
+
+_MIGRATE_MODE = False        #pylint: disable=global-statement   #on purpose, to be able to change class definition
+def set_migrate_mode():
+    """ Set migrate mode
+    """
+    global _MIGRATE_MODE     #pylint: disable=global-statement   #on purpose, to be able to change class definition
+    _MIGRATE_MODE = True
+def get_migrate_mode():
+    """ Get migrate mode
+    """
+    return _MIGRATE_MODE
+
 AJ_ID_PREFIX = "AJ-"
 
 _AJ_CONFIG_PATH = Path(".env")

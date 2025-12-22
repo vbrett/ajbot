@@ -8,8 +8,10 @@ from pathlib import Path
 
 from vbrpytools.exceltojson import ExcelWorkbook
 
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
+from ajbot._internal.config import set_migrate_mode
+set_migrate_mode()
+from ajbot._internal.ajdb import AjDb               #pylint: disable=wrong-import-position #set migrate mode called explicitelly before import ajdb & ajdb_t
+from ajbot._internal import ajdb_tables as ajdb_t   #pylint: disable=wrong-import-position #set migrate mode called explicitelly before import ajdb & ajdb_t
 
 
 async def _create_db_schema(aj_db:AjDb):
