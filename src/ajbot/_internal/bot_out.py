@@ -202,7 +202,7 @@ async def display_event(aj_db:AjDb,
             container = dui.Container()
             view.add_item(container)
 
-            participants = [m.member for m in event.members]
+            participants = [m for m in event.members]
             participants.sort(key=lambda x:x.credential)
             message1 = f"# {event:{format_style}}"
             message2 = f"## {len(participants)} participant" + ('' if not participants else (('s' if len(participants) > 1 else '') + " :"))
