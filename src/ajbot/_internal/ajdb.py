@@ -306,7 +306,7 @@ class AjDb():
                 [all found events]
         '''
         if season_name:
-            query = sa.select(ajdb_t.Event).join(ajdb_t.Season).where(ajdb_t.Season.name == season_name)
+            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.season.has(ajdb_t.Season.name == season_name))
         else:
             query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
         if lazyload:

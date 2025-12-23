@@ -305,10 +305,15 @@ class AjBot():
 
         @self.client.tree.error
         async def error_report(interaction: Interaction, exception):
-            if isinstance(exception, app_commands.CommandOnCooldown):
-                error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite pour moi .\r\n\r\nRenvoie ta commande un peu plus tard."
-            else:
-                error_message =f"😱 Oups ! un truc chelou c'est passé.\r\n{exception}"
+            match exception:
+                case app_commands.CommandOnCooldown():
+                    error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite pour moi .\r\n\r\nRenvoie ta commande un peu plus tard."
+
+                case app_commands.CheckFailure():
+                    error_message = "🧙‍♂️ Désolé jeune padawan, seul un grand maître des arcanes peut effectuer cette commande."
+
+                case _:
+                    error_message =f"😱 Oups ! un truc chelou c'est passé. Relis la règle du jeu.\r\n{exception}"
 
             await bot_out.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 
