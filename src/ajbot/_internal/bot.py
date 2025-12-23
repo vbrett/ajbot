@@ -17,23 +17,6 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
 from ajbot._internal.exceptions import OtherException
 
-# def get_discord_members(discord_client, guild_names=None):
-#     """ Returns a dictionary of members info from a list of discord guilds.
-#         guilds: list of guild names to include members from.
-#                 If None, all guilds the bot is in are used.
-#     """
-#     return {"date": discord.utils.utcnow().isoformat(),
-#             "members": {guild.name: {member.id: {
-#                                                 'name': member.name,
-#                                                 'disp_name': member.display_name,
-#                                                 'joined_at': member.joined_at.isoformat(),
-#                                                 'roles': [role.name for role in member.roles]
-#                                                 }
-#                                     for member in guild.members}
-#                         for guild in discord_client.guilds
-#                         if guild_names is None or guild.name in guild_names}
-#             }
-
 class MyDiscordClient(discord.Client):
     """
     A basic client subclass which includes a CommandTree for application commands.

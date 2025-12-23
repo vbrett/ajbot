@@ -5,7 +5,7 @@ sqlacodegen mariadb://user:password@server:port/aj > ./output.py
 then manually reformated
 '''
 from functools import wraps
-from typing import cast, Optional
+from typing import Optional
 from datetime import date, datetime,timedelta
 from contextlib import nullcontext
 
@@ -235,24 +235,23 @@ class AjDb():
             @return
                 [all found members with number of presence]
         '''
-        if season_name:
-            query = sa.select(ajdb_t.Member)\
-                        .join(ajdb_t.MemberEvent)\
-                        .join(ajdb_t.Event)\
-                        .join(ajdb_t.Season)\
-                        .where(ajdb_t.Season.name == season_name)\
-                        .group_by(ajdb_t.Member)
+
+        query = sa.select(ajdb_t.Member)
+        if subscriber_only:
+            query = query.join(ajdb_t.Membership)
         else:
-            query = sa.select(ajdb_t.Member)\
-                        .join(ajdb_t.MemberEvent)\
-                        .join(ajdb_t.Event)\
-                        .join(ajdb_t.Season)\
-                        .where(ajdb_t.Season.is_current_season)\
-                        .group_by(ajdb_t.Member)
+            query = query.join(ajdb_t.MemberEvent).join(ajdb_t.Event)
+
+        if season_name:
+            where = ajdb_t.Season.name == season_name
+        else:
+            where = ajdb_t.Season.is_current_season
+
+        query = query.join(ajdb_t.Season)\
+                     .where(where)\
+                     .group_by(ajdb_t.Member)
 
         members = (await self.aio_session.scalars(query)).all()
-        if subscriber_only:
-            members = [m for m in members if cast(ajdb_t.Member, m).is_subscriber]
         return members
 
     async def query_members_per_event_presence(self, event_id):
