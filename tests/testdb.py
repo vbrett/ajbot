@@ -3,16 +3,17 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import sqlalchemy as sa
+# from sqlalchemy import orm
 
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import ajdb_tables as ajdb_t
-from ajbot._internal.config import FormatTypes
+from ajbot._internal.config import AjConfig, FormatTypes
 
 async def _search_member(aj_db:AjDb, lookup_val):
-    query_result = await aj_db.query_members_per_id_info(lookup_val)
+    query_result = await aj_db.query_members(lookup_val)
     print('')
     print('')
     print('-------------------')
@@ -83,7 +84,7 @@ async def _test_create_query(aj_db:AjDb):
     event_date = date(2025, 11, 21)
     event_partipant_ids = [2, 3, 36, 155]
 
-    seasons = await aj_db.query_table_content(ajdb_t.Season)
+    seasons = await aj_db.query_seasons()
 
     new_event = ajdb_t.Event(date = event_date)
     [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
@@ -112,10 +113,25 @@ async def _test_update_query(aj_db:AjDb):
     print('\r\n'.join([str(m) for m in my_event.members]))
 
 
+async def _test_misc():
+    with AjConfig(save_on_exit=True) as aj_config:
+        async with AjDb(aj_config=aj_config) as aj_db:
+
+            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.last_presence > (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))
+            print(query)
+
+            items = (await aj_db.aio_session.scalars(query)).all()
+            # items = await aj_db.query_members_per_season_presence()
+            for i in items:
+                print(f"{i} - {i.last_presence if i.last_presence else ''}")
+
 async def _main():
     """ main function - async version
     """
-    async with AjDb() as aj_db:
+    # async with AjDb() as aj_db:
+        # """
+        # execute all within same ajdb session
+        # """
 
         # await _search_member(aj_db, 'vincent')
         # await _season_events(aj_db)
@@ -123,7 +139,9 @@ async def _main():
 
         # await _test_query(aj_db)
         # await _test_create_query(aj_db)
-        await _test_update_query(aj_db)
+        # await _test_update_query(aj_db)
+
+    await _test_misc()
 
     return 0
 

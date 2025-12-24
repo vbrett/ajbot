@@ -8,8 +8,10 @@ from pathlib import Path
 
 from vbrpytools.exceltojson import ExcelWorkbook
 
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
+from ajbot._internal.config import set_migrate_mode
+set_migrate_mode()
+from ajbot._internal.ajdb import AjDb               #pylint: disable=wrong-import-position #set migrate mode called explicitelly before import ajdb & ajdb_t
+from ajbot._internal import ajdb_tables as ajdb_t   #pylint: disable=wrong-import-position #set migrate mode called explicitelly before import ajdb & ajdb_t
 
 
 async def _create_db_schema(aj_db:AjDb):
@@ -37,16 +39,28 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         lut_tables.append(ajdb_t.StreetType(name=val['val']))
 
     for val in ajdb_xls.dict_from_table('discord_role'):
-        lut_tables.append(ajdb_t.DiscordRole(name=val['val'], id=int(val['id']),))
+        new_discord_role = ajdb_t.DiscordRole(name=val['val'],
+                                             id=int(val['id']),)
+        lut_tables.append(new_discord_role)
     for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = ajdb_t.AssoRole(name=val['asso'])
         lut_tables.append(new_asso_role)
         if val.get('discord'):
             for d_role in val['discord'].split(','):
-                matched_role = [elt for elt in lut_tables
+                [matched_discord_role] = [elt for elt in lut_tables
                                 if isinstance(elt, ajdb_t.DiscordRole) and elt.name == d_role]
-                lut_tables.append(ajdb_t.AssoRoleDiscordRole(asso_role=new_asso_role,
-                                                          discord_role=matched_role[0]))
+                new_asso_role.discord_roles.append(matched_discord_role)
+
+        if val.get('is_member') is not None:
+            new_asso_role.is_member=bool(val.get('is_member'))
+        if val.get('is_past_subscriber') is not None:
+            new_asso_role.is_past_subscriber=bool(val.get('is_past_subscriber'))
+        if val.get('is_subscriber') is not None:
+            new_asso_role.is_subscriber=bool(val.get('is_subscriber'))
+        if val.get('is_manager') is not None:
+            new_asso_role.is_manager=bool(val.get('is_manager'))
+        if val.get('is_owner') is not None:
+            new_asso_role.is_owner=bool(val.get('is_owner'))
 
     async with aj_db.AsyncSessionMaker() as session:
         async with session.begin():
@@ -174,48 +188,60 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 
         # Event
         if val['entree']['categorie'] == 'Evènement' and not val['entree'].get('detail'):
-            new_event = ajdb_t.Event()
-            event_tables.append(new_event)
-            new_event.date   = cast(datetime, val['date']).date()
-            new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.date >= elt.start
-                                                                                           and new_event.date <= elt.end][0]
-            new_event.name   = val['entree']['nom']
+            matched_event = [elt for elt in event_tables if isinstance(elt, ajdb_t.Event) and elt.date == cast(datetime, val['date']).date()]
+            if matched_event:
+                matched_event[0].name = val['entree']['nom']
+            else:
+                new_event = ajdb_t.Event()
+                event_tables.append(new_event)
+                new_event.date   = cast(datetime, val['date']).date()
+                new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.date >= elt.start
+                                                                                                and new_event.date <= elt.end][0]
+                new_event.name   = val['entree']['nom']
 
         # Event - Member
         if (   (    val['entree']['categorie'] == 'Evènement'
                 and val['entree'].get('detail') == 'Vote par pouvoir')
             or (val['entree']['categorie'] == 'Présence')):
 
-            new_event = ajdb_t.MemberEvent()
-            event_tables.append(new_event)
-            new_event.presence = val['entree']['categorie'] == 'Présence'
+            new_memberevent = ajdb_t.MemberEvent()
+            event_tables.append(new_memberevent)
+            new_memberevent.presence = val['entree']['categorie'] == 'Présence'
             matched_event = [elt for elt in event_tables if isinstance(elt, ajdb_t.Event) and elt.date == cast(datetime, val['date']).date()]
             if matched_event:
-                new_event.event = matched_event[0]
+                new_memberevent.event = matched_event[0]
             else:
-                new_event.event = ajdb_t.Event()
-                event_tables.append(new_event.event)
-                new_event.event.date = cast(datetime, val['date']).date()
-                new_event.event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.event.date >= elt.start
-                                                                                                     and new_event.event.date <= elt.end][0]
+                new_event = ajdb_t.Event()
+                event_tables.append(new_event)
+                new_event.date = cast(datetime, val['date']).date()
+                new_event.season = [elt for elt in lut_tables if isinstance(elt, ajdb_t.Season) and new_event.date >= elt.start
+                                                                                                and new_event.date <= elt.end][0]
+                new_memberevent.event = new_event
+
             if val.get('membre'):
-                new_event.member = [elt for elt in member_tables if isinstance(elt, ajdb_t.Member) and elt.id == val['membre']['id']][0]
+                new_memberevent.member = [elt for elt in member_tables if isinstance(elt, ajdb_t.Member) and elt.id == val['membre']['id']][0]
 
             if val.get('commentaire_old'):
-                new_event.comment = val['commentaire_old']
+                new_memberevent.comment = val['commentaire_old']
 
         # Member - Asso role
         if val['entree']['categorie'] == 'Info Membre' and val.get('membre') and val['membre'].get('asso_role'):
-            timestamp = cast(datetime, val['date']).date()
+
+            start = cast(datetime, val['date']).date()
+            end = None
+            if val['entree'].get('detail'):
+                end = cast(datetime, val['entree']['detail']).date()
             member_id = val['membre']['id']
-            matched_role = [elt for elt in lut_tables if isinstance(elt, ajdb_t.AssoRole) and elt.name == val['membre']['asso_role']]
-            if len([elt for elt in event_tables if isinstance(elt, ajdb_t.MemberAssoRole)
-                                                   and elt.member_id == member_id
-                                                   and elt.asso_role == matched_role[0]]) == 0:
-                new_event = ajdb_t.MemberAssoRole(member_id = member_id,
-                                                   asso_role = matched_role[0],
-                                                   start = timestamp)
-                event_tables.append(new_event)
+            [matched_role] = [elt for elt in lut_tables if isinstance(elt, ajdb_t.AssoRole) and elt.name == val['membre']['asso_role']]
+            previous_member_asso_roles = [elt for elt in event_tables if isinstance(elt, ajdb_t.MemberAssoRole) and elt.member_id == member_id and not elt.end]
+
+            assert len(previous_member_asso_roles) <= 1, f"Erreur dans la DB: Plusieurs rôles asso actifs pour le membre {member_id} !:\n{', '.join(m.member.name for m in previous_member_asso_roles)}"
+            if len([elt for elt in previous_member_asso_roles if elt.asso_role == matched_role]) == 0:
+                new_memberassorole = ajdb_t.MemberAssoRole(member_id = member_id,
+                                                  asso_role = matched_role,
+                                                  start = start,
+                                                  end = end)
+                event_tables.append(new_memberassorole)
 
     async with aj_db.AsyncSessionMaker() as session:
         async with session.begin():
@@ -230,7 +256,7 @@ async def _main():
     """ main function
     """
     async with AjDb() as aj_db:
-        ajdb_xls_file = Path('aj_xls2db/Annuaire & Suivi.xlsx')
+        ajdb_xls_file = Path(sys.argv[1])
         try:
             ajdb_xls = ExcelWorkbook(ajdb_xls_file)
         except FileNotFoundError:
