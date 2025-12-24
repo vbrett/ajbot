@@ -259,6 +259,9 @@ class AjBot():
                               season_name:Optional[str]=None):
             """ Affiche la liste des présences & cotisants d'une saison donnée
             """
+            if not interaction.response.type:
+                await interaction.response.defer(ephemeral=True,)
+
             async with AjDb() as aj_db:
                 participants = await aj_db.query_members_per_season_presence(season_name)
                 subscribers = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
