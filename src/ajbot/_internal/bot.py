@@ -248,7 +248,7 @@ class AjBot():
                                             season_name=season_name,
                                             event_str=event_str)
 
-        @self.client.tree.command(name="cotisants")
+        @self.client.tree.command(name="saison")
         @app_commands.check(bot_in.is_manager)
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(season_name='saison')
@@ -257,54 +257,30 @@ class AjBot():
                                                                           attr_name='name').ac)
         async def memberships(interaction: Interaction,
                               season_name:Optional[str]=None):
-            """ Affiche la liste des cotisants d'une saison donnée
+            """ Affiche la liste des présences & cotisants d'une saison donnée
             """
             async with AjDb() as aj_db:
-                members = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
+                participants = await aj_db.query_members_per_season_presence(season_name)
+                subscribers = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
+                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
 
-                if members:
-                    if season_name:
-                        summary = f"{len(members)} personne(s) ont cotisé à la saison {season_name} :"
-                    else:
-                        summary = f"{len(members)} personne(s) ont déjà cotisé à cette saison :"
+                if participants:
+                    summary = f"{len(participants)} personne(s) sont venues et {len(subscribers)} ont cotisé :"
 
-                    format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
-                    reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in members)
+                    reply = '- ' + '\n- '.join(f'{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s) -' + (' ___non___' if m not in subscribers else '') +' cotisant' for m in participants)
                 else:
-                    summary = "Mais il n'y a eu personne cette saison ;-("
-                    reply = '---'
-
-                await bot_out.send_response_as_view(interaction=interaction, title="Cotisants", summary=summary, content=reply, ephemeral=True)
-
-        @self.client.tree.command(name="presence")
-        @app_commands.check(bot_in.is_manager)
-        @app_commands.checks.cooldown(1, 5)
-        @app_commands.rename(season_name='saison')
-        @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
-        @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
-                                                                          attr_name='name').ac)
-        async def presence(interaction: Interaction,
-                           season_name:Optional[str]=None,
-                           ):
-            """ Affiche les personnes ayant participé à une saison donnée
-            """
-            async with AjDb() as aj_db:
-                members = await aj_db.query_members_per_season_presence(season_name)
-
-                if members:
-                    members.sort(key=lambda x: x, reverse=False)
-                    if season_name:
-                        summary = f"{len(members)} personne(s) sont venus lors de la saison {season_name} :"
+                    if subscribers:
+                        summary = f"Je ne sais pas combien de personne sont venues, mais {len(subscribers)} ont cotisé :"
+                        reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in subscribers)
                     else:
-                        summary = f"{len(members)} personne(s) sont déjà venus lors de cette saison :"
+                        summary = "😱 Mais il n'y a eu personne ! 😱"
+                        reply = '---'
 
-                    format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
-                    reply = '- ' + '\n- '.join(f'{m:{format_style}} - {m.season_presence_count(season_name)} participation(s)' for m in members)
-                else:
-                    summary = "Mais il n'y a eu personne cette saison ;-("
-                    reply = "---"
-
-                await bot_out.send_response_as_view(interaction=interaction, title="Présence", summary=summary, content=reply, ephemeral=True)
+                await bot_out.send_response_as_view(interaction=interaction,
+                                                    title=f"Saison {season_name if season_name else 'en cours'}",
+                                                    summary=summary,
+                                                    content=reply,
+                                                    ephemeral=True)
 
 
         # ========================================================
