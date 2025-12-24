@@ -17,6 +17,16 @@ from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
 from ajbot._internal.exceptions import OtherException
 
+
+async def _init_env():
+    """
+    preload in config & cache some semi-permanent data from DB
+    """
+    with AjConfig(save_on_exit=True) as aj_config:
+        async with AjDb(aj_config=aj_config) as aj_db:
+            await aj_db.init_cache()
+            await aj_config.udpate_roles(aj_db=aj_db)
+
 class MyDiscordClient(discord.Client):
     """
     A basic client subclass which includes a CommandTree for application commands.
@@ -73,11 +83,7 @@ class AjBot():
         @self.client.event
         async def on_ready():
             # preload in config & cache some semi-permanent data from DB
-            with AjConfig(save_on_exit=True) as aj_config:
-                async with AjDb(aj_config=aj_config) as aj_db:
-                    _ = await aj_db.query_asso_roles(lazyload=False)
-                    _ = await aj_db.query_seasons(lazyload=True)
-                    await aj_config.udpate_roles(aj_db=aj_db)
+            await _init_env()
 
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
@@ -98,6 +104,21 @@ class AjBot():
             await bot_out.send_response_as_text(interaction=interaction,
                                                 content=f"Version du bot: {ajbot_version}",
                                                 ephemeral=True)
+
+        @self.client.tree.command(name="maitenance")
+        @app_commands.check(bot_in.is_owner)
+        @app_commands.checks.cooldown(1, 5)
+        async def maitenance(interaction: Interaction):
+            """ reset ajdb cache
+            """
+            if not interaction.response.type:
+                await interaction.response.defer(ephemeral=True,)
+
+            await _init_env()
+
+            await bot_out.send_response_as_text(interaction=interaction,
+                                           content="👷‍♂️ C'est tout propre !",
+                                           ephemeral=True)
 
         @self.client.tree.command(name="bonjour")
         @app_commands.check(bot_in.is_member)

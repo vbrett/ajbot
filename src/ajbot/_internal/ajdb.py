@@ -20,6 +20,9 @@ from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
 from ajbot._internal import ajdb_tables as ajdb_t
 
+cache_data = {}
+cache_time = {}
+
 def cached_ajdb_method(func):
     """ Decorator to handle cached AjDb data
     @arg:
@@ -28,11 +31,12 @@ def cached_ajdb_method(func):
     @return:
         cached data if available and not expired
     """
-    cache_data = {}
-    cache_time = {}
 
     @wraps(func)
     async def wrapper(self, *args, refresh_cache:bool=False, keep_detached:bool=False, **kwargs):
+        global cache_data   #pylint: disable=global-variable-not-assigned   #on purpose, to handle cache
+        global cache_time   #pylint: disable=global-variable-not-assigned   #on purpose, to handle cache
+
         key = (func.__name__, args, tuple(kwargs.items()))
         now = datetime.now()
         if not refresh_cache:
@@ -53,6 +57,13 @@ def cached_ajdb_method(func):
         cache_time[key] = now
         return result
     return wrapper
+
+def _clear_cache():
+    global cache_data   #pylint: disable=global-statement   #on purpose, to handle cache
+    global cache_time   #pylint: disable=global-statement   #on purpose, to handle cache
+
+    cache_data = {}
+    cache_time = {}
 
 
 class AjDb():
@@ -106,6 +117,19 @@ class AjDb():
         async with self.db_engine.begin() as conn:
             await conn.run_sync(ajdb_t.Base.metadata.drop_all)
             await conn.run_sync(ajdb_t.Base.metadata.create_all)
+
+    async def clear_cache(self):
+        """ clear db cache
+        """
+        _clear_cache()
+
+    async def init_cache(self):
+        """ pre-load some semi-permanent db table in cache
+        """
+        await self.clear_cache()
+        await self.query_asso_roles(lazyload=False)
+        await self.query_seasons(lazyload=True)
+
 
     # DB Queries
     # ==========

@@ -44,7 +44,7 @@ class AutocompleteFactory():
 
 # List of checks that can be used with app commands
 # ========================================================
-def is_bot_owner(interaction: Interaction) -> bool:
+def is_owner(interaction: Interaction) -> bool:
     """A check which only allows the bot owner to use the command."""
     with AjConfig() as aj_config:
         owner_roles = aj_config.discord_owners
