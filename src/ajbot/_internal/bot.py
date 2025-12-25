@@ -1,7 +1,6 @@
 """ Discord bot
 """
-from typing import Optional, cast
-from datetime import datetime, timedelta
+from typing import Optional
 # import tempfile
 # from pathlib import Path
 
@@ -13,12 +12,11 @@ from discord import app_commands, Interaction
 from ajbot import __version__ as ajbot_version
 from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
 from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
 from ajbot._internal import bot_in, bot_out
 from ajbot._internal.exceptions import OtherException
 
 
-async def _init_env():
+async def _init_bot_env():
     """
     preload in config & cache some semi-permanent data from DB
     """
@@ -83,7 +81,7 @@ class AjBot():
         @self.client.event
         async def on_ready():
             # preload in config & cache some semi-permanent data from DB
-            await _init_env()
+            await _init_bot_env()
 
             print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
             print('------')
@@ -114,7 +112,7 @@ class AjBot():
             if not interaction.response.type:
                 await interaction.response.defer(ephemeral=True,)
 
-            await _init_env()
+            await _init_bot_env()
 
             await bot_out.send_response_as_text(interaction=interaction,
                                            content="👷‍♂️ C'est tout propre !",
@@ -171,59 +169,14 @@ class AjBot():
         async def roles(interaction: Interaction,):
             """ Affiche les membres qui n'ont pas le bon role
             """
-            if not interaction.response.type:
-                await interaction.response.defer(ephemeral=True,)
-
-            with AjConfig(save_on_exit=True) as aj_config:
+            with AjConfig(save_on_exit=False) as aj_config:
                 async with AjDb(aj_config=aj_config) as aj_db:
-                    discord_role_mismatches = {}
-                    aj_members = await aj_db.query_table_content(ajdb_t.Member)
-                    aj_discord_roles = await aj_db.query_table_content(ajdb_t.DiscordRole)
-                    default_asso_role_id = aj_config.asso_member_default
-                    default_discord_role_ids = [dr.id for dr in aj_discord_roles if default_asso_role_id in [ar.id for ar in cast(ajdb_t.DiscordRole, dr).asso_roles]]
-
-                    for discord_member in interaction.guild.members:
-                        actual_role_ids = [r.id for r in discord_member.roles if r.name != "@everyone"]
-
-                        matched_members = [cast(ajdb_t.Member, d) for d in aj_members if d.discord_pseudo and d.discord_pseudo.name == discord_member.name]
-                        assert (len(matched_members) <= 1), f"Erreur dans la DB: Plusieurs membres correspondent au même pseudo Discord {discord_member}:\n{', '.join(m.name for m in matched_members)}"
-                        if len(matched_members) == 0:
-                            member = None
-                            # discord user not found in db, expected discord role is default
-                            expected_role_ids = default_discord_role_ids
-                        else:
-                            # discord user found in db, check using asso role
-                            member = matched_members[0]
-                            if (not member.is_subscriber
-                                and member.is_past_subscriber
-                                and (   not member.last_presence
-                                     or member.last_presence < (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))):
-                                # user is a past subscriber but has not participated for some time, expected discord role is default
-                                expected_role_ids = default_discord_role_ids
-                            else:
-                                # expected discord role(s) are the ones mapped to user asso role
-                                expected_role_ids = [dr.id for dr in cast(ajdb_t.AssoRole, member.current_asso_role).discord_roles]
-
-                        expected_role_ids = set(expected_role_ids)
-                        actual_role_ids = set(actual_role_ids)
-                        if expected_role_ids != actual_role_ids:
-                            expected_role_key = '; '.join(f"{interaction.guild.get_role(id) or id}" for id in expected_role_ids)
-                            discord_role_mismatches.setdefault(expected_role_key, [])
-                            discord_role_mismatches[expected_role_key].append(  f"{member if member else discord_member.name} - "
-                                                                                + '; '.join(f"{interaction.guild.get_role(id) or id}" for id in actual_role_ids))
-
-                    if discord_role_mismatches:
-                        summary = "Des roles ne sont pas correctements attribués :"
-                        reply = '\n'.join(f"- Attendu(s): {k}\n  - {'\n  - '.join(e for e in v)}" for k, v in discord_role_mismatches.items())
-                        # reply = '\n'.join(f"- {u['who']} :\n  - attendu(s): {u['expected']}\n  - actuel(s): {u['actual']}" for u in discord_role_mismatches)
-                    else:
-                        summary = "Parfait ! Tout le monde a le bon rôle !"
-                        reply = None
-
-                    await bot_out.send_response_as_view(interaction=interaction, title="Rôles", summary=summary, content=reply, ephemeral=True)
+                    await bot_out.display_roles(aj_config=aj_config,
+                                                aj_db=aj_db,
+                                                interaction=interaction)
 
 
-        # Season related commands
+        # Events & Season related commands
         # ========================================================
 
         @self.client.tree.command(name="evenement")
@@ -255,35 +208,14 @@ class AjBot():
         @app_commands.describe(season_name='la saison à afficher (aucune = saison en cours)')
         @app_commands.autocomplete(season_name=bot_in.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
-        async def memberships(interaction: Interaction,
-                              season_name:Optional[str]=None):
+        async def season(interaction: Interaction,
+                         season_name:Optional[str]=None):
             """ Affiche la liste des présences & cotisants d'une saison donnée
             """
-            if not interaction.response.type:
-                await interaction.response.defer(ephemeral=True,)
-
             async with AjDb() as aj_db:
-                participants = await aj_db.query_members_per_season_presence(season_name)
-                subscribers = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
-                format_style = FormatTypes.FULLSIMPLE if bot_in.is_manager(interaction) else FormatTypes.RESTRICTED
-
-                if participants:
-                    summary = f"{len(participants)} personne(s) sont venues et {len(subscribers)} ont cotisé :"
-
-                    reply = '- ' + '\n- '.join(f'{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s) -' + (' ___non___' if m not in subscribers else '') +' cotisant' for m in participants)
-                else:
-                    if subscribers:
-                        summary = f"Je ne sais pas combien de personne sont venues, mais {len(subscribers)} ont cotisé :"
-                        reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in subscribers)
-                    else:
-                        summary = "😱 Mais il n'y a eu personne ! 😱"
-                        reply = '---'
-
-                await bot_out.send_response_as_view(interaction=interaction,
-                                                    title=f"Saison {season_name if season_name else 'en cours'}",
-                                                    summary=summary,
-                                                    content=reply,
-                                                    ephemeral=True)
+                await bot_out.display_season(aj_db=aj_db,
+                                             interaction=interaction,
+                                             season_name=season_name)
 
 
         # ========================================================
@@ -307,7 +239,7 @@ class AjBot():
         async def error_report(interaction: Interaction, exception):
             match exception:
                 case app_commands.CommandOnCooldown():
-                    error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite pour moi .\r\n\r\nRenvoie ta commande un peu plus tard."
+                    error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite.\r\n\r\nRenvoie ta commande un peu plus tard."
 
                 case app_commands.CheckFailure():
                     error_message = "🧙‍♂️ Désolé jeune padawan, seul un grand maître des arcanes peut effectuer cette commande."
@@ -316,42 +248,6 @@ class AjBot():
                     error_message =f"😱 Oups ! un truc chelou c'est passé. Relis la règle du jeu.\r\n{exception}"
 
             await bot_out.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
-
-
-#     @commands.command(name='roles')
-#     @needs_manage_role
-#     async def _roles(self, ctx):
-#         """ (Réservé au bureau) Envoie un fichier JSON avec la liste des membres du serveur. """
-#         with tempfile.TemporaryDirectory() as temp_dir:
-#             json_filename = "members.json"
-#             member_info_json_file = Path(temp_dir) / json_filename
-#             save_json_file(get_discord_members(discord_client=self.bot,
-#                                         guild_names=([ctx.guild.name] if ctx.guild else None)),
-#                         member_info_json_file, preserve=False)
-#             await ctx.reply("Et voilà:",
-#                             file=discord.File(fp=member_info_json_file,
-#                                             filename=json_filename))
-
-#     # @commands.command(name='emargement')
-#     # @needs_administrator
-#     # async def _signsheet(self, ctx):
-#     #     """ (Réservé au bureau) Envoie la fiche d'émargement. """
-#     #     sign_sheet_filename="emargement.pdf"
-#     #     with self._gdrive.get_file(aj_config.file_id_presence) as sign_sheet:
-#     #         # with tempfile.TemporaryDirectory() as temp_dir:
-#     #         #     sign_sheet_file = Path(temp_dir) / sign_sheet_filename
-#     #         #     try:
-#     #         #         with open(sign_sheet_file, mode="wb") as fp:
-#     #         #             fp.write(sign_sheet)
-#     #         #         await ctx.reply("Et voilà:",
-#     #         #                         file=discord.File(fp=sign_sheet_file,
-#     #         #                                         filename=sign_sheet_filename))
-#     #         #     except Exception as e:
-#     #         #         print(e)
-#     #         #         raise
-#     #         await ctx.reply("Et voilà:",
-#     #                         file=discord.File(fp=sign_sheet,
-#     #                                         filename=sign_sheet_filename))
 
 
 if __name__ == "__main__":
