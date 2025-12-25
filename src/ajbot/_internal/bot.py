@@ -10,9 +10,9 @@ from discord import app_commands, Interaction
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.config import AjConfig, FormatTypes #, DATEPARSER_CONFIG
+from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
 from ajbot._internal.ajdb import AjDb
-from ajbot._internal import bot_in, bot_out
+from ajbot._internal import bot_in, bot_out, bot_event, bot_member
 from ajbot._internal.exceptions import OtherException
 
 
@@ -141,7 +141,7 @@ class AjBot():
 
         # Member related commands
         # ========================================================
-        @self.client.tree.command(name="qui-est-ce")
+        @self.client.tree.command(name="membre")
         @app_commands.check(bot_in.is_member)
         @app_commands.checks.cooldown(1, 5)
         @app_commands.rename(disc_member='pseudo')
@@ -154,14 +154,14 @@ class AjBot():
                       disc_member:Optional[discord.Member]=None,
                       int_member:Optional[int]=None,
                       str_member:Optional[str]=None):
-            """ Retrouve l'identité d'un membre. Retourne le, la ou les membres qui correspond(ent) le plus aux infos fournies.
+            """ Affiche les infos du, de la ou des membres qui correspond(ent) le plus aux infos fournies.
             """
             async with AjDb() as aj_db:
-                await bot_out.display_member(aj_db=aj_db,
-                                             interaction=interaction,
-                                             disc_member=disc_member,
-                                             int_member=int_member,
-                                             str_member=str_member)
+                await bot_member.display(aj_db=aj_db,
+                                         interaction=interaction,
+                                         disc_member=disc_member,
+                                         int_member=int_member,
+                                         str_member=str_member)
 
         @self.client.tree.command(name="roles")
         @app_commands.check(bot_in.is_manager)
@@ -196,10 +196,10 @@ class AjBot():
             """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
             """
             async with AjDb() as aj_db:
-                await bot_out.display_event(aj_db=aj_db,
-                                            interaction=interaction,
-                                            season_name=season_name,
-                                            event_str=event_str)
+                await bot_event.display(aj_db=aj_db,
+                                        interaction=interaction,
+                                        season_name=season_name,
+                                        event_str=event_str)
 
         @self.client.tree.command(name="saison")
         @app_commands.check(bot_in.is_manager)
@@ -226,9 +226,9 @@ class AjBot():
         @app_commands.check(bot_in.is_member)
         async def show_name(interaction: Interaction, member: discord.Member):
             async with AjDb() as aj_db:
-                await bot_out.display_member(aj_db=aj_db,
-                                             interaction=interaction,
-                                             disc_member=member)
+                await bot_member.display(aj_db=aj_db,
+                                         interaction=interaction,
+                                         disc_member=member)
 
 
         # ========================================================
