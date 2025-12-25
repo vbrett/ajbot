@@ -1,5 +1,6 @@
 """ List of functions member outputs (Views, buttons, message, ...)
 """
+from typing import cast
 
 import discord
 from discord import Interaction, ui as dui
@@ -7,7 +8,7 @@ from discord import Interaction, ui as dui
 from ajbot._internal.config import FormatTypes
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal import bot_in, bot_out, ajdb_tables as ajdb_t
-from ajbot._internal.exceptions import OtherException
+from ajbot._internal.exceptions import OtherException, AjBotException
 
 async def display(aj_db:AjDb,
                   interaction: Interaction,
@@ -36,17 +37,56 @@ async def display(aj_db:AjDb,
 
     if members:
         if len(members) == 1:
-            [member] = members
+            member = cast(ajdb_t.Member, members[0])
+
             is_self = False if not member.discord_pseudo else (member.discord_pseudo.name == interaction.user.name)
-            format_style = FormatTypes.FULLSIMPLE if (is_self or bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
+            editable = is_self or bot_in.is_manager(interaction)
+
             view = dui.LayoutView()
             container = dui.Container()
             view.add_item(container)
 
-            container.add_item(dui.Section(dui.TextDisplay(format(member, format_style)),
-                                           accessory=EditMemberButton(member=member,
-                                                                      disabled = (not is_self and not bot_in.is_manager(interaction))
-                                                                     )))
+            if not editable:
+                container.add_item(dui.TextDisplay(format(member, FormatTypes.RESTRICTED)))
+            else:
+                format_style = FormatTypes.FULLCOMPLETE
+
+                text = ''
+                if member.credential:
+                    text += f"{member.credential:{format_style}}"
+                if member.credential and member.discord_pseudo:
+                    text += '\n'
+                if member.discord_pseudo:
+                    text += f"{member.discord_pseudo:{format_style}}"
+                container.add_item(dui.Section(dui.TextDisplay(text),
+                                               accessory=EditMemberButton(member=member,
+                                                                          modal_class=EditMemberViewCreds)
+                                              ))
+
+                if member.addresses:
+                    text = "- Adresse(s) :\n"
+                    text += '\n'.join(f"  - {ma.address:{format_style}}" + (" (*)" if ma.principal else "") for ma in member.addresses)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                accessory=EditMemberButton(member=member,
+                                                                            modal_class=EditMemberViewPrincipalAddress)
+                                                ))
+
+                if member.emails:
+                    text = "- Emails(s) :\n"
+                    text += '\n'.join(f"  -  {me.email:{format_style}}" + (" (*)" if me.principal else "") for me in member.emails)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                accessory=EditMemberButton(member=member,
+                                                                            modal_class=EditMemberViewPrincipalEmail)
+                                                ))
+
+                if member.phones:
+                    text = "- Téléphone(s) :\n"
+                    text += '\n'.join(f"  -  {mp.phone:{format_style}}" + (" (*)" if mp.principal else "") for mp in member.phones)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                accessory=EditMemberButton(member=member,
+                                                                            modal_class=EditMemberViewPrincipalPhone)
+                                                ))
+
             await bot_out.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.orange())
@@ -74,34 +114,33 @@ async def display(aj_db:AjDb,
 class EditMemberButton(dui.Button):
     """ Class that creates a edit button
     """
-    def __init__(self, member, disabled):
+    def __init__(self, member, modal_class):
         self._member = member
+        self._modal_class = modal_class
         super().__init__(style=discord.ButtonStyle.primary,
-                         label='Editer',
-                         disabled = disabled)
+                         label='Editer')
 
     async def callback(self, interaction: discord.Interaction):
-        async with AjDb() as aj_db:
-            member_modal = await EditMemberView.create(aj_db=aj_db, db_member=self._member)
-            await interaction.response.send_modal(member_modal)
+        member_modal = await self._modal_class.create(db_member=self._member)
+        await interaction.response.send_modal(member_modal)
 
 
 # Modals
 # ========================================================
-class EditMemberView(dui.Modal, title='Membre'):
-    """ Modal handling member creation / update
+class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
+    """ Modal handling member creation / update - Credentials
     """
 
     def __init__(self):
         self._db_id = None
         self.last_name = None
         self.first_name = None
-        self.discord_pseudo = None
         self.birthdate = None
+        self.discord_pseudo = None
         super().__init__()
 
     @classmethod
-    async def create(cls, aj_db:AjDb, db_member:ajdb_t.Member=None):
+    async def create(cls, db_member:ajdb_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -132,17 +171,6 @@ class EditMemberView(dui.Modal, title='Membre'):
                         )
         self.add_item(self.first_name)
 
-        self.discord_pseudo = dui.Label(
-                            text='Pseudo Discord',
-                            component=dui.TextInput(
-                                                    style=discord.TextStyle.short,
-                                                    required=False,
-                                                    default='' if (not db_member or not db_member.discord_pseudo) else db_member.discord_pseudo.name,
-                                                    max_length=120,
-                                                ),
-                        )
-        self.add_item(self.discord_pseudo)
-
         self.birthdate = dui.Label(
                             text='Date de naissance',
                             component=dui.TextInput(
@@ -154,7 +182,23 @@ class EditMemberView(dui.Modal, title='Membre'):
                         )
         self.add_item(self.birthdate)
 
+        self.discord_pseudo = dui.Label(
+                            text='Pseudo Discord',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not db_member or not db_member.discord_pseudo) else db_member.discord_pseudo.name,
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.discord_pseudo)
+
         return self
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
+        """ Event triggered when an error occurs during modal processing
+        """
+        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
     # async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
     #     """ Event triggered when clicking on submit button
@@ -200,11 +244,206 @@ class EditMemberView(dui.Modal, title='Membre'):
     #                             interaction=interaction,
     #                             event_str=str(event))
 
+class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
+    """ Modal handling member creation / update - Principal Postal Address
+    """
+
+    def __init__(self):
+        self._db_id = None
+        self.principal = True
+        self.street_num = None
+        self.street_type = None
+        self.street_name = None
+        self.zip_code = None
+        self.city = None
+        # self.extra = None
+        super().__init__()
+
+    @classmethod
+    async def create(cls, db_member:ajdb_t.Member=None):
+        """ awaitable class factory
+        """
+        self = cls()
+
+        self._db_id = None
+        if db_member:
+            self._db_id = db_member.id
+
+        address = [ma.address for ma in db_member.addresses if ma.principal]
+        match len(address):
+            case 0:
+                address = None
+            case 1:
+                address = address[0]
+            case _:
+                raise AjBotException('More than 1 principal address')
+
+        self.street_num = dui.Label(
+                            text='Numéro',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not address)  else str(address.street_num),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.street_num)
+
+        self.street_type = dui.Label(
+                            text='Type voie',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not address)  else str(address.street_type.name),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.street_type)
+
+        self.street_name = dui.Label(
+                            text='Nom voie',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not address)  else str(address.street_name),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.street_name)
+
+        self.zip_code = dui.Label(
+                            text='Code postal',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not address)  else str(address.zip_code),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.zip_code)
+
+        self.city = dui.Label(
+                            text='Ville',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not address)  else str(address.city),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.city)
+
+        # self.extra = dui.Label(
+        #                     text='Autres infos',
+        #                     component=dui.TextInput(
+        #                                             style=discord.TextStyle.short,
+        #                                             required=False,
+        #                                             default='' if (not address)  else str(address.extra),
+        #                                             max_length=120,
+        #                                         ),
+        #                 )
+        # self.add_item(self.extra)
+
+        return self
+
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
         """
-        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue lors de la création / modification du membre : {error}\nEt il faut tout refaire...", ephemeral=True)
+        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
+class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
+    """ Modal handling member creation / update - Principal Email
+    """
+
+    def __init__(self):
+        self._db_id = None
+        self.principal = True
+        self.email = None
+        super().__init__()
+
+    @classmethod
+    async def create(cls, db_member:ajdb_t.Member=None):
+        """ awaitable class factory
+        """
+        self = cls()
+
+        self._db_id = None
+        if db_member:
+            self._db_id = db_member.id
+
+        email = [me.email for me in db_member.emails if me.principal]
+        match len(email):
+            case 0:
+                email = None
+            case 1:
+                email = email[0]
+            case _:
+                raise AjBotException('More than 1 principal email')
+
+        self.email = dui.Label(
+                            text='addresse',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not email)  else format(email, FormatTypes.FULLCOMPLETE),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.email)
+
+        return self
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
+        """ Event triggered when an error occurs during modal processing
+        """
+        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+
+class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
+    """ Modal handling member creation / update - Principal Phone
+    """
+
+    def __init__(self):
+        self._db_id = None
+        self.principal = True
+        self.phone = None
+        super().__init__()
+
+    @classmethod
+    async def create(cls, db_member:ajdb_t.Member=None):
+        """ awaitable class factory
+        """
+        self = cls()
+
+        self._db_id = None
+        if db_member:
+            self._db_id = db_member.id
+
+        phone = [mp.phone for mp in db_member.phones if mp.principal]
+        match len(phone):
+            case 0:
+                phone = None
+            case 1:
+                phone = phone[0]
+            case _:
+                raise AjBotException('More than 1 principal phone')
+
+        self.phone = dui.Label(
+                            text='téléphone',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='' if (not phone)  else format(phone, FormatTypes.FULLCOMPLETE),
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.phone)
+
+        return self
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
+        """ Event triggered when an error occurs during modal processing
+        """
+        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
 if __name__ == "__main__":
     raise OtherException('This module is not meant to be executed directly.')
