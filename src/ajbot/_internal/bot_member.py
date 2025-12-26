@@ -50,6 +50,7 @@ async def display(aj_db:AjDb,
                 container.add_item(dui.TextDisplay(format(member, FormatTypes.RESTRICTED)))
             else:
                 format_style = FormatTypes.FULLCOMPLETE
+                container.add_item(dui.TextDisplay(f'# __{member.id}__'))
 
                 text = ''
                 if member.credential:
@@ -58,34 +59,77 @@ async def display(aj_db:AjDb,
                     text += '\n'
                 if member.discord_pseudo:
                     text += f"{member.discord_pseudo:{format_style}}"
+                title = ('Editer' if text else 'Créer') +  ' identité'
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(member=member,
+                                                                          title=title,
                                                                           modal_class=EditMemberViewCreds)
                                               ))
 
+                text = "### Adresse(s)\n"
                 if member.addresses:
-                    text = "- Adresse(s) :\n"
-                    text += '\n'.join(f"  - {ma.address:{format_style}}" + (" (*)" if ma.principal else "") for ma in member.addresses)
-                    container.add_item(dui.Section(dui.TextDisplay(text),
-                                                accessory=EditMemberButton(member=member,
-                                                                            modal_class=EditMemberViewPrincipalAddress)
-                                                ))
+                    text += '\n'.join(f"- {ma.address:{format_style}}" + (" (*)" if ma.principal else "") for ma in member.addresses)
+                    title = 'Editer adresse'
+                else:
+                    text += "Pas d'adresse"
+                    title = 'Créer adresse'
+                container.add_item(dui.Section(dui.TextDisplay(text),
+                                            accessory=EditMemberButton(member=member,
+                                                                        title=title,
+                                                                        modal_class=EditMemberViewPrincipalAddress)
+                                            ))
 
+                text = "### Emails(s)\n"
                 if member.emails:
-                    text = "- Emails(s) :\n"
-                    text += '\n'.join(f"  -  {me.email:{format_style}}" + (" (*)" if me.principal else "") for me in member.emails)
-                    container.add_item(dui.Section(dui.TextDisplay(text),
-                                                accessory=EditMemberButton(member=member,
-                                                                            modal_class=EditMemberViewPrincipalEmail)
-                                                ))
+                    text += '\n'.join(f"-  {me.email:{format_style}}" + (" (*)" if me.principal else "") for me in member.emails)
+                    title = 'Editer email'
+                else:
+                    text += "Pas d'email"
+                    title = 'Créer email'
+                container.add_item(dui.Section(dui.TextDisplay(text),
+                                            accessory=EditMemberButton(member=member,
+                                                                       title=title,
+                                                                       modal_class=EditMemberViewPrincipalEmail)
+                                            ))
 
+                text = "### Téléphone(s)\n"
                 if member.phones:
-                    text = "- Téléphone(s) :\n"
-                    text += '\n'.join(f"  -  {mp.phone:{format_style}}" + (" (*)" if mp.principal else "") for mp in member.phones)
-                    container.add_item(dui.Section(dui.TextDisplay(text),
-                                                accessory=EditMemberButton(member=member,
-                                                                            modal_class=EditMemberViewPrincipalPhone)
-                                                ))
+                    text += '\n'.join(f"-  {mp.phone:{format_style}}" + (" (*)" if mp.principal else "") for mp in member.phones)
+                    title = 'Editer téléphone'
+                else:
+                    text += "Pas de téléphone"
+                    title = 'Créer téléphone'
+                container.add_item(dui.Section(dui.TextDisplay(text),
+                                            accessory=EditMemberButton(member=member,
+                                                                        title=title,
+                                                                        modal_class=EditMemberViewPrincipalPhone)
+                                            ))
+
+                text = "### Cotisation\n"
+                if member.is_subscriber:
+                    text += "Cotisant(e) cette saison"
+                    title = 'Editer cotisation'
+                else:
+                    text += "Non cotisant(e) cette saison"
+                    title = 'Ajouter cotisation'
+                container.add_item(dui.Section(dui.TextDisplay(text),
+                                            accessory=EditMemberButton(member=member,
+                                                                       title=title,
+                                                                       modal_class=EditMemberViewSubscription)
+                                            ))
+
+                text = "### Rôle spécifique\n"
+                if member.manual_asso_roles:
+                    text += '\n'.join(f"-  {mar.name}" for mar in member.manual_asso_roles)  #TODO: add is active role
+                    title = 'Editer rôle'
+                else:
+                    text += "Pas de rôle"
+                    title = 'Ajouter rôle'
+                container.add_item(dui.Section(dui.TextDisplay(text),
+                                            accessory=EditMemberButton(member=member,
+                                                                       title=title,
+                                                                       modal_class=EditMemberViewSubscription)  #TODO create modal
+                                            ))
 
             await bot_out.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
@@ -114,11 +158,12 @@ async def display(aj_db:AjDb,
 class EditMemberButton(dui.Button):
     """ Class that creates a edit button
     """
-    def __init__(self, member, modal_class):
+    def __init__(self, member, modal_class, title):
         self._member = member
         self._modal_class = modal_class
         super().__init__(style=discord.ButtonStyle.primary,
-                         label='Editer')
+                         disabled=True,    #TODO activate
+                         label=title)
 
     async def callback(self, interaction: discord.Interaction):
         member_modal = await self._modal_class.create(db_member=self._member)
@@ -437,6 +482,44 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
                                                 ),
                         )
         self.add_item(self.phone)
+
+        return self
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
+        """ Event triggered when an error occurs during modal processing
+        """
+        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+
+class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
+    """ Modal handling member creation / update - subcscription
+    """
+
+    def __init__(self):
+        self._db_id = None
+        self.price = None
+        super().__init__()
+
+    @classmethod
+    async def create(cls, db_member:ajdb_t.Member=None):
+        """ awaitable class factory
+        """
+        self = cls()
+
+        self._db_id = None
+        if db_member:
+            self._db_id = db_member.id
+
+        self.price = dui.Label(
+                            text='Tarif',
+                            component=dui.TextInput(
+                                                    style=discord.TextStyle.short,
+                                                    required=False,
+                                                    default='',
+                                                    max_length=120,
+                                                ),
+                        )
+        self.add_item(self.price)
+
 
         return self
 
