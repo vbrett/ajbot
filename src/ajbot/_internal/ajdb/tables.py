@@ -19,7 +19,7 @@ from ajbot._internal.config import FormatTypes, get_migrate_mode
 from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId, Base
 from ajbot._internal.ajdb.lookup import StreetType, ContributionType, KnowFromSource, AccountType
 from ajbot._internal.ajdb.association import MemberEmail, MemberPhone, MemberAddress, MemberAssoRole, MemberEvent #, AssoRoleDiscordRole
-from ajbot._internal.ajdb.disc import DiscordPseudo, DiscordRole
+from ajbot._internal.ajdb.disc import DiscordRole
 
 
 # Main tables
@@ -381,8 +381,8 @@ class Member(Base):
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['Credential']] = orm.relationship(back_populates='member', uselist=False, lazy='selectin')
-    discord_pseudo_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('discord_pseudos.id'), index=True, nullable=True)
-    discord_pseudo: orm.Mapped[Optional['DiscordPseudo']] = orm.relationship(back_populates='member', uselist=False, lazy='selectin')
+
+    discord: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=True)
     manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='members', lazy='selectin')
 
     emails: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='member', lazy='selectin')
@@ -446,7 +446,7 @@ class Member(Base):
         """
         mbr_id = self.id
         mbr_creds = self.credential
-        mbr_disc = self.discord_pseudo
+        mbr_disc = '@' + self.discord if self.discord else ''
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:

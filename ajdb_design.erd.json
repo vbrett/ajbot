@@ -4,8 +4,8 @@
   "settings": {
     "width": 4000,
     "height": 4000,
-    "scrollTop": -1169.1493,
-    "scrollLeft": -2040.3794,
+    "scrollTop": -1250.1493,
+    "scrollLeft": -553.3758,
     "zoomLevel": 0.82,
     "show": 511,
     "database": 1,
@@ -52,7 +52,6 @@
       "CzS0o4b6eAR9uQx8niWqV",
       "Y6gyiBNetoljPxpA_ekr2",
       "NsnBoqim8L1zESCghswHH",
-      "XjDi9dn9QKeY9ogtkFk36",
       "0ZQ_aupx442qwhDaWl-EK",
       "8R81Yrp0CseJvxQ0XPtAL"
     ],
@@ -81,7 +80,6 @@
       "bGmbuqw7kBSg6wAunAUtS",
       "kP34aN1IxJk3KMlg8zucb",
       "dwo5vKLcwrW3oa94jQPgn",
-      "JO8oMbbKPiOxc3wZaV7cX",
       "z1sMpz1f2qIdpbY5xd7Ua",
       "7F16m9ivNBhuLWHvPtX4T",
       "D7VEJzCYUkJvEegcgEp5X",
@@ -832,32 +830,6 @@
         "meta": {
           "updateAt": 1764934318925,
           "createAt": 1762600151025
-        }
-      },
-      "XjDi9dn9QKeY9ogtkFk36": {
-        "id": "XjDi9dn9QKeY9ogtkFk36",
-        "name": "discord_pseudos",
-        "comment": "contain RGPD info",
-        "columnIds": [
-          "G-x_vdcHRvPzFfPz7UkO5",
-          "ze7PlDRlX4bcf4tL_qaAa"
-        ],
-        "seqColumnIds": [
-          "G-x_vdcHRvPzFfPz7UkO5",
-          "ze7PlDRlX4bcf4tL_qaAa",
-          "h8loVwqnFzWDXHSqfQ2f9"
-        ],
-        "ui": {
-          "x": 2167.7589,
-          "y": 1151.6824,
-          "zIndex": 873,
-          "widthName": 90,
-          "widthComment": 99,
-          "color": ""
-        },
-        "meta": {
-          "updateAt": 1762957696531,
-          "createAt": 1762943178228
         }
       },
       "0ZQ_aupx442qwhDaWl-EK": {
@@ -4785,66 +4757,6 @@
           "createAt": 1762600337491
         }
       },
-      "G-x_vdcHRvPzFfPz7UkO5": {
-        "id": "G-x_vdcHRvPzFfPz7UkO5",
-        "tableId": "XjDi9dn9QKeY9ogtkFk36",
-        "name": "id",
-        "comment": "",
-        "dataType": "INT",
-        "default": "",
-        "options": 15,
-        "ui": {
-          "keys": 1,
-          "widthName": 60,
-          "widthComment": 60,
-          "widthDataType": 60,
-          "widthDefault": 60
-        },
-        "meta": {
-          "updateAt": 1762953906259,
-          "createAt": 1762943179832
-        }
-      },
-      "ze7PlDRlX4bcf4tL_qaAa": {
-        "id": "ze7PlDRlX4bcf4tL_qaAa",
-        "tableId": "XjDi9dn9QKeY9ogtkFk36",
-        "name": "name",
-        "comment": "",
-        "dataType": "CHAR(50)",
-        "default": "",
-        "options": 12,
-        "ui": {
-          "keys": 0,
-          "widthName": 60,
-          "widthComment": 60,
-          "widthDataType": 60,
-          "widthDefault": 60
-        },
-        "meta": {
-          "updateAt": 1762957479241,
-          "createAt": 1762943203231
-        }
-      },
-      "h8loVwqnFzWDXHSqfQ2f9": {
-        "id": "h8loVwqnFzWDXHSqfQ2f9",
-        "tableId": "XjDi9dn9QKeY9ogtkFk36",
-        "name": "",
-        "comment": "",
-        "dataType": "",
-        "default": "",
-        "options": 10,
-        "ui": {
-          "keys": 1,
-          "widthName": 60,
-          "widthComment": 60,
-          "widthDataType": 60,
-          "widthDefault": 60
-        },
-        "meta": {
-          "updateAt": 1762943264858,
-          "createAt": 1762943264858
-        }
-      },
       "aufY7YzFSLqcFEzAPhfRE": {
         "id": "aufY7YzFSLqcFEzAPhfRE",
         "tableId": "no8LCQhaSh7ZPI4Bn7Eyz",
@@ -4868,20 +4780,20 @@
       "mxFu9TXo0ujWYbcfY8v51": {
         "id": "mxFu9TXo0ujWYbcfY8v51",
         "tableId": "no8LCQhaSh7ZPI4Bn7Eyz",
-        "name": "discord_pseudo_id",
+        "name": "discord",
         "comment": "",
-        "dataType": "INT",
+        "dataType": "CHAR(50)",
         "default": "",
         "options": 8,
         "ui": {
-          "keys": 2,
-          "widthName": 100,
+          "keys": 0,
+          "widthName": 60,
           "widthComment": 60,
           "widthDataType": 60,
           "widthDefault": 60
         },
         "meta": {
-          "updateAt": 1762953923796,
+          "updateAt": 1767039017082,
           "createAt": 1762943280383
         }
       },
@@ -5397,7 +5309,7 @@
           "columnIds": [
             "0cMbvuoxCDOdkqi5mF1mQ"
           ],
-          "x": 1451.328,
+          "x": 1435.828,
           "y": 1493.5359,
           "direction": 4
         },
@@ -5481,8 +5393,8 @@
           "columnIds": [
             "0cMbvuoxCDOdkqi5mF1mQ"
           ],
-          "x": 1680.328,
-          "y": 1605.5359,
+          "x": 1649.328,
+          "y": 1600.202566666667,
           "direction": 2
         },
         "end": {
@@ -5509,8 +5421,8 @@
           "columnIds": [
             "0cMbvuoxCDOdkqi5mF1mQ"
           ],
-          "x": 1680.328,
-          "y": 1509.5359,
+          "x": 1649.328,
+          "y": 1514.8692333333336,
           "direction": 2
         },
         "end": {
@@ -5621,7 +5533,7 @@
           "columnIds": [
             "0cMbvuoxCDOdkqi5mF1mQ"
           ],
-          "x": 1336.828,
+          "x": 1329.078,
           "y": 1621.5359,
           "direction": 8
         },
@@ -5677,7 +5589,7 @@
           "columnIds": [
             "0cMbvuoxCDOdkqi5mF1mQ"
           ],
-          "x": 1565.828,
+          "x": 1542.578,
           "y": 1621.5359,
           "direction": 8
         },
@@ -6059,34 +5971,6 @@
           "createAt": 1762101495610
         }
       },
-      "JO8oMbbKPiOxc3wZaV7cX": {
-        "id": "JO8oMbbKPiOxc3wZaV7cX",
-        "identification": false,
-        "relationshipType": 8,
-        "startRelationshipType": 2,
-        "start": {
-          "tableId": "XjDi9dn9QKeY9ogtkFk36",
-          "columnIds": [
-            "G-x_vdcHRvPzFfPz7UkO5"
-          ],
-          "x": 2167.7589,
-          "y": 1203.6824,
-          "direction": 1
-        },
-        "end": {
-          "tableId": "no8LCQhaSh7ZPI4Bn7Eyz",
-          "columnIds": [
-            "mxFu9TXo0ujWYbcfY8v51"
-          ],
-          "x": 1680.328,
-          "y": 1541.5359,
-          "direction": 2
-        },
-        "meta": {
-          "updateAt": 1762943337029,
-          "createAt": 1762943280384
-        }
-      },
       "z1sMpz1f2qIdpbY5xd7Ua": {
         "id": "z1sMpz1f2qIdpbY5xd7Ua",
         "identification": false,
@@ -6209,8 +6093,8 @@
           "columnIds": [
             "0cMbvuoxCDOdkqi5mF1mQ"
           ],
-          "x": 1680.328,
-          "y": 1573.5359,
+          "x": 1649.328,
+          "y": 1557.5359000000003,
           "direction": 2
         },
         "end": {

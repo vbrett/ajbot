@@ -215,7 +215,7 @@ class AjDb():
         # Check if lookup_val is a discord.db_t.Member object
         if isinstance(lookup_val, discord.Member):
             try:
-                query = sa.select(db_t.Member).join(db_t.Member.discord_pseudo).where(db_t.DiscordPseudo.name == lookup_val.name)
+                query = sa.select(db_t.Member).where(db_t.Member.discord == lookup_val.name)
             except MemberNotFound as e:
                 raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
 

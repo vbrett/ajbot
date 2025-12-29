@@ -39,7 +39,7 @@ async def display(aj_db:AjDb,
         if len(members) == 1:
             member = cast(db_t.Member, members[0])
 
-            is_self = False if not member.discord_pseudo else (member.discord_pseudo.name == interaction.user.name)
+            is_self = False if not member.discord else (member.discord == interaction.user.name)
             editable = is_self or checks.is_manager(interaction)
 
             view = dui.LayoutView()
@@ -55,10 +55,10 @@ async def display(aj_db:AjDb,
                 text = ''
                 if member.credential:
                     text += f"{member.credential:{format_style}}"
-                if member.credential and member.discord_pseudo:
+                if member.credential and member.discord:
                     text += '\n'
-                if member.discord_pseudo:
-                    text += f"{member.discord_pseudo:{format_style}}"
+                if member.discord:
+                    text += '@' + member.discord
                 title = ('Editer' if text else 'Créer') +  ' identité'
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(member=member,
@@ -139,7 +139,7 @@ async def display(aj_db:AjDb,
                             value = '\n'.join(str(m.id) for m in members)
                             )
             embed.add_field(name = 'Discord', inline=True,
-                            value = '\n'.join(('@' + str(m.discord_pseudo.name)) if m.discord_pseudo else '-' for m in members)
+                            value = '\n'.join(('@' + m.discord) if m.discord else '-' for m in members)
                             )
             embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
                             value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '-' for m in members)
@@ -162,11 +162,11 @@ class EditMemberButton(dui.Button):
         self._member = member
         self._modal_class = modal_class
         super().__init__(style=discord.ButtonStyle.primary,
-                         disabled=True,    #TODO activate
+                         disabled=False,
                          label=title)
 
     async def callback(self, interaction: discord.Interaction):
-        member_modal = await self._modal_class.create(db_member=self._member)
+        member_modal = await self._modal_class.create(db_member=self._member, interaction=interaction)
         await interaction.response.send_modal(member_modal)
 
 
@@ -181,11 +181,11 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         self.last_name = None
         self.first_name = None
         self.birthdate = None
-        self.discord_pseudo = None
+        self.discord = None
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None, interaction: discord.Interaction=None):
         """ awaitable class factory
         """
         self = cls()
@@ -227,16 +227,19 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                         )
         self.add_item(self.birthdate)
 
-        self.discord_pseudo = dui.Label(
+        discord_members = []
+        if db_member and db_member.discord:
+            discord_members = [m for m in interaction.guild.members if m.name == db_member.discord]
+            assert len(discord_members) <= 1, f'More than 1 discord user with same name: {db_member.discord}'
+
+
+        self.discord = dui.Label(
                             text='Pseudo Discord',
-                            component=dui.TextInput(
-                                                    style=discord.TextStyle.short,
-                                                    required=False,
-                                                    default='' if (not db_member or not db_member.discord_pseudo) else db_member.discord_pseudo.name,
-                                                    max_length=120,
-                                                ),
+                            component=dui.UserSelect(required=False,
+                                                     default_values=discord_members,
+                                                    ),
                         )
-        self.add_item(self.discord_pseudo)
+        self.add_item(self.discord)
 
         return self
 
@@ -250,20 +253,8 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
     #     """
     #     async with AjDb() as aj_db:
 
-    #         assert isinstance(self.participants, dui.Label)
-    #         assert isinstance(self.participants.component, dui.TextInput)
-
-    #         # check consistency - date
-    #         event_date = None
-    #         if not self._db_id:
-    #             assert isinstance(self.event_date, dui.Label)
-    #             assert isinstance(self.event_date.component, dui.TextInput)
-
-    #             try:
-    #                 event_date = date_parser.parse(self.event_date.component.value, dayfirst=True).date()
-    #             except date_parser.ParserError:
-    #                 await send_response_as_text(interaction, f"La date '{self.event_date.component.value}' n'est pas valide.", ephemeral=True)
-    #                 return
+    #         # assert isinstance(self.participants, dui.Label)
+    #         # assert isinstance(self.participants.component, dui.TextInput)
 
     #         # check consistency - event name
     #         event_name = None
@@ -271,13 +262,6 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
     #             event_name = self.event_name.component.value.strip()
     #             if not event_name:
     #                 event_name = None
-
-    #         # check consistency - participants
-    #         try:
-    #             participant_ids = list(set(int(i.strip()) for i in self.participants.component.value.split(',') if i.strip()))
-    #         except ValueError:
-    #             await send_response_as_text(interaction, "La liste des participants n'est pas valide.\r\nIl faut une liste de nombres.", ephemeral=True)
-    #             return
 
     #         event = await aj_db.add_update_event(event_id=self._db_id,
     #                                             event_date=event_date,
@@ -305,7 +289,7 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
         """ awaitable class factory
         """
         self = cls()
@@ -407,7 +391,7 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
         """ awaitable class factory
         """
         self = cls()
@@ -454,7 +438,7 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
         """ awaitable class factory
         """
         self = cls()
@@ -500,7 +484,7 @@ class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
         """ awaitable class factory
         """
         self = cls()
