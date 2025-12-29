@@ -26,7 +26,7 @@ async def display(aj_config:AjConfig,
     for discord_member in interaction.guild.members:
         actual_role_ids = [r.id for r in discord_member.roles if r.name != "@everyone"]
 
-        matched_members = [d for d in aj_members if d.discord_pseudo and d.discord_pseudo.name == discord_member.name]
+        matched_members = [d for d in aj_members if d.discord == discord_member.name]
         assert (len(matched_members) <= 1), f"Erreur dans la DB: Plusieurs membres correspondent au même pseudo Discord {discord_member}:\n{', '.join(m.name for m in matched_members)}"
         if len(matched_members) == 0:
             member = None

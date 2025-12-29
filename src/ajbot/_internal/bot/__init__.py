@@ -209,7 +209,7 @@ class AjBot():
         @app_commands.autocomplete(season_name=checks.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def cmd_seasons(interaction: Interaction,
-                         season_name:Optional[str]=None):
+                              season_name:Optional[str]=None):
             """ Affiche la liste des présences & cotisants d'une saison donnée
             """
             async with AjDb() as aj_db:
@@ -224,11 +224,11 @@ class AjBot():
 
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(checks.is_member)
-        async def ctxt_member(interaction: Interaction, member: discord.Member):
+        async def ctxt_member(interaction: Interaction, discord_member: discord.Member):
             async with AjDb() as aj_db:
                 await member.display(aj_db=aj_db,
-                                         interaction=interaction,
-                                         disc_member=member)
+                                     interaction=interaction,
+                                     disc_member=discord_member)
 
 
         # ========================================================

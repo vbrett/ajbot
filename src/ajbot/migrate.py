@@ -81,7 +81,7 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
         new_member.id=int(val['id'])
 
         if val.get('pseudo_discord'):
-            new_member.discord_pseudo=db_t.DiscordPseudo(name=val['pseudo_discord'])
+            new_member.discord=val['pseudo_discord']
 
         if val.get('prenom') or val.get('nom') or val.get('date_naissance'):
             new_member.credential = db_t.Credential()
