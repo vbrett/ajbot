@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 from discord import Interaction
 
 from ajbot._internal.config import AjConfig
-from ajbot._internal.ajdb import AjDb, tables as ajdb_t
+from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.bot import responses
+from ajbot._internal.exceptions import OtherException
 
 async def display(aj_config:AjConfig,
                   aj_db:AjDb,
@@ -17,8 +18,8 @@ async def display(aj_config:AjConfig,
         await interaction.response.defer(ephemeral=True,)
 
     discord_role_mismatches = {}
-    aj_members = await aj_db.query_table_content(ajdb_t.Member)
-    aj_discord_roles = await aj_db.query_table_content(ajdb_t.DiscordRole)
+    aj_members = await aj_db.query_table_content(db_t.Member)
+    aj_discord_roles = await aj_db.query_table_content(db_t.DiscordRole)
     default_asso_role_id = aj_config.asso_member_default
     default_discord_role_ids = [dr.id for dr in aj_discord_roles if default_asso_role_id in [ar.id for ar in dr.asso_roles]]
 
@@ -61,3 +62,6 @@ async def display(aj_config:AjConfig,
         reply = None
 
     await responses.send_response_as_view(interaction=interaction, title="Rôles", summary=summary, content=reply, ephemeral=True)
+
+if __name__ == '__main__':
+    raise OtherException('This module is not meant to be executed directly.')

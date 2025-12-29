@@ -8,8 +8,7 @@ from datetime import date, datetime, timedelta
 import sqlalchemy as sa
 # from sqlalchemy import orm
 
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal import ajdb_tables as ajdb_t
+from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.config import AjConfig, FormatTypes
 
 async def _search_member(aj_db:AjDb, lookup_val):
@@ -31,7 +30,7 @@ async def _search_member(aj_db:AjDb, lookup_val):
     print('')
 
 async def _season_events(aj_db_session):
-    query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
+    query = sa.select(db_t.Event).where(db_t.Event.is_in_current_season)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
@@ -45,7 +44,7 @@ async def _season_events(aj_db_session):
     print('-------------------')
 
 async def _principal_address(aj_db_session):
-    query = sa.select(ajdb_t.MemberAddress).where(ajdb_t.Member.address_principal is not None)
+    query = sa.select(db_t.MemberAddress).where(db_t.Member.address_principal is not None)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
@@ -61,20 +60,20 @@ async def _principal_address(aj_db_session):
 
 async def _test_query(aj_db_session):
     season_name = "2025-2026"
-                # .with_only_columns(ajdb_t.Member.id, ajdb_t.Member.credential, sa.func.count(ajdb_t.Member.memberships))\
-    query = sa.select(ajdb_t.Member)\
-                .join(ajdb_t.MemberEvent)\
-                .join(ajdb_t.Event)\
-                .join(ajdb_t.Season)\
-                .where(ajdb_t.Season.name == season_name)\
-                .group_by(ajdb_t.Member)
+                # .with_only_columns(db_t.Member.id, db_t.Member.credential, sa.func.count(db_t.Member.memberships))\
+    query = sa.select(db_t.Member)\
+                .join(db_t.MemberEvent)\
+                .join(db_t.Event)\
+                .join(db_t.Season)\
+                .where(db_t.Season.name == season_name)\
+                .group_by(db_t.Member)
     async with aj_db_session.AsyncSessionMaker() as session:
         async with session.begin():
             query_result = await session.execute(query)
     matched_items = query_result.scalars().all()
-    matched_items.sort(key=lambda x: cast(ajdb_t.Member, x).credential, reverse=False)
+    matched_items.sort(key=lambda x: cast(db_t.Member, x).credential, reverse=False)
     for m in matched_items:
-        presence = len([member_event for member_event in cast(ajdb_t.Member, m).events
+        presence = len([member_event for member_event in cast(db_t.Member, m).events
                         if member_event.event.season.name == season_name])
         print(f'{m:{FormatTypes.FULLSIMPLE}} - {presence} présence(s)')
     print(len(matched_items), 'item(s)')
@@ -86,17 +85,17 @@ async def _test_create_query(aj_db:AjDb):
 
     seasons = await aj_db.query_seasons()
 
-    new_event = ajdb_t.Event(date = event_date)
+    new_event = db_t.Event(date = event_date)
     [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
 
     aj_db.aio_session.add(new_event)
-    aj_db.aio_session.add_all([ajdb_t.MemberEvent(member_id = i, event=new_event, presence = True) for i in event_partipant_ids])
+    aj_db.aio_session.add_all([db_t.MemberEvent(member_id = i, event=new_event, presence = True) for i in event_partipant_ids])
 
     new_event.name = 'Coucou'
 
 
 async def _test_update_query(aj_db:AjDb):
-    query = sa.select(ajdb_t.Event).where(ajdb_t.Event.id == 102)
+    query = sa.select(db_t.Event).where(db_t.Event.id == 102)
     query_result = await aj_db.aio_session.execute(query)
     my_event = query_result.scalars().one_or_none()
 
@@ -117,7 +116,7 @@ async def _test_misc():
     with AjConfig(save_on_exit=True) as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
 
-            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.last_presence > (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))
+            query = sa.select(db_t.Member).where(db_t.Member.last_presence > (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))
             print(query)
 
             items = (await aj_db.aio_session.scalars(query)).all()

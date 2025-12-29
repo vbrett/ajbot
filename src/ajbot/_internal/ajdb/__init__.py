@@ -18,7 +18,7 @@ from discord.ext.commands import MemberNotFound
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
-from ajbot._internal.ajdb import tables as ajdb_t
+from ajbot._internal.ajdb import tables as db_t
 
 cache_data = {}
 cache_time = {}
@@ -115,8 +115,8 @@ class AjDb():
             raise AjDbException(f"L'utilisateur {self.db_username} ne peut pas recréer la base de donnée !")
         # create all tables
         async with self.db_engine.begin() as conn:
-            await conn.run_sync(ajdb_t.Base.metadata.drop_all)
-            await conn.run_sync(ajdb_t.Base.metadata.create_all)
+            await conn.run_sync(db_t.Base.metadata.drop_all)
+            await conn.run_sync(db_t.Base.metadata.create_all)
 
     async def clear_cache(self):
         """ clear db cache
@@ -163,11 +163,11 @@ class AjDb():
             @return
                 [all found seasons]
         '''
-        query = sa.select(ajdb_t.Season)
+        query = sa.select(db_t.Season)
         if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships))
+            query = query.options(orm.lazyload(db_t.Season.events), orm.lazyload(db_t.Season.memberships))
         else:
-            query = query.options(orm.selectinload(ajdb_t.Season.events), orm.selectinload(ajdb_t.Season.memberships))
+            query = query.options(orm.selectinload(db_t.Season.events), orm.selectinload(db_t.Season.memberships))
 
         return (await self.aio_session.scalars(query)).all()
 
@@ -180,11 +180,11 @@ class AjDb():
             @return
                 [all found roles]
         '''
-        query = sa.select(ajdb_t.AssoRole)
+        query = sa.select(db_t.AssoRole)
         if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.AssoRole.discord_roles), orm.lazyload(ajdb_t.AssoRole.members))
+            query = query.options(orm.lazyload(db_t.AssoRole.discord_roles), orm.lazyload(db_t.AssoRole.members))
         else:
-            query = query.options(orm.selectinload(ajdb_t.AssoRole.discord_roles), orm.selectinload(ajdb_t.AssoRole.members))
+            query = query.options(orm.selectinload(db_t.AssoRole.discord_roles), orm.selectinload(db_t.AssoRole.members))
 
         return (await self.aio_session.scalars(query)).all()
 
@@ -210,21 +210,21 @@ class AjDb():
         '''
         query = None
         if not lookup_val:
-            query = sa.select(ajdb_t.Member)
+            query = sa.select(db_t.Member)
 
-        # Check if lookup_val is a discord.ajdb_t.Member object
+        # Check if lookup_val is a discord.db_t.Member object
         if isinstance(lookup_val, discord.Member):
             try:
-                query = sa.select(ajdb_t.Member).join(ajdb_t.Member.discord_pseudo).where(ajdb_t.DiscordPseudo.name == lookup_val.name)
+                query = sa.select(db_t.Member).join(db_t.Member.discord_pseudo).where(db_t.DiscordPseudo.name == lookup_val.name)
             except MemberNotFound as e:
                 raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
 
         # check if lookup_val is an integer (member ID)
         elif isinstance(lookup_val, int):
-            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.id == lookup_val)
+            query = sa.select(db_t.Member).where(db_t.Member.id == lookup_val)
 
         elif isinstance(lookup_val, str):
-            query = sa.select(ajdb_t.Member).where(ajdb_t.Member.credential)
+            query = sa.select(db_t.Member).where(db_t.Member.credential)
 
         else:
             raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
@@ -260,20 +260,20 @@ class AjDb():
                 [all found members with number of presence]
         '''
 
-        query = sa.select(ajdb_t.Member)
+        query = sa.select(db_t.Member)
         if subscriber_only:
-            query = query.join(ajdb_t.Membership)
+            query = query.join(db_t.Membership)
         else:
-            query = query.join(ajdb_t.MemberEvent).join(ajdb_t.Event)
+            query = query.join(db_t.MemberEvent).join(db_t.Event)
 
         if season_name:
-            where = ajdb_t.Season.name == season_name
+            where = db_t.Season.name == season_name
         else:
-            where = ajdb_t.Season.is_current_season
+            where = db_t.Season.is_current_season
 
-        query = query.join(ajdb_t.Season)\
+        query = query.join(db_t.Season)\
                      .where(where)\
-                     .group_by(ajdb_t.Member)
+                     .group_by(db_t.Member)
 
         members = (await self.aio_session.scalars(query)).all()
         return members
@@ -285,11 +285,11 @@ class AjDb():
             @return
                 [all found members with number of presence]
         '''
-        query = sa.select(ajdb_t.Member)\
-                    .join(ajdb_t.MemberEvent)\
-                    .join(ajdb_t.Event)\
-                    .where(ajdb_t.Event.id == event_id)\
-                    .group_by(ajdb_t.Member)
+        query = sa.select(db_t.Member)\
+                    .join(db_t.MemberEvent)\
+                    .join(db_t.Event)\
+                    .where(db_t.Event.id == event_id)\
+                    .group_by(db_t.Member)
 
         return (await self.aio_session.scalars(query)).all()
 
@@ -306,11 +306,11 @@ class AjDb():
             @return
                 [all found events]
         '''
-        query = sa.select(ajdb_t.Event)
+        query = sa.select(db_t.Event)
         if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Event.members))
+            query = query.options(orm.lazyload(db_t.Event.members))
         else:
-            query = query.options(orm.selectinload(ajdb_t.Event.members))
+            query = query.options(orm.selectinload(db_t.Event.members))
 
         events = (await self.aio_session.scalars(query)).all()
         if event_str:
@@ -330,13 +330,13 @@ class AjDb():
                 [all found events]
         '''
         if season_name:
-            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.season.has(ajdb_t.Season.name == season_name))
+            query = sa.select(db_t.Event).where(db_t.Event.season.has(db_t.Season.name == season_name))
         else:
-            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.is_in_current_season)
+            query = sa.select(db_t.Event).where(db_t.Event.is_in_current_season)
         if lazyload:
-            query = query.options(orm.lazyload(ajdb_t.Event.members))
+            query = query.options(orm.lazyload(db_t.Event.members))
         else:
-            query = query.options(orm.selectinload(ajdb_t.Event.members))
+            query = query.options(orm.selectinload(db_t.Event.members))
 
         events = (await self.aio_session.scalars(query)).all()
 
@@ -350,7 +350,7 @@ class AjDb():
                                participant_ids:Optional[list[int]]=None,):
         """ add or update an event
         """
-        query = sa.select(sa.func.max(ajdb_t.Member.id))
+        query = sa.select(sa.func.max(db_t.Member.id))
         last_valid_member_id = (await self.aio_session.scalars(query)).one_or_none()
         unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]
 
@@ -361,12 +361,12 @@ class AjDb():
         if not event_id:
             if not event_date:
                 raise AjDbException('Evnènement ou date manquante.')
-            db_event = ajdb_t.Event(date=event_date)
-            seasons = await self.query_table_content(ajdb_t.Season, orm.lazyload(ajdb_t.Season.events), orm.lazyload(ajdb_t.Season.memberships))
+            db_event = db_t.Event(date=event_date)
+            seasons = await self.query_table_content(db_t.Season, orm.lazyload(db_t.Season.events), orm.lazyload(db_t.Season.memberships))
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
             self.aio_session.add(db_event)
         else:
-            query = sa.select(ajdb_t.Event).where(ajdb_t.Event.id == event_id)
+            query = sa.select(db_t.Event).where(db_t.Event.id == event_id)
             db_event = (await self.aio_session.scalars(query)).one_or_none()
             if not db_event:
                 raise AjDbException(f'Evènement inconnu: {event_id}')
@@ -382,7 +382,7 @@ class AjDb():
         existing_participant_ids = [m_e.member_id for m_e in await db_event.awaitable_attrs.members]
         for mbr_id in participant_ids:
             if mbr_id not in existing_participant_ids:
-                db_event.members.append(ajdb_t.MemberEvent(member_id = mbr_id))
+                db_event.members.append(db_t.MemberEvent(member_id = mbr_id))
 
         await self.aio_session.commit()
         await self.aio_session.refresh(db_event)

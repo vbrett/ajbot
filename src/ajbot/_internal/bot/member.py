@@ -6,7 +6,7 @@ import discord
 from discord import Interaction, ui as dui
 
 from ajbot._internal.config import FormatTypes
-from ajbot._internal.ajdb import AjDb, tables as ajdb_t
+from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.bot import checks, responses
 from ajbot._internal.exceptions import OtherException, AjBotException
 
@@ -37,7 +37,7 @@ async def display(aj_db:AjDb,
 
     if members:
         if len(members) == 1:
-            member = cast(ajdb_t.Member, members[0])
+            member = cast(db_t.Member, members[0])
 
             is_self = False if not member.discord_pseudo else (member.discord_pseudo.name == interaction.user.name)
             editable = is_self or checks.is_manager(interaction)
@@ -185,7 +185,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:ajdb_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -305,7 +305,7 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:ajdb_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -407,7 +407,7 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:ajdb_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -454,7 +454,7 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:ajdb_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -500,7 +500,7 @@ class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:ajdb_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()

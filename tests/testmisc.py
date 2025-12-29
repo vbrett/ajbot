@@ -10,7 +10,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from vbrpytools.misctools import divide_list
 
 from ajbot._internal.ajdb import AjDb
-# from ajbot._internal import ajdb_tables as ajdb_t
+# from ajbot._internal import ajdb_tables as db_t
 from ajbot._internal.config import FormatTypes
 
 async def _main():
