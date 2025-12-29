@@ -251,7 +251,7 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 
 
 
-async def _main():
+async def _async_main():
     """ main function
     """
     async with AjDb() as aj_db:
@@ -278,8 +278,11 @@ async def _main():
                 # membership tables
                 await _populate_events_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_tables, member_tables=member_tables)
 
+
+def _main():
+    asyncio.run(_async_main())
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(_main()))
+    sys.exit(_main())

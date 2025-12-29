@@ -5,13 +5,7 @@ build-backend = 'hatchling.build'
 [project.scripts]
 aj_bot = 'ajbot.__main__:_main'
 aj_creds = 'ajbot.credentials:_main'
-
-[tool.hatch.build.targets.pyinstaller]
-require-runtime-dependencies = true
-flags = ['--clean', '--onefile', '--noconfirm']
-scriptname = 'src/ajbot/__main__.py'
-specpath = './.spec'
-zip = true
+aj_migrate = 'ajbot.migrate:_main'
 
 [project]
 name = 'ajbot'
