@@ -1,6 +1,7 @@
 """ Functions member outputs (Views, buttons, message, ...)
 """
 from typing import cast
+import dateutil.parser as date_parser
 
 import discord
 from discord import Interaction, ui as dui
@@ -28,8 +29,8 @@ async def display(aj_db:AjDb,
         else:
             message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
         await responses.send_response_as_text(interaction=interaction,
-                                            content=message,
-                                            ephemeral=True)
+                                              content=message,
+                                              ephemeral=True)
         return
     [input_member] = input_member
 
@@ -63,7 +64,8 @@ async def display(aj_db:AjDb,
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(member=member,
                                                                           title=title,
-                                                                          modal_class=EditMemberViewCreds)
+                                                                          modal_class=EditMemberViewCreds,
+                                                                          disable=False)
                                               ))
 
                 text = "### Adresse(s)\n"
@@ -148,8 +150,8 @@ async def display(aj_db:AjDb,
             await responses.send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
     else:
         await responses.send_response_as_text(interaction=interaction,
-                                            content=f"Je ne connais pas ton ou ta {input_member}.",
-                                            ephemeral=True)
+                                              content=f"Je ne connais pas ton ou ta {input_member}.",
+                                              ephemeral=True)
 
 
 
@@ -158,11 +160,11 @@ async def display(aj_db:AjDb,
 class EditMemberButton(dui.Button):
     """ Class that creates a edit button
     """
-    def __init__(self, member, modal_class, title):
+    def __init__(self, member, modal_class, title, disable=True):
         self._member = member
         self._modal_class = modal_class
         super().__init__(style=discord.ButtonStyle.primary,
-                         disabled=False,
+                         disabled=disable,
                          label=title)
 
     async def callback(self, interaction: discord.Interaction):
@@ -199,9 +201,9 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.short,
                                                     required=False,
-                                                    default='' if (not db_member or not db_member.credential)  else db_member.credential.last_name,
+                                                    default='' if (not db_member or not db_member.credential or not db_member.credential.last_name)  else db_member.credential.last_name,
                                                     max_length=120,
-                                                ),
+                                                   ),
                         )
         self.add_item(self.last_name)
 
@@ -210,9 +212,9 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.short,
                                                     required=False,
-                                                    default='' if (not db_member or not db_member.credential) else db_member.credential.first_name,
+                                                    default='' if (not db_member or not db_member.credential or not db_member.credential.first_name) else db_member.credential.first_name,
                                                     max_length=120,
-                                                ),
+                                                   ),
                         )
         self.add_item(self.first_name)
 
@@ -221,9 +223,9 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.short,
                                                     required=False,
-                                                    default='' if (not db_member or not db_member.credential) else str(db_member.credential.birthdate),
+                                                    default='' if (not db_member or not db_member.credential or not db_member.credential.birthdate) else str(db_member.credential.birthdate),
                                                     max_length=120,
-                                                ),
+                                                   ),
                         )
         self.add_item(self.birthdate)
 
@@ -248,30 +250,62 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         """
         await responses.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
-    # async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
-    #     """ Event triggered when clicking on submit button
-    #     """
-    #     async with AjDb() as aj_db:
+    async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
+        """ Event triggered when clicking on submit button
+        """
+        async with AjDb() as aj_db:
 
-    #         # assert isinstance(self.participants, dui.Label)
-    #         # assert isinstance(self.participants.component, dui.TextInput)
+            assert isinstance(self.last_name, dui.Label)
+            assert isinstance(self.last_name.component, dui.TextInput)
+            assert isinstance(self.first_name, dui.Label)
+            assert isinstance(self.first_name.component, dui.TextInput)
+            assert isinstance(self.birthdate, dui.Label)
+            assert isinstance(self.birthdate.component, dui.TextInput)
+            assert isinstance(self.discord, dui.Label)
+            assert isinstance(self.discord.component, dui.UserSelect)
 
-    #         # check consistency - event name
-    #         event_name = None
-    #         if self.event_name.component.value:
-    #             event_name = self.event_name.component.value.strip()
-    #             if not event_name:
-    #                 event_name = None
+            # check consistency - name
+            last_name = self.last_name.component.value.strip()
+            first_name = self.first_name.component.value.strip()
+            matching_member_names = await aj_db.query_members(lookup_val=last_name + ' ' + first_name,
+                                                            match_crit = 90,
+                                                            break_if_multi_perfect_match = False)
+            if matching_member_names and self._db_id not in [m.id for m in matching_member_names]:
+                await responses.send_response_as_text(interaction, f'Un autre membre possède un nom approchant: {matching_member_names[0]}', ephemeral=True)
+                return
 
-    #         event = await aj_db.add_update_event(event_id=self._db_id,
-    #                                             event_date=event_date,
-    #                                             event_name=event_name,
-    #                                             participant_ids=participant_ids,)
+            # check consistency - discord
+            assert len(self.discord.component.values) <= 1, f'More than 1 discord user selected: {self.discord.component.values}'
+            discord_name = None
+            if len(self.discord.component.values) == 1:
+                discord_user = self.discord.component.values[0]
+                matching_member_discords = await aj_db.query_members(lookup_val=discord_user,
+                                                                     match_crit = 100,
+                                                                     break_if_multi_perfect_match = False)
+                if matching_member_discords and self._db_id not in [m.id for m in matching_member_discords]:
+                    await responses.send_response_as_text(interaction, f'Un autre membre est associé à ce pseudo: {matching_member_discords[0]}', ephemeral=True)
+                    return
+                discord_name = discord_user.name
+
+            # check consistency - birthdate
+            birthdate = None
+            if self.birthdate.component.value:
+                try:
+                    birthdate = date_parser.parse(self.birthdate.component.value, dayfirst=True).date()
+                except date_parser.ParserError:
+                    await responses.send_response_as_text(interaction, f"La date '{self.birthdate.component.value}' n'est pas valide.", ephemeral=True)
+                    return
 
 
-    #         await display_event(aj_db=aj_db,
-    #                             interaction=interaction,
-    #                             event_str=str(event))
+            member = await aj_db.add_update_member(member_id=self._db_id,
+                                                   last_name=last_name,
+                                                   first_name=first_name,
+                                                   birthdate=birthdate,
+                                                   discord_name=discord_name)
+
+            await display(aj_db=aj_db,
+                          interaction=interaction,
+                          int_member=member.id)
 
 class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
     """ Modal handling member creation / update - Principal Postal Address

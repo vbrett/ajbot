@@ -390,6 +390,33 @@ class AjDb():
         return db_event
 
 
+    async def add_update_member(self,
+                                member_id = None,
+                                last_name:Optional[str]=None,
+                                first_name:Optional[str]=None,
+                                birthdate:Optional[date]=None,
+                                discord_name:Optional[str]=None,):
+        """ add or update an event
+        """
+
+        if not member_id:
+            db_member = db_t.Member()
+            db_member.credential = db_t.Credential()
+            self.aio_session.add(db_member)
+        else:
+            query = sa.select(db_t.Member).where(db_t.Member.id == member_id)
+            db_member = (await self.aio_session.scalars(query)).one_or_none()
+
+        db_member.credential.first_name = first_name
+        db_member.credential.last_name = last_name
+        db_member.credential.birthdate = birthdate
+        db_member.discord = discord_name
+
+        await self.aio_session.commit()
+        await self.aio_session.refresh(db_member)
+
+        return db_member
+
 
 
 if __name__ == '__main__':
