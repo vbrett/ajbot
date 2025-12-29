@@ -5,7 +5,7 @@ from discord import Interaction, app_commands
 
 from ajbot._internal.config import AjConfig
 from ajbot._internal.ajdb import AjDb
-from ajbot._internal import bot_config
+from ajbot._internal.bot import params
 from ajbot._internal.exceptions import OtherException
 
 
@@ -39,7 +39,7 @@ class AutocompleteFactory():
         return [
                 app_commands.Choice(name=value, value=value)
                 for value in values if current.lower() in value.lower()
-               ][:bot_config.AUTOCOMPLETE_LIST_SIZE]
+               ][:params.AUTOCOMPLETE_LIST_SIZE]
 
 
 # List of checks that can be used with app commands

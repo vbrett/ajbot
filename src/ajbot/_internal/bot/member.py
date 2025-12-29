@@ -1,4 +1,4 @@
-""" List of functions member outputs (Views, buttons, message, ...)
+""" Functions member outputs (Views, buttons, message, ...)
 """
 from typing import cast
 
@@ -7,7 +7,7 @@ from discord import Interaction, ui as dui
 
 from ajbot._internal.config import FormatTypes
 from ajbot._internal.ajdb import AjDb, tables as ajdb_t
-from ajbot._internal import bot_in, bot_out
+from ajbot._internal.bot import checks, responses
 from ajbot._internal.exceptions import OtherException, AjBotException
 
 async def display(aj_db:AjDb,
@@ -27,7 +27,7 @@ async def display(aj_db:AjDb,
             message = f"😓 Alors là, je vais avoir du mal à trouver sans un minimum d'info, à savoir {input_types}"
         else:
             message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
-        await bot_out.send_response_as_text(interaction=interaction,
+        await responses.send_response_as_text(interaction=interaction,
                                             content=message,
                                             ephemeral=True)
         return
@@ -40,7 +40,7 @@ async def display(aj_db:AjDb,
             member = cast(ajdb_t.Member, members[0])
 
             is_self = False if not member.discord_pseudo else (member.discord_pseudo.name == interaction.user.name)
-            editable = is_self or bot_in.is_manager(interaction)
+            editable = is_self or checks.is_manager(interaction)
 
             view = dui.LayoutView()
             container = dui.Container()
@@ -131,10 +131,10 @@ async def display(aj_db:AjDb,
                                                                        modal_class=EditMemberViewSubscription)  #TODO create modal
                                             ))
 
-            await bot_out.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
+            await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.orange())
-            format_style = FormatTypes.FULLSIMPLE if (bot_in.is_manager(interaction)) else FormatTypes.RESTRICTED
+            format_style = FormatTypes.FULLSIMPLE if (checks.is_manager(interaction)) else FormatTypes.RESTRICTED
             embed.add_field(name = 'Id', inline=True,
                             value = '\n'.join(str(m.id) for m in members)
                             )
@@ -145,9 +145,9 @@ async def display(aj_db:AjDb,
                             value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '-' for m in members)
                             )
 
-            await bot_out.send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
+            await responses.send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
     else:
-        await bot_out.send_response_as_text(interaction=interaction,
+        await responses.send_response_as_text(interaction=interaction,
                                             content=f"Je ne connais pas ton ou ta {input_member}.",
                                             ephemeral=True)
 
@@ -243,7 +243,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
         """
-        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+        await responses.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
     # async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
     #     """ Event triggered when clicking on submit button
@@ -394,7 +394,7 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
         """
-        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+        await responses.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
 class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
     """ Modal handling member creation / update - Principal Email
@@ -441,7 +441,7 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
         """
-        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+        await responses.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
 class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
     """ Modal handling member creation / update - Principal Phone
@@ -488,7 +488,7 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
         """
-        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+        await responses.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
 class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
     """ Modal handling member creation / update - subcscription
@@ -526,7 +526,7 @@ class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
         """
-        await bot_out.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
+        await responses.send_response_as_text(interaction, f"Une erreur est survenue : {error}\nEt il faut tout refaire...", ephemeral=True)
 
 if __name__ == "__main__":
     raise OtherException('This module is not meant to be executed directly.')
