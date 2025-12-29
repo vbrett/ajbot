@@ -6,8 +6,8 @@ import discord
 from discord import Interaction, ui as dui
 
 from ajbot._internal.config import FormatTypes
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal import bot_in, bot_out, ajdb_tables as ajdb_t
+from ajbot._internal.ajdb import AjDb, tables as ajdb_t
+from ajbot._internal import bot_in, bot_out
 from ajbot._internal.exceptions import OtherException, AjBotException
 
 async def display(aj_db:AjDb,

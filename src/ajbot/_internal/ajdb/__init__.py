@@ -18,7 +18,7 @@ from discord.ext.commands import MemberNotFound
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AjConfig
-from ajbot._internal import ajdb_tables as ajdb_t
+from ajbot._internal.ajdb import tables as ajdb_t
 
 cache_data = {}
 cache_time = {}

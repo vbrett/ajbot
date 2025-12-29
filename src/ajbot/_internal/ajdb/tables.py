@@ -16,7 +16,7 @@ from thefuzz import fuzz
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes, get_migrate_mode
-from ajbot._internal.ajdb_support import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId, Base
+from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId, Base
 
 
 # Lookup tables

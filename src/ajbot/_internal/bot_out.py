@@ -6,8 +6,8 @@ import discord
 from discord import Interaction, ui as dui
 
 from ajbot._internal.config import FormatTypes, AjConfig
-from ajbot._internal.ajdb import AjDb
-from ajbot._internal import bot_in, bot_config, ajdb_tables as ajdb_t
+from ajbot._internal.ajdb import AjDb, tables as ajdb_t
+from ajbot._internal import bot_in, bot_config
 from ajbot._internal.exceptions import OtherException
 
 
