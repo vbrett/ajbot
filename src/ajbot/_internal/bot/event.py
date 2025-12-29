@@ -192,7 +192,7 @@ class EditEventView(dui.Modal, title='Evènement'):
 
             # check consistency - date
             event_date = None
-            if not self._db_id:
+            if self.event_date.component.value:
                 assert isinstance(self.event_date, dui.Label)
                 assert isinstance(self.event_date.component, dui.TextInput)
 
@@ -217,14 +217,14 @@ class EditEventView(dui.Modal, title='Evènement'):
                 return
 
             event = await aj_db.add_update_event(event_id=self._db_id,
-                                                event_date=event_date,
-                                                event_name=event_name,
-                                                participant_ids=participant_ids,)
+                                                 event_date=event_date,
+                                                 event_name=event_name,
+                                                 participant_ids=participant_ids,)
 
 
             await display(aj_db=aj_db,
-                                interaction=interaction,
-                                event_str=str(event))
+                          interaction=interaction,
+                          event_str=str(event))
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing
