@@ -18,8 +18,8 @@ async def display(aj_config:AjConfig,
         await interaction.response.defer(ephemeral=True,)
 
     discord_role_mismatches = {}
-    aj_members = await aj_db.query_table_content(db_t.Member)
-    aj_discord_roles = await aj_db.query_table_content(db_t.DiscordRole)
+    aj_members = await aj_db.query_table_content(db_t.Member, refresh_cache=True)
+    aj_discord_roles = await aj_db.query_table_content(db_t.DiscordRole, refresh_cache=True)
     default_asso_role_id = aj_config.asso_member_default
     default_discord_role_ids = [dr.id for dr in aj_discord_roles if default_asso_role_id in [ar.id for ar in dr.asso_roles]]
 

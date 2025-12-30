@@ -197,9 +197,9 @@ class AjBot():
             """
             async with AjDb() as aj_db:
                 await event.display(aj_db=aj_db,
-                                        interaction=interaction,
-                                        season_name=season_name,
-                                        event_str=event_str)
+                                    interaction=interaction,
+                                    season_name=season_name,
+                                    event_str=event_str)
 
         @self.client.tree.command(name="saison")
         @app_commands.check(checks.is_manager)

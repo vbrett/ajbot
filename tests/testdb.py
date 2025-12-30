@@ -83,7 +83,7 @@ async def _test_create_query(aj_db:AjDb):
     event_date = date(2025, 11, 21)
     event_partipant_ids = [2, 3, 36, 155]
 
-    seasons = await aj_db.query_seasons()
+    seasons = await aj_db.query_seasons(refresh_cache=True)
 
     new_event = db_t.Event(date = event_date)
     [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]

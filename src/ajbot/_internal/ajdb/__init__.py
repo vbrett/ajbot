@@ -23,7 +23,7 @@ from ajbot._internal.ajdb import tables as db_t
 cache_data = {}
 cache_time = {}
 
-def cached_ajdb_method(func):
+def _async_cached(func):
     """ Decorator to handle cached AjDb data
     @arg:
         refresh_cache: if True, refresh cache even if not expired
@@ -136,7 +136,7 @@ class AjDb():
 
     # General
     # -------
-    @cached_ajdb_method
+    @_async_cached
     async def query_table_content(self, table, *options):
         ''' retrieve complete table
             @arg:
@@ -154,7 +154,7 @@ class AjDb():
         return (await self.aio_session.scalars(query)).all()
 
 
-    @cached_ajdb_method
+    @_async_cached
     async def query_seasons(self, lazyload:bool=True):
         ''' retrieve list of seasons
             @args
@@ -171,7 +171,7 @@ class AjDb():
 
         return (await self.aio_session.scalars(query)).all()
 
-    @cached_ajdb_method
+    @_async_cached
     async def query_asso_roles(self, lazyload:bool=True):
         ''' retrieve list of asso roles
             @args
@@ -296,7 +296,6 @@ class AjDb():
 
     # Events
     # -------
-    @cached_ajdb_method
     async def query_events(self, event_str:Optional[str] = None, lazyload:bool=True):
         ''' retrieve all events or with a given name
             @args
@@ -319,7 +318,6 @@ class AjDb():
         return events
 
 
-    @cached_ajdb_method
     async def query_events_per_season(self, season_name:Optional[str] = None, lazyload:bool=True):
         ''' retrieve list of events having occured in a given season
             @args
