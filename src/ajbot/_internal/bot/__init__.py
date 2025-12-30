@@ -10,7 +10,7 @@ from discord import app_commands, Interaction
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
+from ajbot._internal.config import AjConfig
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal.bot import asso_mgmt, checks, event, member, season, responses
 from ajbot._internal.exceptions import OtherException
@@ -191,6 +191,18 @@ class AjBot():
                 await asso_mgmt.email_display(aj_db=aj_db,
                                               subscriber_only=subscriber_only.value == 0,
                                               interaction=interaction)
+
+        @self.client.tree.command(name="feuille_presence")
+        @app_commands.check(checks.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        async def cmd_presence_sheet(interaction: Interaction):
+            """ Crée la feuille de présence
+            """
+            with AjConfig(save_on_exit=False) as aj_config:
+                async with AjDb(aj_config=aj_config) as aj_db:
+                    await asso_mgmt.sign_sheet_display(aj_config=aj_config,
+                                                           aj_db=aj_db,
+                                                           interaction=interaction)
 
 
         # Events & Season related commands

@@ -416,13 +416,6 @@ class Member(Base):
                     if ((not season_name and mbr_evt.is_in_current_season)
                          or mbr_evt.season.name == season_name)])
 
-    def current_season_not_subscriber_presence_count(self):
-        """ return number of presence if member has not currently subscribed
-        """
-        if self.is_subscriber:
-            return ""
-        return self.season_presence_count()
-
     def __hash__(self):
         return hash(self.id)
 

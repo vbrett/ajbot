@@ -17,6 +17,7 @@ dependencies = ['discord.py',
                 'dateparser',
                 'thefuzz[speedup]',
                 'pwinput',
+                'matplotlib',
                ]
 description = 'Discord for personal use'
 readme = 'README.md'

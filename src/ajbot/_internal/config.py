@@ -23,6 +23,8 @@ def get_migrate_mode():
 
 AJ_ID_PREFIX = "AJ-"
 
+AJ_SIGNSHEET_FILENAME ="emargement.pdf"
+
 _AJ_CONFIG_PATH = Path(".env")
 _AJ_CONFIG_FILE = "ajbot"
 
@@ -40,6 +42,7 @@ _KEY_DEFAULT_MEMBER = "member"
 
 _KEY_ASSO = "asso"
 _KEY_ROLE_RESET_TIME_DAYS = "role_reset_time_days"
+_KEY_ASSO_FREE_PRESENCE = "free_presence"
 
 _KEY_DB = "db"
 _KEY_DB_HOST = "host"
@@ -205,6 +208,12 @@ class AjConfig():
         """ Returns from config the duration in days a user role should be reset.
         """
         return self._config_dict[_KEY_ASSO][_KEY_ROLE_RESET_TIME_DAYS]
+
+    @property
+    def asso_free_presence(self):
+        """ Returns from config the number of free presence.
+        """
+        return self._config_dict[_KEY_ASSO][_KEY_ASSO_FREE_PRESENCE]
 
     @property
     def db_creds(self):

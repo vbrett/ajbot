@@ -26,7 +26,8 @@
             "past_subscriber": 1234567890123456789,
             "member": 1234567890123456789
         },
-        "role_reset_time_days": 150
+        "role_reset_time_days": 150,
+        "free_presence": 2
     },
     "db": {
         "host": "",
