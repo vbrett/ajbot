@@ -10,9 +10,9 @@ from discord import app_commands, Interaction
 # from vbrpytools.dicjsontools import save_json_file
 
 from ajbot import __version__ as ajbot_version
-from ajbot._internal.config import AjConfig #, DATEPARSER_CONFIG
+from ajbot._internal.config import AjConfig
 from ajbot._internal.ajdb import AjDb
-from ajbot._internal.bot import checks, event, member, role, season, responses
+from ajbot._internal.bot import asso_mgmt, checks, event, member, season, responses
 from ajbot._internal.exceptions import OtherException
 
 
@@ -100,8 +100,8 @@ class AjBot():
             """ Affiche la version du bot
             """
             await responses.send_response_as_text(interaction=interaction,
-                                                content=f"Version du bot: {ajbot_version}",
-                                                ephemeral=True)
+                                                  content=f"Version du bot: {ajbot_version}",
+                                                  ephemeral=True)
 
         @self.client.tree.command(name="maitenance")
         @app_commands.check(checks.is_owner)
@@ -115,8 +115,8 @@ class AjBot():
             await _init_bot_env()
 
             await responses.send_response_as_text(interaction=interaction,
-                                           content="👷‍♂️ C'est tout propre !",
-                                           ephemeral=True)
+                                                  content="👷‍♂️ C'est tout propre !",
+                                                  ephemeral=True)
 
         @self.client.tree.command(name="bonjour")
         @app_commands.check(checks.is_member)
@@ -135,8 +135,8 @@ class AjBot():
             self.last_hello_member_count = 0 if interaction.user != self.last_hello_member else min([self.last_hello_member_count + 1, len(message_list)-1])
             self.last_hello_member = interaction.user
             await responses.send_response_as_text(interaction=interaction,
-                                           content=message_list[self.last_hello_member_count],
-                                           ephemeral=True)
+                                                  content=message_list[self.last_hello_member_count],
+                                                  ephemeral=True)
 
 
         # Member related commands
@@ -158,10 +158,10 @@ class AjBot():
             """
             async with AjDb() as aj_db:
                 await member.display(aj_db=aj_db,
-                                         interaction=interaction,
-                                         disc_member=disc_member,
-                                         int_member=int_member,
-                                         str_member=str_member)
+                                     interaction=interaction,
+                                     disc_member=disc_member,
+                                     int_member=int_member,
+                                     str_member=str_member)
 
         @self.client.tree.command(name="roles")
         @app_commands.check(checks.is_manager)
@@ -171,9 +171,38 @@ class AjBot():
             """
             with AjConfig(save_on_exit=False) as aj_config:
                 async with AjDb(aj_config=aj_config) as aj_db:
-                    await role.display(aj_config=aj_config,
-                                        aj_db=aj_db,
-                                        interaction=interaction)
+                    await asso_mgmt.role_display(aj_config=aj_config,
+                                                 aj_db=aj_db,
+                                                 interaction=interaction)
+
+        @self.client.tree.command(name="emails")
+        @app_commands.check(checks.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        @app_commands.rename(subscriber_only='option')
+        @app_commands.choices(subscriber_only=[app_commands.Choice(name='cotisants seuls', value=0),
+                                               app_commands.Choice(name='participants 12 derniers mois', value=1),
+                                              ])
+        @app_commands.describe(subscriber_only='Liste de diffusion')
+        async def cmd_emails(interaction: Interaction,
+                             subscriber_only:app_commands.Choice[int]):
+            """ Affiche la liste de diffusion
+            """
+            async with AjDb() as aj_db:
+                await asso_mgmt.email_display(aj_db=aj_db,
+                                              subscriber_only=subscriber_only.value == 0,
+                                              interaction=interaction)
+
+        @self.client.tree.command(name="feuille_presence")
+        @app_commands.check(checks.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        async def cmd_presence_sheet(interaction: Interaction):
+            """ Crée la feuille de présence
+            """
+            with AjConfig(save_on_exit=False) as aj_config:
+                async with AjDb(aj_config=aj_config) as aj_db:
+                    await asso_mgmt.sign_sheet_display(aj_config=aj_config,
+                                                           aj_db=aj_db,
+                                                           interaction=interaction)
 
 
         # Events & Season related commands
@@ -190,9 +219,9 @@ class AjBot():
         @app_commands.autocomplete(season_name=checks.AutocompleteFactory(method="query_seasons",
                                                                           attr_name='name').ac)
         async def cmd_events(interaction: Interaction,
-                         event_str:Optional[str]=None,
-                         season_name:Optional[str]=None,
-                         ):
+                             event_str:Optional[str]=None,
+                             season_name:Optional[str]=None,
+                            ):
             """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
             """
             async with AjDb() as aj_db:

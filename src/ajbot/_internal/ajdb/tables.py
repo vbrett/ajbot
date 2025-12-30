@@ -367,7 +367,7 @@ class PostalAddress(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
-# Member table additional constructs
+# Member table & additional constructs
 #########################################
 
 
@@ -415,13 +415,6 @@ class Member(Base):
         return len([mbr_evt for mbr_evt in self.events
                     if ((not season_name and mbr_evt.is_in_current_season)
                          or mbr_evt.season.name == season_name)])
-
-    def current_season_not_subscriber_presence_count(self):
-        """ return number of presence if member has not currently subscribed
-        """
-        if self.is_subscriber:
-            return ""
-        return self.season_presence_count()
 
     def __hash__(self):
         return hash(self.id)
