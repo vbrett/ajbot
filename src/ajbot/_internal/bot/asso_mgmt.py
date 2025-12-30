@@ -1,4 +1,4 @@
-""" Function roles outputs (Views, buttons, message, ...)
+""" Function for asso management outputs (Views, buttons, message, ...)
 """
 from datetime import datetime, timedelta
 
@@ -9,9 +9,11 @@ from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.bot import responses
 from ajbot._internal.exceptions import OtherException
 
-async def display(aj_config:AjConfig,
-                  aj_db:AjDb,
-                  interaction: Interaction):
+
+
+async def role_display(aj_config:AjConfig,
+                       aj_db:AjDb,
+                       interaction: Interaction):
     """ Affiche les infos des roles
     """
     if not interaction.response.type:
