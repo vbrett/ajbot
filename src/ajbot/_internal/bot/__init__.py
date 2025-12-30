@@ -175,6 +175,23 @@ class AjBot():
                                                  aj_db=aj_db,
                                                  interaction=interaction)
 
+        @self.client.tree.command(name="emails")
+        @app_commands.check(checks.is_manager)
+        @app_commands.checks.cooldown(1, 5)
+        @app_commands.rename(subscriber_only='option')
+        @app_commands.choices(subscriber_only=[app_commands.Choice(name='cotisants seuls', value=0),
+                                               app_commands.Choice(name='participants 12 derniers mois', value=1),
+                                              ])
+        @app_commands.describe(subscriber_only='Liste de diffusion')
+        async def cmd_emails(interaction: Interaction,
+                             subscriber_only:app_commands.Choice[int]):
+            """ Affiche la liste de diffusion
+            """
+            async with AjDb() as aj_db:
+                await asso_mgmt.email_display(aj_db=aj_db,
+                                              subscriber_only=subscriber_only.value == 0,
+                                              interaction=interaction)
+
 
         # Events & Season related commands
         # ========================================================

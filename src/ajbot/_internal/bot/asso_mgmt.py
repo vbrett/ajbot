@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from discord import Interaction
 
-from ajbot._internal.config import AjConfig
+from ajbot._internal.config import AjConfig, FormatTypes
 from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.bot import responses
 from ajbot._internal.exceptions import OtherException
@@ -64,6 +64,30 @@ async def role_display(aj_config:AjConfig,
         reply = None
 
     await responses.send_response_as_view(interaction=interaction, title="Rôles", summary=summary, content=reply, ephemeral=True)
+
+
+async def email_display(aj_db:AjDb,
+                        subscriber_only:bool,
+                        interaction: Interaction):
+    """ Affiche les infos des roles
+    """
+    if not interaction.response.type:
+        await interaction.response.defer(ephemeral=True,)
+
+    members = await aj_db.query_table_content(db_t.Member, refresh_cache=True)
+
+    emails = [m.email_principal.email for m in members if     m.email_principal
+                                                          and (   m.is_subscriber
+                                                               or (    not subscriber_only
+                                                                   and m.last_presence
+                                                                   and m.last_presence >= (datetime.now().date() - timedelta(days=365))
+                                                                  )
+                                                              )]
+    summary = "Cotisants cette saison" if subscriber_only else 'Personnes ayant participé au moins une fois au cours des 12 derniers mois'
+    summary += f" - {len(emails)} email(s)"
+    reply = ';'.join(f"{email:{FormatTypes.FULLCOMPLETE}}" for email in emails)
+
+    await responses.send_response_as_view(interaction=interaction, title="Emails", summary=summary, content=reply, ephemeral=True)
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')
