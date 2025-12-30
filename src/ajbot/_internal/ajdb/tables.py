@@ -367,7 +367,7 @@ class PostalAddress(Base):
                 raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
 
 
-# Member table additional constructs
+# Member table & additional constructs
 #########################################
 
 
