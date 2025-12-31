@@ -43,8 +43,8 @@ def split_text(content:str,
 async def send_response_as_text(interaction: Interaction,
                                 content:str,
                                 embed=None,
-                                file=None,
-                                ephemeral=False):
+                                ephemeral=False,
+                                file=None):
     """ Send basic command response, handling splitting it if needed based on discord limit.
         Can also ensure that split is only perform at eol.
     """
@@ -55,7 +55,11 @@ async def send_response_as_text(interaction: Interaction,
         else:
             message_fct = interaction.response.send_message
 
-        await message_fct(content=chunk, embed=embed, ephemeral=ephemeral, file=file)
+        if file:
+            await message_fct(content=chunk, embed=embed, ephemeral=ephemeral, file=file)
+            file = None  # Empty file so it is only send with the first chunk (even though, I doubt we will ever have file with 2000+ content)
+        else:
+            await message_fct(content=chunk, embed=embed, ephemeral=ephemeral)
         embed = None  # Empty embed so it is only send with the first chunk (even though, I doubt we will ever have embed with 2000+ content)
 
 
