@@ -79,14 +79,14 @@ async def send_response_as_view(interaction: Interaction,
             view.add_item(container)
 
             if title:
-                container.add_item(dui.TextDisplay(f'# __{title}__'))
+                container.add_item(dui.TextDisplay(f"# __{title}__"))
             if summary:
-                container.add_item(dui.TextDisplay(f'## {summary}'))
+                container.add_item(dui.TextDisplay(f"## {summary}"))
             if chunk:
-                container.add_item(dui.TextDisplay(f'>>> {chunk}'))
+                container.add_item(dui.TextDisplay(f">>> {chunk}"))
 
         timestamp = discord.utils.format_dt(interaction.created_at, 'F')
-        footer = dui.TextDisplay(f'-# Généré par {interaction.user} (ID: {interaction.user.id}) | {timestamp}')
+        footer = dui.TextDisplay(f"-# Généré par {interaction.user} (ID: {interaction.user.id}) | {timestamp}")
 
         container.add_item(footer)
 

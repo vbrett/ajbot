@@ -62,7 +62,8 @@ async def role_display(aj_config:AjConfig,
 
     if discord_role_mismatches:
         summary = "Des roles ne sont pas correctements attribués :"
-        reply = '\n'.join(f"- Attendu(s): {k}\n  - {'\n  - '.join(e for e in v)}" for k, v in discord_role_mismatches.items())
+        sep = '\n  - '
+        reply = '\n'.join(f"- Attendu(s): {k}\n  - {sep.join(e for e in v)}" for k, v in discord_role_mismatches.items())
         # reply = '\n'.join(f"- {u['who']} :\n  - attendu(s): {u['expected']}\n  - actuel(s): {u['actual']}" for u in discord_role_mismatches)
     else:
         summary = "Parfait ! Tout le monde a le bon rôle !"
@@ -114,8 +115,8 @@ async def sign_sheet_display(aj_config:AjConfig,
     fig, ax = plt.subplots(figsize=(21/inch_to_cm, 29.7/inch_to_cm))  # A4 size in inches
 
     ax.axis('off')
-    input_dic = [{'ID': f'{member.id:{FormatTypes.FULLSIMPLE}}',
-                  'Nom': f'{member.credential:{FormatTypes.FULLSIMPLE}}',
+    input_dic = [{'ID': f"{member.id:{FormatTypes.FULLSIMPLE}}",
+                  'Nom': f"{member.credential:{FormatTypes.FULLSIMPLE}}",
                   '#': "" if member.is_subscriber else f"{'>' if member.season_presence_count() >= free_venues else ''}{member.season_presence_count()}",
                   'Signature': '',
                  } for member in members]

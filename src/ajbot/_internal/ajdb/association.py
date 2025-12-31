@@ -28,7 +28,7 @@ class MemberEmail(Base):
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
     def __str__(self):
-        return f'{self.id}, member #{self.member_id}, email #{self.email_id}'
+        return f"{self.id}, member #{self.member_id}, email #{self.email_id}"
 
 
 class MemberPhone(Base):
@@ -47,7 +47,7 @@ class MemberPhone(Base):
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
     def __str__(self):
-        return f'{self.id}, member #{self.member_id}, phone #{self.phone_id}'
+        return f"{self.id}, member #{self.member_id}, phone #{self.phone_id}"
 
 
 class MemberAddress(Base):
@@ -66,7 +66,7 @@ class MemberAddress(Base):
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
     def __str__(self):
-        return f'{self.id}, member #{self.member_id}, address #{self.address_id}'
+        return f"{self.id}, member #{self.member_id}, address #{self.address_id}"
 
 
 class MemberAssoRole(Base):
@@ -87,7 +87,7 @@ class MemberAssoRole(Base):
 
 
     def __str__(self):
-        return f'{self.id}, member #{self.member_id}, asso role #{self.asso_role_id}'
+        return f"{self.id}, member #{self.member_id}, asso role #{self.asso_role_id}"
 
 
 class AssoRoleDiscordRole(Base):
@@ -100,7 +100,7 @@ class AssoRoleDiscordRole(Base):
     discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
 
     def __str__(self):
-        return f'{self.id}, asso role #{self.asso_role_id}, discord role #{self.discord_role_id}'
+        return f"{self.id}, asso role #{self.asso_role_id}, discord role #{self.discord_role_id}"
 
 
 class MemberEvent(Base):
@@ -119,7 +119,7 @@ class MemberEvent(Base):
         member: orm.Mapped['Member'] = orm.relationship(back_populates='event_members', lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
-        return f'{self.id}, event #{self.event_id}, member #{self.member_id}'
+        return f"{self.id}, event #{self.event_id}, member #{self.member_id}"
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

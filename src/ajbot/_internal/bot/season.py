@@ -24,15 +24,16 @@ async def display(aj_db:AjDb,
 
         reply = ''
         if len(subscribers) > 0:
-            reply += f'## {len(subscribers)} Cotisant(es):\n- '
-            reply += '\n- '.join(f'{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s)' for m in subscribers)
+            reply += f"## {len(subscribers)} Cotisant(es):\n- "
+            reply += '\n- '.join(f"{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s)" for m in subscribers)
         if len(participants) - len(subscribers) > 0:
-            reply += f'{"\n\n" if len(subscribers) else ''}## {len(participants) - len(subscribers)} non Cotisant(es):\n- '
-            reply += '\n- '.join(f'{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s)' for m in participants if m not in subscribers)
+            sep = '\n\n'
+            reply += f"{sep if len(subscribers) else ''}## {len(participants) - len(subscribers)} non Cotisant(es):\n- "
+            reply += '\n- '.join(f"{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s)" for m in participants if m not in subscribers)
     else:
         if subscribers:
             summary = f"Je ne sais pas combien de personne sont venues, mais {len(subscribers)} ont cotisé :"
-            reply = '- ' + '\n- '.join(f'{m:{format_style}}' for m in subscribers)
+            reply = '- ' + '\n- '.join(f"{m:{format_style}}" for m in subscribers)
         else:
             summary = "😱 Mais il n'y a eu personne ! 😱"
             reply = '---'

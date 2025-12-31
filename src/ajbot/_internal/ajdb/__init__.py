@@ -217,7 +217,7 @@ class AjDb():
             try:
                 query = sa.select(db_t.Member).where(db_t.Member.discord == lookup_val.name)
             except MemberNotFound as e:
-                raise AjDbException(f'Le champ de recherche {lookup_val} n\'est pas reconnu comme de type discord') from e
+                raise AjDbException(f"Le champ de recherche {lookup_val} n'est pas reconnu comme de type discord") from e
 
         # check if lookup_val is an integer (member ID)
         elif isinstance(lookup_val, int):
@@ -227,7 +227,7 @@ class AjDb():
             query = sa.select(db_t.Member).where(db_t.Member.credential)
 
         else:
-            raise AjDbException(f'Le champ de recherche doit être de type "discord", "int" or "str", pas "{type(lookup_val)}"')
+            raise AjDbException(f"Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '{type(lookup_val)}'")
 
 
         matched_members = (await self.aio_session.scalars(query)).all()
@@ -353,7 +353,7 @@ class AjDb():
         unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]
 
         if unkown_participant_ids:
-            raise AjDbException(f'ID asso inconnu(s): {', '.join(str(i) for i in unkown_participant_ids)}')
+            raise AjDbException(f"ID asso inconnu(s): {', '.join(str(i) for i in unkown_participant_ids)}")
 
         # create or get event
         if not event_id:
@@ -367,7 +367,7 @@ class AjDb():
             query = sa.select(db_t.Event).where(db_t.Event.id == event_id)
             db_event = (await self.aio_session.scalars(query)).one_or_none()
             if not db_event:
-                raise AjDbException(f'Evènement inconnu: {event_id}')
+                raise AjDbException(f"Evènement inconnu: {event_id}")
 
         # set name
         db_event.name = event_name

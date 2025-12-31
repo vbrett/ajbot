@@ -12,16 +12,16 @@ name = 'ajbot'
 dynamic = ['version']
 dependencies = ['discord.py',
                 'sqlalchemy[asyncio]', 'aiomysql',
-                'vbrpytools >= 3.8.0',
+                'vbrpytools',
                 'humanize',
                 'dateparser',
                 'thefuzz[speedup]',
                 'pwinput',
-                'matplotlib',
+                'contourpy < 1.3.0', 'matplotlib',
                ]
 description = 'Discord for personal use'
 readme = 'README.md'
-requires-python = '>=3.13'
+requires-python = '>=3.11'
 license = {file = 'LICENSE'}
 keywords = ['tools', 'discord','personal', 'mariaDB', 'bot']
 authors = [
@@ -30,7 +30,7 @@ authors = [
 classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.13',
+    'Programming Language :: Python :: 3.11',
     'Operating System :: Microsoft :: Windows :: Windows 11',
     'Operating System :: POSIX :: Linux',
     'Intended Audience :: Developers',

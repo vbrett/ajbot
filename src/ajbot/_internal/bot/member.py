@@ -51,7 +51,7 @@ async def display(aj_db:AjDb,
                 container.add_item(dui.TextDisplay(format(member, FormatTypes.RESTRICTED)))
             else:
                 format_style = FormatTypes.FULLCOMPLETE
-                container.add_item(dui.TextDisplay(f'# __{member.id}__'))
+                container.add_item(dui.TextDisplay(f"# __{member.id}__"))
 
                 text = ''
                 if member.credential:
@@ -144,7 +144,7 @@ async def display(aj_db:AjDb,
                             value = '\n'.join(('@' + m.discord) if m.discord else '-' for m in members)
                             )
             embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
-                            value = '\n'.join(f'{m.credential:{format_style}}' if m.credential else '-' for m in members)
+                            value = '\n'.join(f"{m.credential:{format_style}}" if m.credential else '-' for m in members)
                             )
 
             await responses.send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
@@ -232,7 +232,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         discord_members = []
         if db_member and db_member.discord:
             discord_members = [m for m in interaction.guild.members if m.name == db_member.discord]
-            assert len(discord_members) <= 1, f'More than 1 discord user with same name: {db_member.discord}'
+            assert len(discord_members) <= 1, f"More than 1 discord user with same name: {db_member.discord}"
 
 
         self.discord = dui.Label(
@@ -271,11 +271,11 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                                                             match_crit = 90,
                                                             break_if_multi_perfect_match = False)
             if matching_member_names and self._db_id not in [m.id for m in matching_member_names]:
-                await responses.send_response_as_text(interaction, f'Un autre membre possède un nom approchant: {matching_member_names[0]}', ephemeral=True)
+                await responses.send_response_as_text(interaction, f"Un autre membre possède un nom approchant: {matching_member_names[0]}", ephemeral=True)
                 return
 
             # check consistency - discord
-            assert len(self.discord.component.values) <= 1, f'More than 1 discord user selected: {self.discord.component.values}'
+            assert len(self.discord.component.values) <= 1, f"More than 1 discord user selected: {self.discord.component.values}"
             discord_name = None
             if len(self.discord.component.values) == 1:
                 discord_user = self.discord.component.values[0]
@@ -283,7 +283,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                                                                      match_crit = 100,
                                                                      break_if_multi_perfect_match = False)
                 if matching_member_discords and self._db_id not in [m.id for m in matching_member_discords]:
-                    await responses.send_response_as_text(interaction, f'Un autre membre est associé à ce pseudo: {matching_member_discords[0]}', ephemeral=True)
+                    await responses.send_response_as_text(interaction, f"Un autre membre est associé à ce pseudo: {matching_member_discords[0]}", ephemeral=True)
                     return
                 discord_name = discord_user.name
 

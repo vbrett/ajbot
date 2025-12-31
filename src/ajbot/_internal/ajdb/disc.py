@@ -34,7 +34,7 @@ class DiscordRole(Base):
                 return self.name
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
 if __name__ == '__main__':

@@ -83,7 +83,7 @@ class AjBot():
             # preload in config & cache some semi-permanent data from DB
             await _init_bot_env()
 
-            print(f'Logged in as {self.client.user} (ID: {self.client.user.id})')
+            print(f"Logged in as {self.client.user} (ID: {self.client.user.id})")
             print('------')
 
 

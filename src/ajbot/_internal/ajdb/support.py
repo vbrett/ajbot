@@ -19,12 +19,12 @@ class HumanizedDate(datetime.date):
     def __new__(cls, indate, *args, **kwargs):
         #check if first passed argument is already a datetime format
         if not isinstance(indate, datetime.date):
-            raise AjDbException(f'Incorrect format: {type(cls)}')
+            raise AjDbException(f"Incorrect format: {type(cls)}")
 
         return super().__new__(cls, indate.year, indate.month, indate.day, *args, **kwargs)
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -62,7 +62,7 @@ class AjMemberId(int):
     """ Class that handles member id as integer, and represents it in with correct format
     """
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format

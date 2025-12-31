@@ -61,7 +61,7 @@ async def display(aj_db:AjDb,
             container.add_item(dui.Section(dui.TextDisplay(message2), accessory=DeleteEventButton(event=event,
                                                                                                   disabled = not checks.is_manager(interaction))))
             if participants:
-                container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f'{m:{format_style}}' for m in participants)))
+                container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f"{m:{format_style}}" for m in participants)))
             await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
             embed = discord.Embed(color=discord.Color.blue())

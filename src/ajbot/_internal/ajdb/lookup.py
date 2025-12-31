@@ -22,7 +22,7 @@ class StreetType(Base):
     addresses: orm.Mapped[list['PostalAddress']] = orm.relationship(back_populates='street_type', lazy='selectin')
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -41,7 +41,7 @@ class ContributionType(Base):
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='contribution_type', lazy='selectin')
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -60,7 +60,7 @@ class KnowFromSource(Base):
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='know_from_source', lazy='selectin')
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -79,7 +79,7 @@ class AccountType(Base):
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='account_type', lazy='selectin')
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format

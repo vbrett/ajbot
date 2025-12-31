@@ -63,7 +63,7 @@ class Season(Base):
             return NotImplemented
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -89,7 +89,7 @@ class AssoRole(Base):
         member_asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -176,10 +176,10 @@ class Event(Base):
         """
         match format_spec:
             case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE | FormatTypes.RESTRICTED:
-                return ' - '.join(f'{x}' for x in [self.date, self.name] if x)
+                return ' - '.join(f"{x}" for x in [self.date, self.name] if x)
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
 # Member private data tables
@@ -248,7 +248,7 @@ class Credential(Base):
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_match = f'({self.fuzzy_match}%)' if self.fuzzy_match < 100 else None
+        mbr_match = f"({self.fuzzy_match}%)" if self.fuzzy_match < 100 else None
         match format_spec:
             case FormatTypes.RESTRICTED:
                 name_list = [self.first_name, mbr_match]
@@ -260,9 +260,9 @@ class Credential(Base):
                 name_list = [self.first_name, self.last_name, mbr_match, self.birthdate]
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
-        return ' '.join([f'{x}' for x in name_list if x])
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 class Email(Base):
@@ -292,7 +292,7 @@ class Email(Base):
                 return self.address
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
 class Phone(Base):
@@ -309,7 +309,7 @@ class Phone(Base):
     members: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='phone', lazy='selectin')
 
     def __str__(self):
-        return f'{self}'
+        return f"{self}"
 
     def __format__(self, format_spec):
         """ override format
@@ -322,7 +322,7 @@ class Phone(Base):
                 return self.number
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
 class PostalAddress(Base):
@@ -356,7 +356,7 @@ class PostalAddress(Base):
                 return self.city
 
             case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
-                return ' '.join([f'{x}' for x in [self.street_num,
+                return ' '.join([f"{x}" for x in [self.street_num,
                                                   self.street_type,
                                                   self.street_name,
                                                   self.zip_code,
@@ -364,7 +364,7 @@ class PostalAddress(Base):
                                                   self.extra] if x])
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
 # Member table & additional constructs
@@ -443,7 +443,7 @@ class Member(Base):
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
-                return ' - '.join([f'{x:{format_spec}}' for x in [mbr_id, mbr_creds, mbr_disc,] if x])
+                return ' - '.join([f"{x:{format_spec}}" for x in [mbr_id, mbr_creds, mbr_disc,] if x])
 
             case FormatTypes.FULLCOMPLETE:
                 mbr_email = self.email_principal.email if self.email_principal else None
@@ -452,11 +452,11 @@ class Member(Base):
                 mbr_role = self.current_asso_role
 
                 mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
-                mbr_asso_info += f'cotisant, {self.season_presence_count()} participation(s) cette saison.'
-                return '\n'.join([f'{x:{format_spec}}'for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
+                mbr_asso_info += f"cotisant, {self.season_presence_count()} participation(s) cette saison."
+                return '\n'.join([f"{x:{format_spec}}" for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:
-                raise AjDbException(f'Le format {format_spec} n\'est pas supporté')
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 # Build a selectable mapping member -> computed asso_role_id using CASE
 _now = datetime.datetime.now().date()

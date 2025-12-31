@@ -17,13 +17,13 @@ async def _search_member(aj_db:AjDb, lookup_val):
     print('')
     print('-------------------')
     for qr in query_result:
-        print(f'{qr:{FormatTypes.RESTRICTED}}')
+        print(f"{qr:{FormatTypes.RESTRICTED}}")
     print('-------------------')
     for qr in query_result:
-        print(f'{qr:{FormatTypes.FULLSIMPLE}}')
+        print(f"{qr:{FormatTypes.FULLSIMPLE}}")
     print('-------------------')
     for qr in query_result:
-        print(f'{qr:{FormatTypes.FULLCOMPLETE}}')
+        print(f"{qr:{FormatTypes.FULLCOMPLETE}}")
         print('')
     print('-------------------')
     print('')
@@ -75,7 +75,7 @@ async def _test_query(aj_db_session):
     for m in matched_items:
         presence = len([member_event for member_event in cast(db_t.Member, m).events
                         if member_event.event.season.name == season_name])
-        print(f'{m:{FormatTypes.FULLSIMPLE}} - {presence} présence(s)')
+        print(f"{m:{FormatTypes.FULLSIMPLE}} - {presence} présence(s)")
     print(len(matched_items), 'item(s)')
 
 
