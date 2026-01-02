@@ -14,3 +14,6 @@ COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache /wheels/* && rm -rf /wheels
 
 ENTRYPOINT [ "aj_bot" ]
+
+
+# docker build --platform=linux/amd64,linux/arm/v7,linux/arm64  --tag=vibrett/ajbot:0.7.2c --push .
