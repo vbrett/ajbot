@@ -44,4 +44,4 @@ Repository = 'https://github.com/vbrett/ajbot.git'
 Issues = 'https://github.com/vbrett/ajbot/issues'
 
 [tool.hatch.version]
-path = 'src/ajbot/__init__.py'
+path = 'info.ini'

@@ -1,5 +1,6 @@
 ''' contains configuration variables
 '''
+import configparser
 from pathlib import Path
 from urllib.parse import quote_plus
 from dataclasses import dataclass
@@ -24,6 +25,10 @@ def get_migrate_mode():
 AJ_ID_PREFIX = "AJ-"
 
 AJ_SIGNSHEET_FILENAME ="emargement.pdf"
+
+_AJ_INFO_PATH = Path(".")
+_AJ_INFO_FILE = "info.ini"
+_KEY_VERSION = "version"
 
 _AJ_CONFIG_PATH = Path(".env")
 _AJ_CONFIG_FILE = "ajbot"
@@ -60,6 +65,44 @@ class FormatTypes():
     RESTRICTED = ''     # since f'{xxx}' is equivalent to format(xxx, ''), defining RESTRICTED to '' enforces f'' string woth no format to be same as restricted
     FULLSIMPLE = 'full_simple'
     FULLCOMPLETE = 'full_complete'
+
+
+class AjInfo():
+    def __init__(self,
+                 file_path=_AJ_INFO_PATH / _AJ_INFO_FILE):
+        """
+            Initializes the object.
+        Args:
+        file_path:         path to the info file.
+        """
+        self._version_dict = {}
+        self._file_path = file_path
+
+    def __enter__(self):
+        return self.open()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def open(self):
+        """ Opens the file and loads its content.
+        """
+        config = configparser.ConfigParser()
+        dummy_section = 'DUMMY'
+        with open(self._file_path) as fp:
+            config.read_string(f"[{dummy_section}]\n" + fp.read())
+        self._config_dict = {k:v.strip('"') for k,v in config[dummy_section].items()}
+        return self
+
+    def close(self):
+        """ Closes the config file, saving its content if needed.
+        """
+        pass
+
+    @property
+    def version(self):
+        return self._config_dict[_KEY_VERSION]
+
 
 
 class AjConfig():

@@ -1,16 +1,11 @@
 """ Discord bot
 """
 from typing import Optional
-# import tempfile
-# from pathlib import Path
 
 import discord
 from discord import app_commands, Interaction
-# from dateparser import parse as dateparse
-# from vbrpytools.dicjsontools import save_json_file
 
-from ajbot import __version__ as ajbot_version
-from ajbot._internal.config import AjConfig
+from ajbot._internal.config import AjConfig, AjInfo
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal.bot import asso_mgmt, checks, event, member, season, responses
 from ajbot._internal.exceptions import OtherException
@@ -99,9 +94,10 @@ class AjBot():
         async def cmd_version(interaction: Interaction):
             """ Affiche la version du bot
             """
-            await responses.send_response_as_text(interaction=interaction,
-                                                  content=f"Version du bot: {ajbot_version}",
-                                                  ephemeral=True)
+            with AjInfo() as aj_info:
+                await responses.send_response_as_text(interaction=interaction,
+                                                      content=f"Version du bot: {aj_info.version}",
+                                                      ephemeral=True)
 
         @self.client.tree.command(name="maitenance")
         @app_commands.check(checks.is_owner)
