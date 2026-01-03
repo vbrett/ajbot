@@ -4,10 +4,12 @@ import configparser
 from pathlib import Path
 from urllib.parse import quote_plus
 from dataclasses import dataclass
+from importlib import resources
 
 from vbrpytools.dicjsontools import load_json_file, save_json_file
 
 from ajbot._internal.exceptions import OtherException
+import ajbot.resources as pkg_resource
 
 
 
@@ -26,7 +28,6 @@ AJ_ID_PREFIX = "AJ-"
 
 AJ_SIGNSHEET_FILENAME ="emargement.pdf"
 
-_AJ_INFO_PATH = Path(".")
 _AJ_INFO_FILE = "info.ini"
 _KEY_VERSION = "version"
 
@@ -69,7 +70,7 @@ class FormatTypes():
 
 class AjInfo():
     def __init__(self,
-                 file_path=_AJ_INFO_PATH / _AJ_INFO_FILE):
+                 file_path=resources.files(pkg_resource) / _AJ_INFO_FILE):
         """
             Initializes the object.
         Args:

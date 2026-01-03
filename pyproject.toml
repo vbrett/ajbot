@@ -44,4 +44,7 @@ Repository = 'https://github.com/vbrett/ajbot.git'
 Issues = 'https://github.com/vbrett/ajbot/issues'
 
 [tool.hatch.version]
-path = 'info.ini'
+path = 'src/ajbot/resources/info.ini'
+
+[tool.hatch.build.targets.sdist]
+exclude = ['/tests', '/.devcontainer', '*.json', 'build.bat', 'Dockerfile']
