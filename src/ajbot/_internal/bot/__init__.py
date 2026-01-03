@@ -134,6 +134,40 @@ class AjBot():
                                                   content=message_list[self.last_hello_member_count],
                                                   ephemeral=True)
 
+        @self.client.tree.command(name="infos")
+        @app_commands.check(checks.is_member)
+        @app_commands.checks.cooldown(1, 5)
+        async def cmd_hello(interaction: Interaction):
+            """Donne les infos pratiques sur l'association"""
+            info_message  = """# __Quand ?__
+Nous nous réunissons tous les **vendredi soirs à partir de 20h**
+# __Où ?__
+A la **Maison de quartier de la Marinière**
+2 Pl. Stendhal, 78500 Sartrouville ([plan](https://www.google.com/maps/place/48°56'41.9"N+2°11'43.5"E/@48.9449058,2.1953821,20z))
+-# ↪ Si la porte n'est pas ouverte, sonnez à "_salle d'activité_" (le bouton du haut)
+# __Comment venir ?__
+## En bus
+- Ligne **26**, arrêt St-Exupéry
+- Ligne **25**, arrêt Flaubert
+- Ligne **1**, arrêt Robert Schumann
+- Ligne **9**, arrêt Clémenceau
+- Ligne **272**, arrêt Clémenceau (Le dernier bus est aux alentours de 1h)
+- Ligne **N24**, arrêt Clémenceau (Le 1er bus est aux alentours de minuit)
+## En voiture
+- Des parkings de petite capacité se trouvent autour (ils sont fréquemment complets)
+- Sinon le parking du Carrefour, situé juste derrière, reste ouvert toute la nuit.
+# __Comment ça se passe ?__
+- Les jeux sont apportés par les participants. Chacun peut apporter des jeux, mais ce n'est pas nécessaire - il y en aura toujours bien assez pour tous.
+- L'association propose en outre quelques jeux qui peuvent être empruntés par les adhérents, principalement des jeux d'enquête à usage unique.
+# __Combien ?__
+- 15€ pour l'année, payable en espèces ou chèque
+- Les 2 premières séances de découverte sont gratuites.
+"""
+
+            await responses.send_response_as_text(interaction=interaction,
+                                                  content=info_message,
+                                                  ephemeral=False)
+
 
         # Member related commands
         # ========================================================
