@@ -39,7 +39,7 @@ async def display(aj_db:AjDb,
         return
 
     if event_str:
-        events = await aj_db.query_events(event_str=event_str, lazyload=False)
+        events = await aj_db.query_events(event_str=event_str, lazyload=False, refresh_cache=True)
     else:
         events = await aj_db.query_events_per_season(season_name=season_name, lazyload=False)
 

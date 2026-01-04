@@ -296,6 +296,7 @@ class AjDb():
 
     # Events
     # -------
+    @_async_cached
     async def query_events(self, event_str:Optional[str] = None, lazyload:bool=True):
         ''' retrieve all events or with a given name
             @args
