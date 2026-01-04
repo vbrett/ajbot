@@ -83,8 +83,8 @@ class AssoRole(Base):
     is_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     is_manager: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
-    discord_roles: orm.Mapped[list['DiscordRole']] = orm.relationship(secondary='JCT_asso_discord_role', back_populates='asso_roles', lazy='selectin')
-    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin')
+    discord_roles: orm.Mapped[list['DiscordRole']] = orm.relationship(secondary='JCT_asso_discord_role', back_populates='asso_roles', lazy='selectin', join_depth=2)
+    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin', join_depth=2)
     if get_migrate_mode():
         member_asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', lazy='selectin') #AJDB_MIGRATION
 
@@ -143,7 +143,7 @@ class Event(Base):
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', back_populates='events', lazy='selectin')
+    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', back_populates='events', lazy='selectin', join_depth=2)
     if get_migrate_mode():
         member_events: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', lazy='selectin') #AJDB_MIGRATION
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='events', lazy='selectin')
@@ -383,7 +383,7 @@ class Member(Base):
     credential: orm.Mapped[Optional['Credential']] = orm.relationship(back_populates='member', uselist=False, lazy='selectin')
 
     discord: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=True)
-    manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='members', lazy='selectin')
+    manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='members', lazy='selectin', join_depth=2)
 
     emails: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='member', lazy='selectin')
     email_principal: orm.Mapped[Optional['MemberEmail']] = orm.relationship(primaryjoin="and_(Member.id==MemberEmail.member_id,MemberEmail.principal==True)",
@@ -399,7 +399,7 @@ class Member(Base):
                                                                                 viewonly=True,)
 
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='member', lazy='selectin')
-    events: orm.Mapped[list['Event']] = orm.relationship(secondary='JCT_event_member', back_populates='members', lazy='selectin')
+    events: orm.Mapped[list['Event']] = orm.relationship(secondary='JCT_event_member', back_populates='members', lazy='selectin', join_depth=2)
 
     if get_migrate_mode():
         event_members: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='member', lazy='selectin') #AJDB_MIGRATION
@@ -437,22 +437,22 @@ class Member(Base):
     def __format__(self, format_spec):
         """ override format
         """
-        mbr_id = self.id
-        mbr_creds = self.credential
+        mbr_id = f"{self.id:{format_spec}}"
+        mbr_creds = f"{self.credential:{format_spec}}"
         mbr_disc = '@' + self.discord if self.discord else ''
+        mbr_email = f"{self.email_principal.email:{format_spec}}" if self.email_principal else None
+        mbr_address = f"{self.address_principal.address:{format_spec}}" if self.address_principal else None
+        mbr_phone = f"{self.phone_principal.phone:{format_spec}}" if self.phone_principal else None
+        mbr_role = f"{self.current_asso_role:{format_spec}}"
+
+        mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
+        mbr_asso_info += f"cotisant, {self.season_presence_count()} participation(s) cette saison."
 
         match format_spec:
             case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
-                return ' - '.join([f"{x:{format_spec}}" for x in [mbr_id, mbr_creds, mbr_disc,] if x])
+                return ' - '.join([x for x in [mbr_id, mbr_creds, mbr_disc,] if x])
 
             case FormatTypes.FULLCOMPLETE:
-                mbr_email = self.email_principal.email if self.email_principal else None
-                mbr_address = self.address_principal.address if self.address_principal else None
-                mbr_phone = self.phone_principal.phone if self.phone_principal else None
-                mbr_role = self.current_asso_role
-
-                mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
-                mbr_asso_info += f"cotisant, {self.season_presence_count()} participation(s) cette saison."
                 return '\n'.join([f"{x:{format_spec}}" for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:

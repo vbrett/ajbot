@@ -137,7 +137,7 @@ class AjBot():
         @self.client.tree.command(name="infos")
         @app_commands.check(checks.is_member)
         @app_commands.checks.cooldown(1, 5)
-        async def cmd_hello(interaction: Interaction):
+        async def cmd_infos(interaction: Interaction):
             """Donne les infos pratiques sur l'association"""
             info_message  = """# __Quand ?__
 Nous nous réunissons tous les **vendredi soirs à partir de 20h**
@@ -298,13 +298,13 @@ A la **Maison de quartier de la Marinière**
         async def error_report(interaction: Interaction, exception):
             match exception:
                 case app_commands.CommandOnCooldown():
-                    error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite.\r\n\r\nRenvoie ta commande un peu plus tard."
+                    error_message = "😵‍💫 Ouh là, tout doux le foufou, tu vas trop vite.\r\n\r\nAttends un peu avant de renvoyer la commande."
 
                 case app_commands.CheckFailure():
                     error_message = "🧙‍♂️ Désolé jeune padawan, seul un grand maître des arcanes peut effectuer cette commande."
 
                 case _:
-                    error_message =f"😱 Oups ! un truc chelou c'est passé. Relis la règle du jeu.\r\n{exception}"
+                    error_message =f"😱 Oups ! un truc chelou s'est passé. Relis la règle du jeu.\r\n{exception}"
 
             await responses.send_response_as_text(interaction=interaction, content=error_message, ephemeral=True)
 

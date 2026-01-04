@@ -34,7 +34,7 @@ async def display(aj_db:AjDb,
         return
     [input_member] = input_member
 
-    members = await aj_db.query_members(input_member, 50, False)
+    members = await aj_db.query_members(input_member, 40, False)
 
     if members:
         if len(members) == 1:
