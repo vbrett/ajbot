@@ -17,14 +17,13 @@ from thefuzz import fuzz
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes, get_migrate_mode
 from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId, Base
-from ajbot._internal.ajdb.lookup import StreetType, ContributionType, KnowFromSource, AccountType
+from ajbot._internal.ajdb.lookup import StreetType, ContributionType, KnowFromSource, AccountType   #pylint: disable=unused-import #used for mono-inclusion
 from ajbot._internal.ajdb.association import MemberEmail, MemberPhone, MemberAddress, MemberAssoRole, MemberEvent #, AssoRoleDiscordRole
 from ajbot._internal.ajdb.disc import DiscordRole
 
 
 # Main tables
 ################################
-
 
 class Season(Base):
     """ Season table class
@@ -128,7 +127,28 @@ class Membership(Base):
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='memberships')
     # logs: orm.Mapped[list['Log']] = orm.relationship(back_populates='memberships', lazy='selectin')
 
-    #TODO: implement __str__ & __format__
+    def __str__(self):
+        return format(self, FormatTypes.RESTRICTED)
+
+    def __format__(self, format_spec):
+        """ override format
+        """
+
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                return '****'
+
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+                season_name = f"**saison {self.season:{format_spec}}**"
+                membership_date = f"cotisé le {self.date}"
+                statutes = "- statuts" + (" __**non**__" if not self.statutes_accepted else "") + " acceptés"
+                civil = "- assurance civile" + (" __**non**__" if not self.has_civil_insurance else "") + " fournie"
+                picture = "- droit à l'image" + (" __**non**__" if not self.picture_authorized else "") + " accordé"
+                return '\n'.join(x for x in [season_name, membership_date, statutes, civil, picture] if x)
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
 
 @functools.total_ordering
 class Event(Base):
