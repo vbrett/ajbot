@@ -1,6 +1,7 @@
 '''
 Support functions and classes for aj Database.
 '''
+from typing import Optional
 
 import datetime
 import humanize
@@ -8,6 +9,7 @@ import humanize
 import sqlalchemy as sa
 from sqlalchemy.ext import asyncio as aio_sa
 from sqlalchemy import orm
+from sqlalchemy.ext.declarative import declared_attr
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import AJ_ID_PREFIX
@@ -97,6 +99,28 @@ class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
     """ Base ORM class
     """
 
+class LogMixin:
+    """ Abstract mixin for tables with log information : update timestamp & author
+    """
+    log_timestamp: orm.Mapped[Optional[datetime.datetime]] = orm.mapped_column(sa.DateTime(timezone=True),
+                                                                               server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
+                                                                               nullable=True, index=True)
+
+    @classmethod
+    @declared_attr
+    def log_author_id(cls):
+        """
+        Attribute declarator class method to register log_author_id attribute
+        """
+        return sa.Column(SaAjMemberId, sa.ForeignKey('members.id'), index=True, nullable=True)
+
+    @classmethod
+    @declared_attr
+    def log_author(cls):
+        """
+        Attribute declarator class method to register log_author relationship
+        """
+        return orm.relationship('Member', primaryjoin=f'Member.id=={cls.__name__}.log_author_id', lazy='selectin')
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

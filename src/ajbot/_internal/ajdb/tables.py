@@ -16,7 +16,7 @@ from thefuzz import fuzz
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes, get_migrate_mode
-from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId, Base
+from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId, Base, LogMixin
 from ajbot._internal.ajdb.lookup import StreetType, ContributionType, KnowFromSource, AccountType   #pylint: disable=unused-import #used for mono-inclusion
 from ajbot._internal.ajdb.association import MemberEmail, MemberPhone, MemberAddress, MemberAssoRole, MemberEvent #, AssoRoleDiscordRole
 from ajbot._internal.ajdb.disc import DiscordRole
@@ -151,7 +151,7 @@ class Membership(Base):
 
 
 @functools.total_ordering
-class Event(Base):
+class Event(Base, LogMixin):
     """ Event table class
     """
     __tablename__ = 'events'
@@ -166,8 +166,7 @@ class Event(Base):
     members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', back_populates='events', lazy='selectin', join_depth=2)
     if get_migrate_mode():
         member_events: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', lazy='selectin') #AJDB_MIGRATION
-    # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='events', lazy='selectin')
-    # logs: orm.Mapped[list['Log']] = orm.relationship(back_populates='events', lazy='selectin')
+
     is_in_current_season: orm.Mapped[bool] = orm.column_property(sa.exists().where(
                     sa.and_(
                         Season.id == season_id,
