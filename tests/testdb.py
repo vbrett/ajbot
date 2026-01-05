@@ -113,16 +113,17 @@ async def _test_update_query(aj_db:AjDb):
 
 
 async def _test_misc():
-    with AjConfig(save_on_exit=True) as aj_config:
+    with AjConfig() as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
 
-            query = sa.select(db_t.Member).where(db_t.Member.last_presence > (datetime.now().date() - timedelta(days = aj_config.asso_role_reset_duration_days)))
-            print(query)
+            query = sa.select(db_t.Membership)
+            # print(query)
 
             items = (await aj_db.aio_session.scalars(query)).all()
             # items = await aj_db.query_members_per_season_presence()
-            for i in items:
-                print(f"{i} - {i.last_presence if i.last_presence else ''}")
+            for qr in items:
+                print(f"{qr:{FormatTypes.FULLCOMPLETE}}")
+                print('-------------------')
 
 async def _main():
     """ main function - async version
