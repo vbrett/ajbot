@@ -21,7 +21,7 @@ dependencies = ['discord.py',
                ]
 description = 'Discord for personal use'
 readme = 'README.md'
-requires-python = '>=3.11'
+requires-python = '>=3.13,<3.14'
 license = {file = 'LICENSE'}
 keywords = ['tools', 'discord','personal', 'mariaDB', 'bot']
 authors = [
