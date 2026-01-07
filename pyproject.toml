@@ -17,11 +17,11 @@ dependencies = ['discord.py',
                 'dateparser',
                 'thefuzz[speedup]',
                 'pwinput',
-                'matplotlib',
+                'matplotlib==3.10.8',
                ]
 description = 'Discord for personal use'
 readme = 'README.md'
-requires-python = '>=3.13,<3.14'
+requires-python = '==3.13.11'
 license = {file = 'LICENSE'}
 keywords = ['tools', 'discord','personal', 'mariaDB', 'bot']
 authors = [

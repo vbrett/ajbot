@@ -1,6 +1,6 @@
 setlocal
 @REM FOR /F "tokens=*" %%i in ("version.ini") do SET %%i
-for /F "delims== tokens=1,* eol=#" %%i in (src/ajbot/resources/info.ini) do set %%i=%%~j
+for /F "tokens=1,* eol=# delims== " %%i in (src/ajbot/resources/info.ini) do set %%i=%%~j
 
 echo "building: %docker_tag%:%version%"
 
