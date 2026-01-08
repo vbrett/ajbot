@@ -61,10 +61,15 @@ async def display(aj_db:AjDb,
                 if member.discord:
                     text += '@' + member.discord
                 title = ('Editer' if text else 'Créer') +  ' identité'
+                discord_members = []
+                if member.discord:
+                    discord_members = [m for m in interaction.guild.members if m.name == member.discord]
+                    assert len(discord_members) <= 1, f"More than 1 discord user with same name: {member.discord}"
+                discord_member = discord_members[0] if len(discord_members) > 0 else None
+                edit_member_creds_modal = await EditMemberViewCreds.create(db_member=member, discord_member=discord_member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(member=member,
+                                               accessory=EditMemberButton(modal=edit_member_creds_modal,
                                                                           title=title,
-                                                                          modal_class=EditMemberViewCreds,
                                                                           disable=False)
                                               ))
 
@@ -75,11 +80,11 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas d'adresse"
                     title = 'Créer adresse'
+                edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
-                                            accessory=EditMemberButton(member=member,
-                                                                        title=title,
-                                                                        modal_class=EditMemberViewPrincipalAddress)
-                                            ))
+                                               accessory=EditMemberButton(modal=edit_member_principal_address_modal,
+                                                                          title=title,)
+                                              ))
 
                 text = "### Emails(s)\n"
                 if member.emails:
@@ -88,11 +93,11 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas d'email"
                     title = 'Créer email'
+                edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
-                                            accessory=EditMemberButton(member=member,
-                                                                       title=title,
-                                                                       modal_class=EditMemberViewPrincipalEmail)
-                                            ))
+                                               accessory=EditMemberButton(modal=edit_member_principal_email_modal,
+                                                                          title=title,)
+                                              ))
 
                 text = "### Téléphone(s)\n"
                 if member.phones:
@@ -101,11 +106,12 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas de téléphone"
                     title = 'Créer téléphone'
+                edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
-                                            accessory=EditMemberButton(member=member,
-                                                                        title=title,
-                                                                        modal_class=EditMemberViewPrincipalPhone)
-                                            ))
+                                               accessory=EditMemberButton(modal=edit_member_principal_phone_modal,
+                                                                          title=title,)
+                                              ))
+
 
                 text = "### Cotisation\n"
                 if member.is_subscriber:
@@ -114,11 +120,11 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Non cotisant(e) cette saison"
                     title = 'Ajouter cotisation'
+                edit_member_subscription_modal = await EditMemberViewSubscription.create(db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
-                                            accessory=EditMemberButton(member=member,
-                                                                       title=title,
-                                                                       modal_class=EditMemberViewSubscription)
-                                            ))
+                                               accessory=EditMemberButton(modal=edit_member_subscription_modal,
+                                                                          title=title,)
+                                              ))
 
                 text = "### Rôle spécifique\n"
                 if member.manual_asso_roles:
@@ -127,11 +133,11 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas de rôle"
                     title = 'Ajouter rôle'
+                edit_member_role_modal = await EditMemberViewSubscription.create(db_member=member)   #TODO create modal
                 container.add_item(dui.Section(dui.TextDisplay(text),
-                                            accessory=EditMemberButton(member=member,
-                                                                       title=title,
-                                                                       modal_class=EditMemberViewSubscription)  #TODO create modal
-                                            ))
+                                               accessory=EditMemberButton(modal=edit_member_role_modal,
+                                                                          title=title,)
+                                              ))
 
             await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
         else:
@@ -160,16 +166,14 @@ async def display(aj_db:AjDb,
 class EditMemberButton(dui.Button):
     """ Class that creates a edit button
     """
-    def __init__(self, member, modal_class, title, disable=True):
-        self._member = member
-        self._modal_class = modal_class
+    def __init__(self, modal, title, disable=True):
+        self._modal = modal
         super().__init__(style=discord.ButtonStyle.primary,
                          disabled=disable,
                          label=title)
 
     async def callback(self, interaction: discord.Interaction):
-        member_modal = await self._modal_class.create(db_member=self._member, interaction=interaction)
-        await interaction.response.send_modal(member_modal)
+        await interaction.response.send_modal(self._modal)
 
 
 # Modals
@@ -187,7 +191,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None, interaction: discord.Interaction=None):
+    async def create(cls, db_member:db_t.Member=None, discord_member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -229,16 +233,10 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                         )
         self.add_item(self.birthdate)
 
-        discord_members = []
-        if db_member and db_member.discord:
-            discord_members = [m for m in interaction.guild.members if m.name == db_member.discord]
-            assert len(discord_members) <= 1, f"More than 1 discord user with same name: {db_member.discord}"
-
-
         self.discord = dui.Label(
                             text='Pseudo Discord',
                             component=dui.UserSelect(required=False,
-                                                     default_values=discord_members,
+                                                     default_values=[discord_member] if discord_member else [],
                                                     ),
                         )
         self.add_item(self.discord)
@@ -323,7 +321,7 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -425,7 +423,7 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -472,7 +470,7 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
@@ -518,7 +516,7 @@ class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None, _interaction: discord.Interaction=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()

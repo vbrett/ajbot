@@ -34,8 +34,8 @@ async def display(aj_db:AjDb,
         input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
         message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
         await responses.send_response_as_text(interaction=interaction,
-                                            content=message,
-                                            ephemeral=True)
+                                              content=message,
+                                              ephemeral=True)
         return
 
     if event_str:
@@ -56,10 +56,11 @@ async def display(aj_db:AjDb,
             participants.sort(key=lambda x:x.credential)
             message1 = f"# {event:{format_style}}"
             message2 = f"## {len(participants)} participant" + ('' if not participants else (('s' if len(participants) > 1 else '') + " :"))
-            container.add_item(dui.Section(dui.TextDisplay(message1), accessory=EditEventButton(event=event,
+            edit_event_modal = await EditEventView.create(aj_db=aj_db, db_event=event)
+            container.add_item(dui.Section(dui.TextDisplay(message1), accessory=EditEventButton(modal=edit_event_modal,
                                                                                                 disabled = not checks.is_manager(interaction))))
             container.add_item(dui.Section(dui.TextDisplay(message2), accessory=DeleteEventButton(event=event,
-                                                                                                  disabled = not checks.is_manager(interaction))))
+                                                                                                  disabled = True or not checks.is_manager(interaction))))
             if participants:
                 container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f"{m:{format_style}}" for m in participants)))
             await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
@@ -88,16 +89,14 @@ async def display(aj_db:AjDb,
 class EditEventButton(dui.Button):
     """ Class that creates a edit button
     """
-    def __init__(self, event, disabled):
-        self._event = event
+    def __init__(self, modal, disabled):
+        self._modal = modal
         super().__init__(style=discord.ButtonStyle.primary,
                          label='Editer',
                          disabled = disabled)
 
     async def callback(self, interaction: discord.Interaction):
-        async with AjDb() as aj_db:
-            event_modal = await EditEventView.create(aj_db=aj_db, db_event=self._event)
-            await interaction.response.send_modal(event_modal)
+        await interaction.response.send_modal(self._modal)
 
 class DeleteEventButton(dui.Button):
     """ Class that creates a edit button
