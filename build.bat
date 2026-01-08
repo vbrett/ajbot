@@ -1,4 +1,5 @@
 setlocal
+echo off
 @REM FOR /F "tokens=*" %%i in ("version.ini") do SET %%i
 for /F "tokens=1,* eol=# delims== " %%i in (src/ajbot/resources/info.ini) do set %%i=%%~j
 
