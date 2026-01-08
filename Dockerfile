@@ -11,6 +11,11 @@ RUN uv sync --no-editable
 
 FROM python:3.13-slim-trixie AS runner
 
+RUN    apt update \
+    && apt install --no-install-recommends -y libjpeg-dev \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY --from=builder ./app .
 
