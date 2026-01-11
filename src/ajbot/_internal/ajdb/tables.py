@@ -25,7 +25,7 @@ from ajbot._internal.ajdb.disc import DiscordRole
 # Main tables
 ################################
 
-class Season(Base):
+class Season(Base, LogMixin):
     """ Season table class
     """
     __tablename__ = 'seasons'
@@ -96,7 +96,7 @@ class AssoRole(Base):
         return self.name
 
 
-class Membership(Base):
+class Membership(Base, LogMixin):
     """ Membership table class
     """
     __tablename__ = 'memberships'
@@ -206,7 +206,7 @@ class Event(Base, LogMixin):
 
 
 @functools.total_ordering
-class Credential(Base):
+class Credential(Base, LogMixin):
     """ user credential table class
     """
     __tablename__ = 'member_credentials'
@@ -284,7 +284,7 @@ class Credential(Base):
         return ' '.join([f"{x}" for x in name_list if x])
 
 
-class Email(Base):
+class Email(Base, LogMixin):
     """ user email table class
     """
     __tablename__ = 'member_emails'
@@ -314,7 +314,7 @@ class Email(Base):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
-class Phone(Base):
+class Phone(Base, LogMixin):
     """ user phone number table class
     """
     __tablename__ = 'member_phones'
@@ -344,7 +344,7 @@ class Phone(Base):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
-class PostalAddress(Base):
+class PostalAddress(Base, LogMixin):
     """ user address table class
     """
     __tablename__ = 'member_addresses'
@@ -391,7 +391,7 @@ class PostalAddress(Base):
 
 
 @functools.total_ordering
-class Member(Base):
+class Member(Base, LogMixin):
     """ Member table class
     """
     __tablename__ = 'members'

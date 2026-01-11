@@ -7,12 +7,12 @@ from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException
 from ajbot._internal.config import get_migrate_mode
-from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, Base
+from ajbot._internal.ajdb.support import HumanizedDate, SaHumanizedDate, Base, LogMixin
 if TYPE_CHECKING:
     from ajbot._internal.ajdb.tables import Member, Email, Phone, PostalAddress, AssoRole, Event
 
 
-class MemberEmail(Base):
+class MemberEmail(Base, LogMixin):
     """ Junction table between members and emails
     """
     __tablename__ = 'JCT_member_email'
@@ -31,7 +31,7 @@ class MemberEmail(Base):
         return f"{self.id}, member #{self.member_id}, email #{self.email_id}"
 
 
-class MemberPhone(Base):
+class MemberPhone(Base, LogMixin):
     """ Junction table between members and phones
     """
     __tablename__ = 'JCT_member_phone'
@@ -50,7 +50,7 @@ class MemberPhone(Base):
         return f"{self.id}, member #{self.member_id}, phone #{self.phone_id}"
 
 
-class MemberAddress(Base):
+class MemberAddress(Base, LogMixin):
     """ Junction table between members and addresses
     """
     __tablename__ = 'JCT_member_address'
@@ -69,7 +69,7 @@ class MemberAddress(Base):
         return f"{self.id}, member #{self.member_id}, address #{self.address_id}"
 
 
-class MemberAssoRole(Base):
+class MemberAssoRole(Base, LogMixin):
     """ Junction table between members and asso roles
     """
     __tablename__ = 'JCT_member_asso_role'
@@ -103,7 +103,7 @@ class AssoRoleDiscordRole(Base):
         return f"{self.id}, asso role #{self.asso_role_id}, discord role #{self.discord_role_id}"
 
 
-class MemberEvent(Base):
+class MemberEvent(Base, LogMixin):
     """ Junction table between events and members
     """
     __tablename__ = 'JCT_event_member'
