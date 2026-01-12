@@ -69,6 +69,9 @@ class FormatTypes():
 
 
 class AjInfo():
+    """
+    Class handling information file (version, etc.)
+    """
     def __init__(self,
                  file_path=resources.files(pkg_resource) / _AJ_INFO_FILE):
         """
@@ -78,6 +81,7 @@ class AjInfo():
         """
         self._version_dict = {}
         self._file_path = file_path
+        self._config_dict = None
 
     def __enter__(self):
         return self.open()
@@ -90,7 +94,7 @@ class AjInfo():
         """
         config = configparser.ConfigParser()
         dummy_section = 'DUMMY'
-        with open(self._file_path) as fp:
+        with open(self._file_path, encoding='UTF-8') as fp:
             config.read_string(f"[{dummy_section}]\n" + fp.read())
         self._config_dict = {k:v.strip('"') for k,v in config[dummy_section].items()}
         return self
@@ -98,10 +102,12 @@ class AjInfo():
     def close(self):
         """ Closes the config file, saving its content if needed.
         """
-        pass
 
     @property
     def version(self):
+        """
+        Return package version
+        """
         return self._config_dict[_KEY_VERSION]
 
 
