@@ -1,4 +1,4 @@
-''' Lookup tables
+''' Lookup (constant) tables
 '''
 from typing import TYPE_CHECKING
 
@@ -6,9 +6,9 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException
-from ajbot._internal.ajdb.support import Base
+from .base import Base
 if TYPE_CHECKING:
-    from ajbot._internal.ajdb.tables import PostalAddress, Membership
+    from .member import PostalAddress, Membership
 
 
 class StreetType(Base):
