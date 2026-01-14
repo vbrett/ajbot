@@ -12,8 +12,6 @@ from ajbot._internal.config import set_migrate_mode
 set_migrate_mode()
 from ajbot._internal.ajdb import AjDb , tables as db_t   #pylint: disable=wrong-import-position #set migrate mode called explicitelly before import ajdb & db_t
 
-CREATOR = db_t.AjMemberId(36)   # Yup, that's me !
-
 async def _create_db_schema(aj_db:AjDb):
     """ Drop and recreate db schema
     """
@@ -29,7 +27,7 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         lut_tables.append(db_t.Season(name=val['nom'],
                                       start=cast(datetime, val['debut']).date(),
                                       end=cast(datetime, val['fin']).date()),
-                                    )#   log_author_id = db_t.AjMemberId(36))
+                                    )
     for val in ajdb_xls.dict_from_table('contribution'):
         lut_tables.append(db_t.ContributionType(name=val['val']))
     for val in ajdb_xls.dict_from_table('connaissance'):
@@ -174,7 +172,7 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
     for val in ajdb_xls.dict_from_table('suivi'):
         # Membership
         if val['entree']['categorie'] == 'Cotisation':
-            new_membership = db_t.Membership(log_author_id = db_t.AjMemberId(36))
+            new_membership = db_t.Membership()
             membership_tables.append(new_membership)
             new_membership.date = cast(datetime, val['date']).date()
             new_membership.season            = [elt for elt in lut_tables    if isinstance(elt, db_t.Season         ) and elt.name == val['entree']['nom']][0]
@@ -193,7 +191,7 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
             if matched_event:
                 matched_event[0].name = val['entree']['nom']
             else:
-                new_event = db_t.Event(log_author_id = db_t.AjMemberId(36))
+                new_event = db_t.Event()
                 event_tables.append(new_event)
                 new_event.date   = cast(datetime, val['date']).date()
                 new_event.season = [elt for elt in lut_tables if isinstance(elt, db_t.Season) and new_event.date >= elt.start
@@ -205,14 +203,14 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                 and val['entree'].get('detail') == 'Vote par pouvoir')
             or (val['entree']['categorie'] == 'Présence')):
 
-            new_memberevent = db_t.MemberEvent(log_author_id = db_t.AjMemberId(36))
+            new_memberevent = db_t.MemberEvent()
             event_tables.append(new_memberevent)
             new_memberevent.presence = val['entree']['categorie'] == 'Présence'
             matched_event = [elt for elt in event_tables if isinstance(elt, db_t.Event) and elt.date == cast(datetime, val['date']).date()]
             if matched_event:
                 new_memberevent.event = matched_event[0]
             else:
-                new_event = db_t.Event(log_author_id = db_t.AjMemberId(36))
+                new_event = db_t.Event()
                 event_tables.append(new_event)
                 new_event.date = cast(datetime, val['date']).date()
                 new_event.season = [elt for elt in lut_tables if isinstance(elt, db_t.Season) and new_event.date >= elt.start
@@ -241,8 +239,7 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                 new_memberassorole = db_t.MemberAssoRole(member_id = member_id,
                                                   asso_role = matched_role,
                                                   start = start,
-                                                  end = end,
-                                                  log_author_id = db_t.AjMemberId(36))
+                                                  end = end,)
                 event_tables.append(new_memberassorole)
 
     async with aj_db.AsyncSessionMaker() as session:
