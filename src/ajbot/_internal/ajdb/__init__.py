@@ -394,7 +394,8 @@ class AjDb():
                                 last_name:Optional[str]=None,
                                 first_name:Optional[str]=None,
                                 birthdate:Optional[date]=None,
-                                discord_name:Optional[str]=None,):
+                                discord_name:Optional[str]=None,
+                                modifier_mbr_id:Optional[db_t.AjMemberId]=None):
         """ add or update an event
         """
 
@@ -410,6 +411,7 @@ class AjDb():
         db_member.credential.last_name = last_name
         db_member.credential.birthdate = birthdate
         db_member.discord = discord_name
+        db_member.log_author_id = modifier_mbr_id
 
         await self.aio_session.commit()
         await self.aio_session.refresh(db_member)

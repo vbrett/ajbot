@@ -39,6 +39,13 @@ async def display(aj_db:AjDb,
     if members:
         if len(members) == 1:
             member = cast(db_t.Member, members[0])
+            modifiers = await aj_db.query_members(lookup_val=interaction.user,
+                                                  match_crit = 100,
+                                                  break_if_multi_perfect_match = False)
+            if not modifiers or len(modifiers) != 1:
+                await responses.send_response_as_text(interaction, f"{interaction.user} n'est pas associé à un membre de l'asso.", ephemeral=True)
+                return
+            modifier_mbr_id = modifiers[0].id
 
             is_self = False if not member.discord else (member.discord == interaction.user.name)
             editable = is_self or checks.is_manager(interaction)
@@ -66,7 +73,7 @@ async def display(aj_db:AjDb,
                     discord_members = [m for m in interaction.guild.members if m.name == member.discord]
                     assert len(discord_members) <= 1, f"More than 1 discord user with same name: {member.discord}"
                 discord_member = discord_members[0] if len(discord_members) > 0 else None
-                edit_member_creds_modal = await EditMemberViewCreds.create(db_member=member, discord_member=discord_member)
+                edit_member_creds_modal = await EditMemberViewCreds.create(modifier_mbr_id=modifier_mbr_id, db_member=member, discord_member=discord_member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(modal=edit_member_creds_modal,
                                                                           title=title,
@@ -80,7 +87,7 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas d'adresse"
                     title = 'Créer adresse'
-                edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(db_member=member)
+                edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(modal=edit_member_principal_address_modal,
                                                                           title=title,)
@@ -93,7 +100,7 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas d'email"
                     title = 'Créer email'
-                edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(db_member=member)
+                edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(modal=edit_member_principal_email_modal,
                                                                           title=title,)
@@ -106,7 +113,7 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas de téléphone"
                     title = 'Créer téléphone'
-                edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(db_member=member)
+                edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(modal=edit_member_principal_phone_modal,
                                                                           title=title,)
@@ -120,7 +127,7 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Non cotisant(e) cette saison"
                     title = 'Ajouter cotisation'
-                edit_member_subscription_modal = await EditMemberViewSubscription.create(db_member=member)
+                edit_member_subscription_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(modal=edit_member_subscription_modal,
                                                                           title=title,)
@@ -133,7 +140,7 @@ async def display(aj_db:AjDb,
                 else:
                     text += "Pas de rôle"
                     title = 'Ajouter rôle'
-                edit_member_role_modal = await EditMemberViewSubscription.create(db_member=member)   #TODO create modal
+                edit_member_role_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier_mbr_id, db_member=member)   #TODO create modal
                 container.add_item(dui.Section(dui.TextDisplay(text),
                                                accessory=EditMemberButton(modal=edit_member_role_modal,
                                                                           title=title,)
@@ -183,6 +190,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
     """
 
     def __init__(self):
+        self._modifier_mbr_id = None
         self._db_id = None
         self.last_name = None
         self.first_name = None
@@ -191,11 +199,12 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None, discord_member=None):
+    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None, discord_member=None):
         """ awaitable class factory
         """
         self = cls()
 
+        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -266,8 +275,8 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
             last_name = self.last_name.component.value.strip()
             first_name = self.first_name.component.value.strip()
             matching_member_names = await aj_db.query_members(lookup_val=last_name + ' ' + first_name,
-                                                            match_crit = 90,
-                                                            break_if_multi_perfect_match = False)
+                                                              match_crit = 90,
+                                                              break_if_multi_perfect_match = False)
             if matching_member_names and self._db_id not in [m.id for m in matching_member_names]:
                 await responses.send_response_as_text(interaction, f"Un autre membre possède un nom approchant: {matching_member_names[0]}", ephemeral=True)
                 return
@@ -299,7 +308,8 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                                                    last_name=last_name,
                                                    first_name=first_name,
                                                    birthdate=birthdate,
-                                                   discord_name=discord_name)
+                                                   discord_name=discord_name,
+                                                   modifier_mbr_id=self._modifier_mbr_id)
 
             await display(aj_db=aj_db,
                           interaction=interaction,
@@ -310,6 +320,7 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
     """
 
     def __init__(self):
+        self._modifier_mbr_id = None
         self._db_id = None
         self.principal = True
         self.street_num = None
@@ -321,11 +332,12 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
+        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -417,17 +429,19 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
     """
 
     def __init__(self):
+        self._modifier_mbr_id = None
         self._db_id = None
         self.principal = True
         self.email = None
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
+        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -464,17 +478,19 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
     """
 
     def __init__(self):
+        self._modifier_mbr_id = None
         self._db_id = None
         self.principal = True
         self.phone = None
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
+        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -511,16 +527,18 @@ class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
     """
 
     def __init__(self):
+        self._modifier_mbr_id = None
         self._db_id = None
         self.price = None
         super().__init__()
 
     @classmethod
-    async def create(cls, db_member:db_t.Member=None):
+    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
+        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
