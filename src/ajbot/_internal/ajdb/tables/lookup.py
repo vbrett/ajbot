@@ -8,7 +8,8 @@ from sqlalchemy import orm
 from ajbot._internal.exceptions import OtherException
 from .base import Base
 if TYPE_CHECKING:
-    from .member import PostalAddress, Membership
+    from .membership import Membership
+    from .member_private import PostalAddress
 
 
 class StreetType(Base):
