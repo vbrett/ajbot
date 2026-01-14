@@ -24,13 +24,14 @@ class Event(Base, LogMixin):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
     date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True)
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, index=True)
-    season: orm.Mapped['Season'] = orm.relationship(back_populates='events', lazy='selectin')
+    season: orm.Mapped['Season'] = orm.relationship(back_populates='events', foreign_keys=season_id, lazy='selectin')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', back_populates='events', lazy='selectin', join_depth=2)
+    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', foreign_keys='[MemberEvent.event_id, MemberEvent.member_id]',
+                                                           back_populates='events', lazy='selectin', join_depth=2)
     if get_migrate_mode():
-        member_events: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', lazy='selectin') #AJDB_MIGRATION
+        member_events: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', foreign_keys='MemberEvent.event_id', lazy='selectin') #AJDB_MIGRATION
 
     is_in_current_season: orm.Mapped[bool] = orm.column_property(sa.exists().where(
                     sa.and_(
@@ -80,8 +81,8 @@ class MemberEvent(Base, LogMixin):
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
     if get_migrate_mode():
-        event: orm.Mapped['Event'] = orm.relationship(back_populates='member_events', lazy='selectin') #AJDB_MIGRATION
-        member: orm.Mapped['Member'] = orm.relationship(back_populates='event_members', lazy='selectin') #AJDB_MIGRATION
+        event: orm.Mapped['Event'] = orm.relationship(back_populates='member_events', foreign_keys=event_id, lazy='selectin') #AJDB_MIGRATION
+        member: orm.Mapped['Member'] = orm.relationship(back_populates='event_members', foreign_keys=member_id, lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
         return f"{self.id}, event #{self.event_id}, member #{self.member_id}"

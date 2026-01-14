@@ -28,7 +28,7 @@ class Credential(Base, LogMixin):
                      )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
-    member: orm.Mapped[Optional['Member']] = orm.relationship(back_populates='credential', uselist=False, lazy='selectin')
+    member: orm.Mapped[Optional['Member']] = orm.relationship(back_populates='credential', foreign_keys='Member.credential_id', uselist=False, lazy='selectin')
     first_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     birthdate: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate)
@@ -107,7 +107,7 @@ class Email(Base, LogMixin):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     address: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, unique=True, index=True)
 
-    members: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='email', lazy='selectin')
+    members: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='email', foreign_keys='MemberEmail.email_id', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -137,7 +137,7 @@ class Phone(Base, LogMixin):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
 
-    members: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='phone', lazy='selectin')
+    members: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='phone', foreign_keys='MemberPhone.phone_id', lazy='selectin')
 
     def __str__(self):
         return f"{self}"
@@ -168,13 +168,13 @@ class PostalAddress(Base, LogMixin):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     street_num: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50), nullable=True)
     street_type_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_street_types.id'), index=True, nullable=True)
-    street_type: orm.Mapped[Optional['StreetType']] = orm.relationship(back_populates='addresses', lazy='selectin')
+    street_type: orm.Mapped[Optional['StreetType']] = orm.relationship(back_populates='addresses', foreign_keys='PostalAddress.street_type_id', lazy='selectin')
     street_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
     zip_code: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer, nullable=True)
     city: orm.Mapped[str] = orm.mapped_column(sa.String(255), nullable=False)
     extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
-    members: orm.Mapped[list['MemberAddress']] = orm.relationship(back_populates='address', lazy='selectin')
+    members: orm.Mapped[list['MemberAddress']] = orm.relationship(back_populates='address', foreign_keys='MemberAddress.address_id', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -212,9 +212,9 @@ class MemberEmail(Base, LogMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Member'] = orm.relationship(back_populates='emails', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='emails', foreign_keys=member_id, lazy='selectin')
     email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_emails.id'), index=True, nullable=False)
-    email: orm.Mapped['Email'] = orm.relationship(back_populates='members', lazy='selectin')
+    email: orm.Mapped['Email'] = orm.relationship(back_populates='members', foreign_keys=email_id, lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
     def __str__(self):
@@ -231,9 +231,9 @@ class MemberPhone(Base, LogMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Member'] = orm.relationship(back_populates='phones', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='phones', foreign_keys=member_id, lazy='selectin')
     phone_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_phones.id'), index=True, nullable=False)
-    phone: orm.Mapped['Phone'] = orm.relationship(back_populates='members', lazy='selectin')
+    phone: orm.Mapped['Phone'] = orm.relationship(back_populates='members', foreign_keys=phone_id, lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
     def __str__(self):
@@ -250,9 +250,9 @@ class MemberAddress(Base, LogMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Member'] = orm.relationship(back_populates='addresses', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='addresses', foreign_keys=member_id, lazy='selectin')
     address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_addresses.id'), index=True, nullable=False)
-    address: orm.Mapped['PostalAddress'] = orm.relationship(back_populates='members', lazy='selectin')
+    address: orm.Mapped['PostalAddress'] = orm.relationship(back_populates='members', foreign_keys=address_id, lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
     def __str__(self):

@@ -29,30 +29,32 @@ class Member(Base, LogMixin):
     id: orm.Mapped[AjMemberId] = orm.mapped_column(SaAjMemberId, primary_key=True, index=True, unique=True, autoincrement=True)
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
-    credential: orm.Mapped[Optional['Credential']] = orm.relationship(back_populates='member', uselist=False, lazy='selectin')
+    credential: orm.Mapped[Optional['Credential']] = orm.relationship(back_populates='member', foreign_keys=credential_id, uselist=False, lazy='selectin')
 
     discord: orm.Mapped[str] = orm.mapped_column(sa.String(50), unique=True, index=True, nullable=True)
-    manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='members', lazy='selectin', join_depth=2)
+    manual_asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_member_asso_role', foreign_keys='[MemberAssoRole.asso_role_id, MemberAssoRole.member_id]',
+                                                                       back_populates='members', lazy='selectin', join_depth=2)
 
-    emails: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='member', lazy='selectin')
+    emails: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='member', foreign_keys='MemberEmail.member_id', lazy='selectin')
     email_principal: orm.Mapped[Optional['MemberEmail']] = orm.relationship(primaryjoin="and_(Member.id==MemberEmail.member_id,MemberEmail.principal==True)",
                                                                             lazy='selectin',
                                                                             viewonly=True,)
-    phones: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='member', lazy='selectin')
+    phones: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='member', foreign_keys='MemberPhone.member_id', lazy='selectin')
     phone_principal: orm.Mapped[Optional['MemberPhone']] = orm.relationship(primaryjoin="and_(Member.id==MemberPhone.member_id,MemberPhone.principal==True)",
                                                                             lazy='selectin',
                                                                             viewonly=True,)
-    addresses: orm.Mapped[list['MemberAddress']] = orm.relationship(back_populates='member', lazy='selectin')
+    addresses: orm.Mapped[list['MemberAddress']] = orm.relationship(back_populates='member', foreign_keys='MemberAddress.member_id', lazy='selectin')
     address_principal: orm.Mapped[Optional['MemberAddress']] = orm.relationship(primaryjoin="and_(Member.id==MemberAddress.member_id,MemberAddress.principal==True)",
                                                                                 lazy='selectin',
                                                                                 viewonly=True,)
 
-    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='member', lazy='selectin')
-    events: orm.Mapped[list['Event']] = orm.relationship(secondary='JCT_event_member', back_populates='members', lazy='selectin', join_depth=2)
+    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='member', foreign_keys='Membership.member_id', lazy='selectin')
+    events: orm.Mapped[list['Event']] = orm.relationship(secondary='JCT_event_member', foreign_keys='[MemberEvent.event_id, MemberEvent.member_id]',
+                                                         back_populates='members', lazy='selectin', join_depth=2)
 
     if get_migrate_mode():
-        event_members: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='member', lazy='selectin') #AJDB_MIGRATION
-        asso_role_members: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='member', lazy='selectin') #AJDB_MIGRATION
+        event_members: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='member', foreign_keys='MemberEvent.member_id', lazy='selectin') #AJDB_MIGRATION
+        asso_role_members: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='member', foreign_keys='MemberAssoRole.member_id', lazy='selectin') #AJDB_MIGRATION
 
 
 #     logs: orm.Mapped[list['Log']] = orm.relationship(foreign_keys='[Log.author]', back_populates='members', lazy='selectin')

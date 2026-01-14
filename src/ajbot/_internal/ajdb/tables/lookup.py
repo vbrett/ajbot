@@ -20,7 +20,7 @@ class StreetType(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    addresses: orm.Mapped[list['PostalAddress']] = orm.relationship(back_populates='street_type', lazy='selectin')
+    addresses: orm.Mapped[list['PostalAddress']] = orm.relationship(back_populates='street_type', foreign_keys='PostalAddress.street_type_id', lazy='selectin')
 
     def __str__(self):
         return f"{self}"
@@ -39,7 +39,7 @@ class ContributionType(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='contribution_type', lazy='selectin')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='contribution_type', foreign_keys='Membership.contribution_type_id', lazy='selectin')
 
     def __str__(self):
         return f"{self}"
@@ -58,7 +58,7 @@ class KnowFromSource(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='know_from_source', lazy='selectin')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='know_from_source', foreign_keys='Membership.know_from_source_id', lazy='selectin')
 
     def __str__(self):
         return f"{self}"
@@ -77,7 +77,7 @@ class AccountType(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='account_type', lazy='selectin')
+    # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='account_type', foreign_keys='Transaction.account_type_id', lazy='selectin')
 
     def __str__(self):
         return f"{self}"

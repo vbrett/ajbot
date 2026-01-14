@@ -108,19 +108,19 @@ class LogMixin:
                                                                                server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
                                                                                nullable=True, index=True)
 
-    # @orm.declared_attr
-    # def log_author_id(cls) -> orm.Mapped[Optional[AjMemberId]]: #pylint: disable=no-self-argument    #cannot use @classmethod, don't know why
-    #     """
-    #     Attribute declarator class method to register log_author_id attribute
-    #     """
-    #     return orm.mapped_column(SaAjMemberId, sa.ForeignKey('members.id', name=f'fk_{cls.__name__}_log_author_id'), index=True, nullable=True)
+    @orm.declared_attr
+    def log_author_id(cls) -> orm.Mapped[Optional[AjMemberId]]: #pylint: disable=no-self-argument    #cannot use @classmethod, don't know why
+        """
+        Attribute declarator class method to register log_author_id attribute
+        """
+        return orm.mapped_column(SaAjMemberId, sa.ForeignKey('members.id', name=f'fk_{cls.__name__}_log_author_id'), index=True, nullable=True)
 
-    # @orm.declared_attr
-    # def log_author(cls) -> orm.Mapped[Optional['Member']]:      #pylint: disable=no-self-argument    #cannot use @classmethod, don't know why
-    #     """
-    #     Attribute declarator class method to register log_author relationship
-    #     """
-    #     return orm.relationship('Member', primaryjoin=f'Member.id=={cls.__name__}.log_author_id', lazy='selectin')
+    @orm.declared_attr
+    def log_author(cls) -> orm.Mapped[Optional['Member']]:      #pylint: disable=no-self-argument    #cannot use @classmethod, don't know why
+        """
+        Attribute declarator class method to register log_author relationship
+        """
+        return orm.relationship(foreign_keys=f"{cls.__name__}.log_author_id", lazy='selectin')
 
 # class Log(Base):
 #TODO: ensure ERD is matching
@@ -150,9 +150,9 @@ class LogMixin:
 #     updated_member_id: orm.Mapped[Optional[AjMemberId]] = orm.mapped_column(sa.Integer)
 #     updated_transaction_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
 
-#     members: orm.Mapped['Member'] = orm.relationship(foreign_keys=[author], back_populates='logs', lazy='selectin')
+#     members: orm.Mapped['Member'] = orm.relationship(foreign_keys=author, back_populates='logs', lazy='selectin')
 #     events: orm.Mapped[Optional['Event']] = orm.relationship(back_populates='logs', lazy='selectin')
-#     members_: orm.Mapped[Optional['Member']] = orm.relationship(foreign_keys=[updated_member], back_populates='log_', lazy='selectin')
+#     members_: orm.Mapped[Optional['Member']] = orm.relationship(foreign_keys=updated_member, back_populates='log_', lazy='selectin')
 #     memberships: orm.Mapped[Optional['Membership']] = orm.relationship(back_populates='logs', lazy='selectin')
 #     transactions: orm.Mapped[Optional['Transaction']] = orm.relationship(back_populates='logs', lazy='selectin')
 

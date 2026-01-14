@@ -26,8 +26,8 @@ class Season(Base, LogMixin):
                         sa.or_(end == None,     #pylint: disable=singleton-comparison   #this is SQL syntax
                                datetime.datetime.now().date() <= end)))
 
-    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='season', lazy='selectin')
-    events: orm.Mapped[list['Event']] = orm.relationship(back_populates='season', lazy='selectin')
+    memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='season', foreign_keys='Membership.season_id', lazy='selectin')
+    events: orm.Mapped[list['Event']] = orm.relationship(back_populates='season', foreign_keys='Event.season_id', lazy='selectin')
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='seasons')
 
     def __hash__(self):

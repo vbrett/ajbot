@@ -22,7 +22,8 @@ class DiscordRole(Base):
     id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
-    asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_asso_discord_role', back_populates='discord_roles', lazy='selectin')
+    asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_asso_discord_role', foreign_keys='[AssoRoleDiscordRole.asso_role_id, AssoRoleDiscordRole.discord_role_id]',
+                                                                back_populates='discord_roles', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
@@ -50,10 +51,12 @@ class AssoRole(Base):
     is_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     is_manager: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
-    discord_roles: orm.Mapped[list['DiscordRole']] = orm.relationship(secondary='JCT_asso_discord_role', back_populates='asso_roles', lazy='selectin', join_depth=2)
-    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', back_populates='manual_asso_roles', lazy='selectin', join_depth=2)
+    discord_roles: orm.Mapped[list['DiscordRole']] = orm.relationship(secondary='JCT_asso_discord_role', foreign_keys='[AssoRoleDiscordRole.asso_role_id, AssoRoleDiscordRole.discord_role_id]',
+                                                                      back_populates='asso_roles', lazy='selectin', join_depth=2)
+    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', foreign_keys='[MemberAssoRole.asso_role_id, MemberAssoRole.member_id]',
+                                                           back_populates='manual_asso_roles', lazy='selectin', join_depth=2)
     if get_migrate_mode():
-        member_asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', lazy='selectin') #AJDB_MIGRATION
+        member_asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', foreign_keys='MemberAssoRole.asso_role_id', lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
         return f"{self}"
@@ -92,8 +95,8 @@ class MemberAssoRole(Base, LogMixin):
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
     if get_migrate_mode():
-        asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_roles', lazy='selectin') #AJDB_MIGRATION
-        member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_members', lazy='selectin') #AJDB_MIGRATION
+        asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_roles', foreign_keys=asso_role_id, lazy='selectin') #AJDB_MIGRATION
+        member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_members', foreign_keys=member_id, lazy='selectin') #AJDB_MIGRATION
 
 
     def __str__(self):

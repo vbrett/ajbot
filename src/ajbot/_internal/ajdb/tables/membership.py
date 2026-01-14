@@ -27,9 +27,9 @@ class Membership(Base, LogMixin):
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, comment='coupling between this and season')
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
-    member: orm.Mapped['Member'] = orm.relationship(back_populates='memberships', lazy='selectin')
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='memberships', foreign_keys=member_id, lazy='selectin')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), index=True, nullable=False)
-    season: orm.Mapped['Season'] = orm.relationship(back_populates='memberships', lazy='selectin')
+    season: orm.Mapped['Season'] = orm.relationship(back_populates='memberships', foreign_keys=season_id, lazy='selectin')
     is_in_current_season: orm.Mapped[bool] = orm.column_property(sa.exists().where(
                     sa.and_(
                         Season.id == season_id,
@@ -40,9 +40,9 @@ class Membership(Base, LogMixin):
     picture_authorized: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False)
 
     know_from_source_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_know_from_sources.id'), index=True, nullable=True)
-    know_from_source: orm.Mapped[Optional['KnowFromSource']] = orm.relationship(back_populates='memberships', lazy='selectin')
+    know_from_source: orm.Mapped[Optional['KnowFromSource']] = orm.relationship(back_populates='memberships', foreign_keys=know_from_source_id, lazy='selectin')
     contribution_type_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_contribution_types.id'), index=True, nullable=False)
-    contribution_type: orm.Mapped['ContributionType'] = orm.relationship(back_populates='memberships', lazy='selectin')
+    contribution_type: orm.Mapped['ContributionType'] = orm.relationship(back_populates='memberships', foreign_keys=contribution_type_id, lazy='selectin')
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='memberships')
     # logs: orm.Mapped[list['Log']] = orm.relationship(back_populates='memberships', lazy='selectin')
 
