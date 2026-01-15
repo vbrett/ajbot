@@ -85,10 +85,10 @@ class Credential(Base, LogMixin):
                 name_list = [self.first_name, mbr_match]
 
             case FormatTypes.FULLSIMPLE:
-                name_list = [self.first_name, self.last_name, mbr_match]
+                name_list = [self.last_name, self.first_name, mbr_match]
 
             case FormatTypes.FULLCOMPLETE:
-                name_list = [self.first_name, self.last_name, mbr_match, self.birthdate]
+                name_list = [self.last_name, self.first_name, mbr_match, self.birthdate]
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")

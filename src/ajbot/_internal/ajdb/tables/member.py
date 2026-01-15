@@ -90,10 +90,10 @@ class Member(Base, LogMixin):
         """
         mbr_id = f"{self.id:{format_spec}}"
         mbr_creds = f"{self.credential:{format_spec}}" if self.credential else ''
-        mbr_disc = '@' + self.discord if self.discord else ''
-        mbr_email = f"{self.email_principal.email:{format_spec}}" if self.email_principal else None
-        mbr_address = f"{self.address_principal.address:{format_spec}}" if self.address_principal else None
-        mbr_phone = f"{self.phone_principal.phone:{format_spec}}" if self.phone_principal else None
+        mbr_disc = ('@' + self.discord) if self.discord else ''
+        mbr_email = f"{self.email_principal.email:{format_spec}}" if self.email_principal else ''
+        mbr_address = f"{self.address_principal.address:{format_spec}}" if self.address_principal else ''
+        mbr_phone = f"{self.phone_principal.phone:{format_spec}}" if self.phone_principal else ''
         mbr_role = f"{self.current_asso_role:{format_spec}}"
 
         mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
@@ -104,7 +104,7 @@ class Member(Base, LogMixin):
                 return ' - '.join([x for x in [mbr_id, mbr_creds, mbr_disc,] if x])
 
             case FormatTypes.FULLCOMPLETE:
-                return '\n'.join([f"{x:{format_spec}}" for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
+                return '\n'.join([x for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")

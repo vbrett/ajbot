@@ -22,7 +22,7 @@ class Event(Base, LogMixin):
     __tablename__ = 'events'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
-    date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True)
+    date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True, unique=True)
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, index=True)
     season: orm.Mapped['Season'] = orm.relationship(back_populates='events', foreign_keys=season_id, lazy='selectin')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
@@ -73,6 +73,10 @@ class MemberEvent(Base, LogMixin):
     """ Junction table between events and members
     """
     __tablename__ = 'JCT_event_member'
+    __table_args__ = (
+        sa.UniqueConstraint('event_id', 'member_id',
+                            comment='each member can only be present once per event'),
+    )
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.id'), index=True, nullable=False)
