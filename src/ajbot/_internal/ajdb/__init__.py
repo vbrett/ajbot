@@ -155,7 +155,7 @@ class AjDb():
 
 
     @_async_cached
-    async def query_seasons(self, lazyload:bool=True):
+    async def query_seasons(self, lazyload:bool=True) -> list[db_t.Season]:
         ''' retrieve list of seasons
             @args
                 lazyload = if True, use lazyload for season and memberships
@@ -172,7 +172,7 @@ class AjDb():
         return (await self.aio_session.scalars(query)).all()
 
     @_async_cached
-    async def query_asso_roles(self, lazyload:bool=True):
+    async def query_asso_roles(self, lazyload:bool=True) -> list[db_t.AssoRole]:
         ''' retrieve list of asso roles
             @args
                 lazyload = if True, use lazyload for roles and members
@@ -194,7 +194,7 @@ class AjDb():
     async def query_members(self,
                      lookup_val = None,
                      match_crit = 50,
-                     break_if_multi_perfect_match = True,):
+                     break_if_multi_perfect_match = True,) -> list[db_t.Member]:
         ''' retrieve list of members matching lookup_val which can be
                 - discord member object
                 - integer = member ID
@@ -250,7 +250,7 @@ class AjDb():
         return matched_members
 
 
-    async def query_members_per_season_presence(self, season_name = None, subscriber_only = False):
+    async def query_members_per_season_presence(self, season_name = None, subscriber_only = False) -> list[db_t.Member]:
         ''' retrieve list of members having participated in season
             @args
                 season_name     [Optional] If empty, use current season
@@ -278,7 +278,7 @@ class AjDb():
         members = (await self.aio_session.scalars(query)).all()
         return members
 
-    async def query_members_per_event_presence(self, event_id):
+    async def query_members_per_event_presence(self, event_id) -> list[db_t.Member]:
         ''' retrieve list of members having participated to an event
             @args
                 event_id
@@ -293,11 +293,28 @@ class AjDb():
 
         return (await self.aio_session.scalars(query)).all()
 
+    async def query_discord_member(self, discord_member: discord.Member, must_exist=True) -> db_t.Member:
+        ''' retrieve user from discord member, checking for its unicity and existence (if asked)
+        '''
+        members = await self.query_members(lookup_val=discord_member,
+                                           match_crit = 100,
+                                           break_if_multi_perfect_match = False)
+        if not members:
+            if must_exist:
+                raise AjDbException(f"{discord_member} n'est pas associé à un membre de l'asso.", ephemeral=True)
+
+            return None
+
+        if len(members) > 1:
+            raise AjDbException(f"{discord_member} est associé à plus d'un membre de l'asso: {','.join(u.id for u in members)}.", ephemeral=True)
+
+        return members[0]
+
 
     # Events
     # -------
     @_async_cached
-    async def query_events(self, event_str:Optional[str] = None, lazyload:bool=True):
+    async def query_events(self, event_str:Optional[str] = None, lazyload:bool=True) -> list[db_t.Event]:
         ''' retrieve all events or with a given name
             @args
                 event_str = Optional. if empty, return all events
@@ -319,7 +336,7 @@ class AjDb():
         return events
 
 
-    async def query_events_per_season(self, season_name:Optional[str] = None, lazyload:bool=True):
+    async def query_events_per_season(self, season_name:Optional[str] = None, lazyload:bool=True) -> list[db_t.Event]:
         ''' retrieve list of events having occured in a given season
             @args
                 season_name = Optional.if empty, return current season
@@ -346,7 +363,8 @@ class AjDb():
                                event_id = None,
                                event_date:Optional[date]=None,
                                event_name:Optional[str]=None,
-                               participant_ids:Optional[list[int]]=None,):
+                               participant_ids:Optional[list[int]]=None,
+                               modifier_mbr_id:Optional[db_t.AjMemberId]=None,) -> db_t.Event:
         """ add or update an event
         """
         query = sa.select(sa.func.max(db_t.Member.id))
@@ -359,12 +377,14 @@ class AjDb():
         # create or get event
         if not event_id:
             if not event_date:
-                raise AjDbException('Evnènement ou date manquante.')
-            db_event = db_t.Event(date=event_date)
+                raise AjDbException("Date du nouvel évènement manquante.")
+            db_event = db_t.Event(date=event_date)  #TODO: catch if event at same date already exists
             seasons = await self.query_table_content(db_t.Season, orm.lazyload(db_t.Season.events), orm.lazyload(db_t.Season.memberships))
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
             self.aio_session.add(db_event)
         else:
+            if event_date:
+                raise AjDbException("Evènement existe et date fournie. Ce n'est pas permis.")
             query = sa.select(db_t.Event).where(db_t.Event.id == event_id)
             db_event = (await self.aio_session.scalars(query)).one_or_none()
             if not db_event:
@@ -381,7 +401,9 @@ class AjDb():
         existing_participant_ids = [m_e.member_id for m_e in await db_event.awaitable_attrs.members]
         for mbr_id in participant_ids:
             if mbr_id not in existing_participant_ids:
-                db_event.members.append(db_t.MemberEvent(member_id = mbr_id))
+                db_event.members.append(db_t.MemberEvent(member_id = mbr_id, log_author_id = modifier_mbr_id))
+
+        db_event.log_author_id = modifier_mbr_id
 
         await self.aio_session.commit()
         await self.aio_session.refresh(db_event)
@@ -395,7 +417,7 @@ class AjDb():
                                 first_name:Optional[str]=None,
                                 birthdate:Optional[date]=None,
                                 discord_name:Optional[str]=None,
-                                modifier_mbr_id:Optional[db_t.AjMemberId]=None):
+                                modifier_mbr_id:Optional[db_t.AjMemberId]=None) -> db_t.Member:
         """ add or update an event
         """
 
@@ -410,6 +432,7 @@ class AjDb():
         db_member.credential.first_name = first_name
         db_member.credential.last_name = last_name
         db_member.credential.birthdate = birthdate
+        db_member.credential.log_author_id = modifier_mbr_id
         db_member.discord = discord_name
         db_member.log_author_id = modifier_mbr_id
 

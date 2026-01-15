@@ -186,12 +186,10 @@ A la **Maison de quartier de la Marinière**
                              str_member:Optional[str]=None):
             """ Affiche les infos du, de la ou des membres qui correspond(ent) le plus aux infos fournies.
             """
-            async with AjDb() as aj_db:
-                await member.display(aj_db=aj_db,
-                                     interaction=interaction,
-                                     disc_member=disc_member,
-                                     int_member=int_member,
-                                     str_member=str_member)
+            await member.display(interaction=interaction,
+                                 disc_member=disc_member,
+                                 int_member=int_member,
+                                 str_member=str_member,)
 
         @self.client.tree.command(name="roles")
         @app_commands.check(checks.is_manager)
@@ -254,11 +252,9 @@ A la **Maison de quartier de la Marinière**
                             ):
             """ Affiche un évènement particulier ou ceux d'une saison donnée. Aucun = crée un nouvel évènement
             """
-            async with AjDb() as aj_db:
-                await event.display(aj_db=aj_db,
-                                    interaction=interaction,
-                                    season_name=season_name,
-                                    event_str=event_str)
+            await event.display(interaction=interaction,
+                                season_name=season_name,
+                                event_str=event_str)
 
         @self.client.tree.command(name="saison")
         @app_commands.check(checks.is_manager)
@@ -284,10 +280,8 @@ A la **Maison de quartier de la Marinière**
         @self.client.tree.context_menu(name='Info membre')
         @app_commands.check(checks.is_member)
         async def ctxt_member(interaction: Interaction, discord_member: discord.Member):
-            async with AjDb() as aj_db:
-                await member.display(aj_db=aj_db,
-                                     interaction=interaction,
-                                     disc_member=discord_member)
+            await member.display(interaction=interaction,
+                                 disc_member=discord_member,)
 
 
         # ========================================================

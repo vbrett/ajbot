@@ -1,6 +1,6 @@
 """ Functions member outputs (Views, buttons, message, ...)
 """
-from typing import cast
+from contextlib import nullcontext
 import dateutil.parser as date_parser
 
 import discord
@@ -11,160 +11,155 @@ from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.bot import checks, responses
 from ajbot._internal.exceptions import OtherException, AjBotException
 
-async def display(aj_db:AjDb,
-                  interaction: Interaction,
+async def display(interaction: Interaction,
                   disc_member:discord.Member=None,
                   int_member:int=None,
-                  str_member:str=None):
+                  str_member:str=None,
+                  aj_db_in:AjDb=None,):
     """ Affiche les infos des membres
     """
     if not interaction.response.type:
         await interaction.response.defer(ephemeral=True,)
 
-    input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
-    if len(input_member) != 1:
-        input_types="un (et un seul) élément parmi:\r\n* un pseudo\r\n* un nom\r\n* un ID"
-        if len(input_member) == 0:
-            message = f"😓 Alors là, je vais avoir du mal à trouver sans un minimum d'info, à savoir {input_types}"
-        else:
-            message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
-        await responses.send_response_as_text(interaction=interaction,
-                                              content=message,
-                                              ephemeral=True)
-        return
-    [input_member] = input_member
-
-    members = await aj_db.query_members(input_member, 40, False)
-
-    if members:
-        if len(members) == 1:
-            member = cast(db_t.Member, members[0])
-            modifiers = await aj_db.query_members(lookup_val=interaction.user,
-                                                  match_crit = 100,
-                                                  break_if_multi_perfect_match = False)
-            if not modifiers or len(modifiers) != 1:
-                await responses.send_response_as_text(interaction, f"{interaction.user} n'est pas associé à un membre de l'asso.", ephemeral=True)
-                return
-            modifier_mbr_id = modifiers[0].id
-
-            is_self = False if not member.discord else (member.discord == interaction.user.name)
-            editable = is_self or checks.is_manager(interaction)
-
-            view = dui.LayoutView()
-            container = dui.Container()
-            view.add_item(container)
-
-            if not editable:
-                container.add_item(dui.TextDisplay(format(member, FormatTypes.RESTRICTED)))
+    async with AjDb() if not aj_db_in else nullcontext(aj_db_in) as aj_db:
+        input_member = [x for x in [disc_member, str_member, int_member] if x is not None]
+        if len(input_member) != 1:
+            input_types="un (et un seul) élément parmi:\r\n* un pseudo\r\n* un nom\r\n* un ID"
+            if len(input_member) == 0:
+                message = f"😓 Alors là, je vais avoir du mal à trouver sans un minimum d'info, à savoir {input_types}"
             else:
-                format_style = FormatTypes.FULLCOMPLETE
-                container.add_item(dui.TextDisplay(f"# __{member.id}__"))
+                message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
+            await responses.send_response_as_text(interaction=interaction,
+                                                  content=message,
+                                                  ephemeral=True)
+            return
+        [input_member] = input_member
 
-                text = ''
-                if member.credential:
-                    text += f"{member.credential:{format_style}}"
-                if member.credential and member.discord:
-                    text += '\n'
-                if member.discord:
-                    text += '@' + member.discord
-                title = ('Editer' if text else 'Créer') +  ' identité'
-                discord_members = []
-                if member.discord:
-                    discord_members = [m for m in interaction.guild.members if m.name == member.discord]
-                    assert len(discord_members) <= 1, f"More than 1 discord user with same name: {member.discord}"
-                discord_member = discord_members[0] if len(discord_members) > 0 else None
-                edit_member_creds_modal = await EditMemberViewCreds.create(modifier_mbr_id=modifier_mbr_id, db_member=member, discord_member=discord_member)
-                container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(modal=edit_member_creds_modal,
-                                                                          title=title,
-                                                                          disable=False)
-                                              ))
+        members = await aj_db.query_members(input_member, 40, False)
 
-                text = "### Adresse(s)\n"
-                if member.addresses:
-                    text += '\n'.join(f"- {ma.address:{format_style}}" + (" (*)" if ma.principal else "") for ma in member.addresses)
-                    title = 'Editer adresse'
+        if members:
+            if len(members) == 1:
+                member = members[0]
+                modifier = await aj_db.query_discord_member(discord_member=interaction.user)
+
+                is_self = False if not member.discord else (member.discord == interaction.user.name)
+                editable = is_self or checks.is_manager(interaction)
+
+                view = dui.LayoutView()
+                container = dui.Container()
+                view.add_item(container)
+
+                if not editable:
+                    container.add_item(dui.TextDisplay(format(member, FormatTypes.RESTRICTED)))
                 else:
-                    text += "Pas d'adresse"
-                    title = 'Créer adresse'
-                edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
-                container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(modal=edit_member_principal_address_modal,
-                                                                          title=title,)
-                                              ))
+                    format_style = FormatTypes.FULLCOMPLETE
+                    container.add_item(dui.TextDisplay(f"# __{member.id}__"))
 
-                text = "### Emails(s)\n"
-                if member.emails:
-                    text += '\n'.join(f"-  {me.email:{format_style}}" + (" (*)" if me.principal else "") for me in member.emails)
-                    title = 'Editer email'
-                else:
-                    text += "Pas d'email"
-                    title = 'Créer email'
-                edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
-                container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(modal=edit_member_principal_email_modal,
-                                                                          title=title,)
-                                              ))
+                    text = ''
+                    if member.credential:
+                        text += f"{member.credential:{format_style}}"
+                    if member.credential and member.discord:
+                        text += '\n'
+                    if member.discord:
+                        text += '@' + member.discord
+                    title = ('Editer' if text else 'Créer') +  ' identité'
+                    discord_members = []
+                    if member.discord:
+                        discord_members = [m for m in interaction.guild.members if m.name == member.discord]
+                        assert len(discord_members) <= 1, f"More than 1 discord user with same name: {member.discord}"
+                    discord_member = discord_members[0] if len(discord_members) > 0 else None
+                    edit_member_creds_modal = await EditMemberViewCreds.create(modifier_mbr_id=modifier.id, db_member=member, discord_member=discord_member)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                   accessory=EditMemberButton(modal=edit_member_creds_modal,
+                                                                              title=title,
+                                                                              disable=False)
+                                                  ))
 
-                text = "### Téléphone(s)\n"
-                if member.phones:
-                    text += '\n'.join(f"-  {mp.phone:{format_style}}" + (" (*)" if mp.principal else "") for mp in member.phones)
-                    title = 'Editer téléphone'
-                else:
-                    text += "Pas de téléphone"
-                    title = 'Créer téléphone'
-                edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
-                container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(modal=edit_member_principal_phone_modal,
-                                                                          title=title,)
-                                              ))
+                    text = "### Adresse(s)\n"
+                    if member.addresses:
+                        text += '\n'.join(f"- {ma.address:{format_style}}" + (" (*)" if ma.principal else "") for ma in member.addresses)
+                        title = 'Editer adresse'
+                    else:
+                        text += "Pas d'adresse"
+                        title = 'Créer adresse'
+                    edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(modifier_mbr_id=modifier.id, db_member=member)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                   accessory=EditMemberButton(modal=edit_member_principal_address_modal,
+                                                                              title=title,)
+                                                  ))
+
+                    text = "### Emails(s)\n"
+                    if member.emails:
+                        text += '\n'.join(f"-  {me.email:{format_style}}" + (" (*)" if me.principal else "") for me in member.emails)
+                        title = 'Editer email'
+                    else:
+                        text += "Pas d'email"
+                        title = 'Créer email'
+                    edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(modifier_mbr_id=modifier.id, db_member=member)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                   accessory=EditMemberButton(modal=edit_member_principal_email_modal,
+                                                                              title=title,)
+                                                  ))
+
+                    text = "### Téléphone(s)\n"
+                    if member.phones:
+                        text += '\n'.join(f"-  {mp.phone:{format_style}}" + (" (*)" if mp.principal else "") for mp in member.phones)
+                        title = 'Editer téléphone'
+                    else:
+                        text += "Pas de téléphone"
+                        title = 'Créer téléphone'
+                    edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(modifier_mbr_id=modifier.id, db_member=member)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                   accessory=EditMemberButton(modal=edit_member_principal_phone_modal,
+                                                                              title=title,)
+                                                  ))
 
 
-                text = "### Cotisation\n"
-                if member.is_subscriber:
-                    text += "Cotisant(e) cette saison"
-                    title = 'Editer cotisation'
-                else:
-                    text += "Non cotisant(e) cette saison"
-                    title = 'Ajouter cotisation'
-                edit_member_subscription_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier_mbr_id, db_member=member)
-                container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(modal=edit_member_subscription_modal,
-                                                                          title=title,)
-                                              ))
+                    text = "### Cotisation\n"
+                    if member.is_subscriber:
+                        text += "Cotisant(e) cette saison"
+                        title = 'Editer cotisation'
+                    else:
+                        text += "Non cotisant(e) cette saison"
+                        title = 'Ajouter cotisation'
+                    edit_member_subscription_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier.id, db_member=member)
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                   accessory=EditMemberButton(modal=edit_member_subscription_modal,
+                                                                             title=title,)
+                                                  ))
 
-                text = "### Rôle spécifique\n"
-                if member.manual_asso_roles:
-                    text += '\n'.join(f"-  {mar.name}" for mar in member.manual_asso_roles)  #TODO: add is active role
-                    title = 'Editer rôle'
-                else:
-                    text += "Pas de rôle"
-                    title = 'Ajouter rôle'
-                edit_member_role_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier_mbr_id, db_member=member)   #TODO create modal
-                container.add_item(dui.Section(dui.TextDisplay(text),
-                                               accessory=EditMemberButton(modal=edit_member_role_modal,
-                                                                          title=title,)
-                                              ))
+                    text = "### Rôle spécifique\n"
+                    if member.manual_asso_roles:
+                        text += '\n'.join(f"-  {mar.name}" for mar in member.manual_asso_roles)  #TODO: add is active role
+                        title = 'Editer rôle'
+                    else:
+                        text += "Pas de rôle"
+                        title = 'Ajouter rôle'
+                    edit_member_role_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier.id, db_member=member)   #TODO create modal
+                    container.add_item(dui.Section(dui.TextDisplay(text),
+                                                   accessory=EditMemberButton(modal=edit_member_role_modal,
+                                                                              title=title,)
+                                                  ))
 
-            await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
+                await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
+            else:
+                embed = discord.Embed(color=discord.Color.orange())
+                format_style = FormatTypes.FULLSIMPLE if (checks.is_manager(interaction)) else FormatTypes.RESTRICTED
+                embed.add_field(name = 'Id', inline=True,
+                                value = '\n'.join(str(m.id) for m in members)
+                               )
+                embed.add_field(name = 'Discord', inline=True,
+                                value = '\n'.join(('@' + m.discord) if m.discord else '-' for m in members)
+                               )
+                embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
+                                value = '\n'.join(f"{m.credential:{format_style}}" if m.credential else '-' for m in members)
+                               )
+
+                await responses.send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
         else:
-            embed = discord.Embed(color=discord.Color.orange())
-            format_style = FormatTypes.FULLSIMPLE if (checks.is_manager(interaction)) else FormatTypes.RESTRICTED
-            embed.add_field(name = 'Id', inline=True,
-                            value = '\n'.join(str(m.id) for m in members)
-                            )
-            embed.add_field(name = 'Discord', inline=True,
-                            value = '\n'.join(('@' + m.discord) if m.discord else '-' for m in members)
-                            )
-            embed.add_field(name = 'Nom' + (' (% match)' if len(members) > 1 else ''), inline=True,
-                            value = '\n'.join(f"{m.credential:{format_style}}" if m.credential else '-' for m in members)
-                            )
-
-            await responses.send_response_as_text(interaction=interaction, content=f"{len(members)} personne(s) trouvé(e)(s)", embed=embed, ephemeral=True)
-    else:
-        await responses.send_response_as_text(interaction=interaction,
-                                              content=f"Je ne connais pas ton ou ta {input_member}.",
-                                              ephemeral=True)
+            await responses.send_response_as_text(interaction=interaction,
+                                                  content=f"Je ne connais pas ton ou ta {input_member}.",
+                                                  ephemeral=True)
 
 
 
@@ -286,11 +281,10 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
             discord_name = None
             if len(self.discord.component.values) == 1:
                 discord_user = self.discord.component.values[0]
-                matching_member_discords = await aj_db.query_members(lookup_val=discord_user,
-                                                                     match_crit = 100,
-                                                                     break_if_multi_perfect_match = False)
-                if matching_member_discords and self._db_id not in [m.id for m in matching_member_discords]:
-                    await responses.send_response_as_text(interaction, f"Un autre membre est associé à ce pseudo: {matching_member_discords[0]}", ephemeral=True)
+                matching_member_discord = await aj_db.query_discord_member(discord_member=discord_user,
+                                                                           must_exist=False)
+                if matching_member_discord.id != self._db_id:
+                    await responses.send_response_as_text(interaction, f"Un autre membre est déjà associé à ce pseudo: {matching_member_discord}", ephemeral=True)
                     return
                 discord_name = discord_user.name
 
@@ -311,9 +305,9 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                                                    discord_name=discord_name,
                                                    modifier_mbr_id=self._modifier_mbr_id)
 
-            await display(aj_db=aj_db,
-                          interaction=interaction,
-                          int_member=member.id)
+            await display(interaction=interaction,
+                          int_member=member.id,
+                          aj_db_in=aj_db,)
 
 class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
     """ Modal handling member creation / update - Principal Postal Address
