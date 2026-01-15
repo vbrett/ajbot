@@ -62,9 +62,8 @@ async def _test_query(aj_db_session):
     season_name = "2025-2026"
                 # .with_only_columns(db_t.Member.id, db_t.Member.credential, sa.func.count(db_t.Member.memberships))\
     query = sa.select(db_t.Member)\
-                .join(db_t.MemberEvent)\
-                .join(db_t.Event)\
-                .join(db_t.Season)\
+                .join(db_t.Member.events)\
+                .join(db_t.Event.season)\
                 .where(db_t.Season.name == season_name)\
                 .group_by(db_t.Member)
     async with aj_db_session.AsyncSessionMaker() as session:
@@ -73,14 +72,14 @@ async def _test_query(aj_db_session):
     matched_items = query_result.scalars().all()
     matched_items.sort(key=lambda x: cast(db_t.Member, x).credential, reverse=False)
     for m in matched_items:
-        presence = len([member_event for member_event in cast(db_t.Member, m).events
-                        if member_event.event.season.name == season_name])
+        presence = len([event for event in cast(db_t.Member, m).events
+                        if event.season.name == season_name])
         print(f"{m:{FormatTypes.FULLSIMPLE}} - {presence} présence(s)")
     print(len(matched_items), 'item(s)')
 
 
 async def _test_create_query(aj_db:AjDb):
-    event_date = date(2025, 11, 21)
+    event_date = date(2026, 1, 15)
     event_partipant_ids = [2, 3, 36, 155]
 
     seasons = await aj_db.query_seasons(refresh_cache=True)
@@ -89,7 +88,11 @@ async def _test_create_query(aj_db:AjDb):
     [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
 
     aj_db.aio_session.add(new_event)
-    aj_db.aio_session.add_all([db_t.MemberEvent(member_id = i, event=new_event, presence = True) for i in event_partipant_ids])
+
+    await aj_db.aio_session.commit()
+    await aj_db.aio_session.refresh(new_event)
+
+    aj_db.aio_session.add_all([db_t.MemberEvent(member_id = i, event_id=new_event.id, presence = True) for i in event_partipant_ids])
 
     new_event.name = 'Coucou'
 
@@ -128,17 +131,13 @@ async def _test_misc():
 async def _main():
     """ main function - async version
     """
-    # async with AjDb() as aj_db:
-        # """
-        # execute all within same ajdb session
-        # """
-
+    async with AjDb() as aj_db:
         # await _search_member(aj_db, 'vincent')
         # await _season_events(aj_db)
         # await _principal_address(aj_db)
 
-        # await _test_query(aj_db)
-        # await _test_create_query(aj_db)
+        await _test_query(aj_db)
+        await _test_create_query(aj_db)
         # await _test_update_query(aj_db)
 
     await _test_misc()

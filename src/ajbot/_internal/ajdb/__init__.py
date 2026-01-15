@@ -286,10 +286,9 @@ class AjDb():
                 [all found members with number of presence]
         '''
         query = sa.select(db_t.Member)\
-                    .join(db_t.MemberEvent)\
-                    .join(db_t.Event)\
-                    .where(db_t.Event.id == event_id)\
-                    .group_by(db_t.Member)
+                  .join(db_t.Member.events)\
+                  .where(db_t.Event.id == event_id)\
+                  .group_by(db_t.Member)
 
         return (await self.aio_session.scalars(query)).all()
 
@@ -378,10 +377,15 @@ class AjDb():
         if not event_id:
             if not event_date:
                 raise AjDbException("Date du nouvel évènement manquante.")
-            db_event = db_t.Event(date=event_date)  #TODO: catch if event at same date already exists
+            db_event = db_t.Event(date=event_date)
             seasons = await self.query_table_content(db_t.Season, orm.lazyload(db_t.Season.events), orm.lazyload(db_t.Season.memberships))
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
             self.aio_session.add(db_event)
+
+            # Need to create event first to have its id, before being able to add participants
+            # This will also raise an error if event at same date already exists
+            await self.aio_session.commit()
+            await self.aio_session.refresh(db_event)
         else:
             if event_date:
                 raise AjDbException("Evènement existe et date fournie. Ce n'est pas permis.")
@@ -393,17 +397,17 @@ class AjDb():
         # set name
         db_event.name = event_name
 
-        # delete / add participants
-        for m_e in db_event.members:
-            if m_e.member_id not in participant_ids:
-                await self.aio_session.delete(m_e)
-
-        existing_participant_ids = [m_e.member_id for m_e in await db_event.awaitable_attrs.members]
-        for mbr_id in participant_ids:
-            if mbr_id not in existing_participant_ids:
-                db_event.members.append(db_t.MemberEvent(member_id = mbr_id, log_author_id = modifier_mbr_id))
-
         db_event.log_author_id = modifier_mbr_id
+
+        # delete / add participants
+        for mbr in db_event.members:
+            if mbr.id not in participant_ids:
+                await self.aio_session.delete(mbr)
+
+        existing_participant_ids = [mbr.id for mbr in db_event.members]
+        self.aio_session.add_all([db_t.MemberEvent(member_id = mbr_id, event_id=db_event.id, presence = True, log_author_id = modifier_mbr_id)
+                                  for mbr_id in participant_ids
+                                  if mbr_id not in existing_participant_ids])
 
         await self.aio_session.commit()
         await self.aio_session.refresh(db_event)
