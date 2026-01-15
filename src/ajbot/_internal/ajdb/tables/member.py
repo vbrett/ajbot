@@ -89,7 +89,7 @@ class Member(Base, LogMixin):
         """ override format
         """
         mbr_id = f"{self.id:{format_spec}}"
-        mbr_creds = f"{self.credential:{format_spec}}"
+        mbr_creds = f"{self.credential:{format_spec}}" if self.credential else ''
         mbr_disc = '@' + self.discord if self.discord else ''
         mbr_email = f"{self.email_principal.email:{format_spec}}" if self.email_principal else None
         mbr_address = f"{self.address_principal.address:{format_spec}}" if self.address_principal else None
