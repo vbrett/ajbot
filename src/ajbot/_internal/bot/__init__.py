@@ -226,11 +226,9 @@ A la **Maison de quartier de la Marinière**
         async def cmd_presence_sheet(interaction: Interaction):
             """ Crée la feuille de présence
             """
-            with AjConfig(save_on_exit=False) as aj_config:
-                async with AjDb(aj_config=aj_config) as aj_db:
-                    await asso_mgmt.sign_sheet_display(aj_config=aj_config,
-                                                           aj_db=aj_db,
-                                                           interaction=interaction)
+            async with AjDb() as aj_db:
+                await asso_mgmt.sign_sheet_display(aj_db=aj_db,
+                                                   interaction=interaction)
 
 
         # Events & Season related commands

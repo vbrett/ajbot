@@ -3,7 +3,9 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date, datetime, timedelta
+from datetime import date
+import tempfile
+from pathlib import Path
 
 import sqlalchemy as sa
 # from sqlalchemy import orm
@@ -128,20 +130,81 @@ async def _test_misc():
                 print(f"{qr:{FormatTypes.FULLCOMPLETE}}")
                 print('-------------------')
 
+async def _test_generate_sign_sheet():
+    # Create a sign sheet PDF file for all members with presence in current season
+    # Store it in a spooled file (max 1MB in memory, then on disk)
+    with AjConfig() as aj_config:
+        async with AjDb(aj_config=aj_config) as aj_db:
+            with tempfile.SpooledTemporaryFile(max_size=1024*1024, mode='w+b') as temp_file:
+
+                await aj_db.generate_sign_sheet(temp_file)
+
+                temp_file.fileno()
+                input(f"PDF created: {Path(temp_file.name)}, press Enter to continue...")
+
+
+async def _test_query_members_per_season_presence():
+    async with AjDb() as aj_db:
+        season_name = '2025-2026'
+        format_style = FormatTypes.FULLSIMPLE
+
+        participants = await aj_db.query_members_per_season_presence(season_name)
+        subscribers = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
+        if participants:
+            summary = f"{len(participants)} personne(s) sont venues"
+
+            reply = ''
+            if len(subscribers) > 0:
+                reply += f"## {len(subscribers)} Cotisant(es):\n- "
+                reply += '\n- '.join(f"{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s)" for m in subscribers)
+            if len(participants) - len(subscribers) > 0:
+                sep = '\n\n'
+                reply += f"{sep if len(subscribers) else ''}## {len(participants) - len(subscribers)} non Cotisant(es):\n- "
+                reply += '\n- '.join(f"{m:{format_style}} - **{m.season_presence_count(season_name)}** participation(s)" for m in participants if m not in subscribers)
+        else:
+            if subscribers:
+                summary = f"Je ne sais pas combien de personne sont venues, mais {len(subscribers)} ont cotisé :"
+                reply = '- ' + '\n- '.join(f"{m:{format_style}}" for m in subscribers)
+            else:
+                summary = "😱 Mais il n'y a eu personne ! 😱"
+                reply = '---'
+
+    print(summary)
+    print(reply)
+
+async def _test_query_members_per_event_presence():
+    async with AjDb() as aj_db:
+        event_id = 97
+        format_style = FormatTypes.FULLSIMPLE
+
+        participants = await aj_db.query_members_per_event_presence(event_id)
+        summary = f"{len(participants)} personne(s) sont venues"
+        reply = '- '
+        if participants:
+            participants.sort(key=lambda x:x.credential)
+            reply += '\n- '.join(f"{m:{format_style}}" for m in participants)
+
+    print(summary)
+    print(reply)
+
+
 async def _main():
     """ main function - async version
     """
     async with AjDb() as aj_db:
-        # await _search_member(aj_db, 'vincent')
-        # await _season_events(aj_db)
-        # await _principal_address(aj_db)
+        await _search_member(aj_db, 'vincent')
+        await _season_events(aj_db)
+        await _principal_address(aj_db)
 
         await _test_query(aj_db)
-        await _test_create_query(aj_db)
+        # await _test_create_query(aj_db)
         # await _test_update_query(aj_db)
 
     await _test_misc()
+    await _test_generate_sign_sheet()
+    await _test_query_members_per_event_presence()
 
+    await _test_query_members_per_season_presence() #must be last as it wait for user input
     return 0
 
 

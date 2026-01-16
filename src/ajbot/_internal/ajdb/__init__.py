@@ -9,6 +9,10 @@ from typing import Optional
 from datetime import date, datetime,timedelta
 from contextlib import nullcontext
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+from vbrpytools.misctools import divide_list
+
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext import asyncio as aio_sa
@@ -17,7 +21,7 @@ import discord
 from discord.ext.commands import MemberNotFound
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import AjConfig
+from ajbot._internal.config import AjConfig, FormatTypes
 from ajbot._internal.ajdb import tables as db_t
 
 cache_data = {}
@@ -262,9 +266,9 @@ class AjDb():
 
         query = sa.select(db_t.Member)
         if subscriber_only:
-            query = query.join(db_t.Membership)
+            query = query.join(db_t.Member.memberships)
         else:
-            query = query.join(db_t.MemberEvent).join(db_t.Event)
+            query = query.join(db_t.Member.events)
 
         if season_name:
             where = db_t.Season.name == season_name
@@ -309,6 +313,51 @@ class AjDb():
 
         return members[0]
 
+    async def generate_sign_sheet(self, sign_sheet):
+        """ Create a sign sheet PDF file for all members with presence in current season
+        """
+        members = await self.query_members_per_season_presence()
+        free_venues = self.aj_config.asso_free_presence
+
+        # sort alphabetically per last name / first name
+        members.sort(key=lambda x: x.credential)
+
+        # use Matplotlib to write to a PDF, creating a figure with only the data table showing up
+        inch_to_cm = 2.54
+        fig, ax = plt.subplots(figsize=(21/inch_to_cm, 29.7/inch_to_cm))  # A4 size in inches
+
+        ax.axis('off')
+        input_dic = [{'ID': f"{member.id:{FormatTypes.FULLSIMPLE}}",
+                      'Nom': f"{member.credential:{FormatTypes.FULLSIMPLE}}",
+                      '#': "" if member.is_subscriber else f"{'>' if member.season_presence_count() >= free_venues else ''}{member.season_presence_count()}",
+                      'Signature': '',
+                     } for member in members]
+
+        input_list = [list(d.values()) for d in input_dic]
+        input_columns = list(input_dic[0].keys())
+        input_columns_width = [0.1, 0.3, 0.1, 0.5] # Need adjust if changing list of columns, total should always be 1
+
+        row_per_page = 20
+        table_height_scale = 2.7  # Need adjust if changing mbr_per_page
+
+        # add empty rows to have full pages + one full blank page
+        n_empty_rows = row_per_page - (((len(input_list) - 1) % row_per_page) + 1)
+        n_empty_rows += row_per_page
+        input_list += [['']*len(input_columns)]*n_empty_rows
+
+        # Create the PDF and write the table to it, splited per page
+        with PdfPages(sign_sheet) as signsheet_file:
+            for sub_input_list in divide_list(input_list, row_per_page):
+                _the_table = ax.table(
+                    cellText=sub_input_list,
+                    cellLoc='center',
+                    colLabels=input_columns,
+                    colWidths=input_columns_width,
+                    loc='center',
+                )
+                _the_table.scale(1, table_height_scale)
+
+                signsheet_file.savefig(fig)
 
     # Events
     # -------
