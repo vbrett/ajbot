@@ -137,7 +137,7 @@ async def _test_generate_sign_sheet():
         async with AjDb(aj_config=aj_config) as aj_db:
             with tempfile.SpooledTemporaryFile(max_size=1024*1024, mode='w+b') as temp_file:
 
-                await aj_db.generate_sign_sheet(temp_file)
+                await aj_db.query_member_sign_sheet(temp_file)
 
                 temp_file.fileno()
                 input(f"PDF created: {Path(temp_file.name)}, press Enter to continue...")

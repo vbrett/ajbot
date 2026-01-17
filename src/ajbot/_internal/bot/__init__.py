@@ -197,28 +197,25 @@ A la **Maison de quartier de la Marinière**
         async def cmd_roles(interaction: Interaction,):
             """ Affiche les membres qui n'ont pas le bon role
             """
-            with AjConfig(save_on_exit=False) as aj_config:
-                async with AjDb(aj_config=aj_config) as aj_db:
-                    await asso_mgmt.role_display(aj_config=aj_config,
-                                                 aj_db=aj_db,
-                                                 interaction=interaction)
+            await asso_mgmt.role_display(interaction=interaction)
 
+
+        delta_weeks = 52
         @self.client.tree.command(name="emails")
         @app_commands.check(checks.is_manager)
         @app_commands.checks.cooldown(1, 5)
-        @app_commands.rename(subscriber_only='option')
-        @app_commands.choices(subscriber_only=[app_commands.Choice(name='cotisants seuls', value=0),
-                                               app_commands.Choice(name='participants 12 derniers mois', value=1),
+        @app_commands.rename(last_participation_delay='option')
+        @app_commands.choices(last_participation_delay=[app_commands.Choice(name='cotisants seuls', value=0),
+                                               app_commands.Choice(name=f'participants {delta_weeks} dernières semaines', value=delta_weeks),
                                               ])
-        @app_commands.describe(subscriber_only='Liste de diffusion')
+        @app_commands.describe(last_participation_delay='Liste de diffusion')
         async def cmd_emails(interaction: Interaction,
-                             subscriber_only:app_commands.Choice[int]):
+                             last_participation_delay:app_commands.Choice[int]):
             """ Affiche la liste de diffusion
             """
-            async with AjDb() as aj_db:
-                await asso_mgmt.email_display(aj_db=aj_db,
-                                              subscriber_only=subscriber_only.value == 0,
-                                              interaction=interaction)
+            await asso_mgmt.email_display(last_participation_delay_weeks=last_participation_delay.value,
+                                          last_participation_delay_text=last_participation_delay.name,
+                                          interaction=interaction)
 
         @self.client.tree.command(name="feuille_presence")
         @app_commands.check(checks.is_manager)
@@ -226,9 +223,7 @@ A la **Maison de quartier de la Marinière**
         async def cmd_presence_sheet(interaction: Interaction):
             """ Crée la feuille de présence
             """
-            async with AjDb() as aj_db:
-                await asso_mgmt.sign_sheet_display(aj_db=aj_db,
-                                                   interaction=interaction)
+            await asso_mgmt.sign_sheet_display(interaction=interaction)
 
 
         # Events & Season related commands
@@ -265,10 +260,8 @@ A la **Maison de quartier de la Marinière**
                               season_name:Optional[str]=None):
             """ Affiche la liste des présences & cotisants d'une saison donnée
             """
-            async with AjDb() as aj_db:
-                await season.display(aj_db=aj_db,
-                                     interaction=interaction,
-                                     season_name=season_name)
+            await season.display(interaction=interaction,
+                                 season_name=season_name)
 
 
         # ========================================================

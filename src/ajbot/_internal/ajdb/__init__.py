@@ -44,16 +44,15 @@ def _async_cached(func):
         key = (func.__name__, args, tuple(kwargs.items()))
         now = datetime.now()
         if not refresh_cache:
-            with AjConfig() if not self.aj_config else nullcontext(self.aj_config) as aj_config:
-                if key in cache_data and now - cache_time[key] < timedelta(seconds=aj_config.db_cache_time_sec):
-                    if not keep_detached:
-                        # merge cached data with current session to avoid DetachedInstanceError
-                        if isinstance(cache_data[key], list):
-                            for i, v in enumerate(cache_data[key]):
-                                cache_data[key][i] = await self.aio_session.merge(v, load=False)
-                        else:
-                            cache_data[key] = await self.aio_session.merge(cache_data[key], load=False)
-                    return cache_data[key]
+            if key in cache_data and now - cache_time[key] < timedelta(seconds=self._aj_config.db_cache_time_sec): #pylint: disable=protected-access    #this decorator is for this class
+                if not keep_detached:
+                    # merge cached data with current session to avoid DetachedInstanceError
+                    if isinstance(cache_data[key], list):
+                        for i, v in enumerate(cache_data[key]):
+                            cache_data[key][i] = await self.aio_session.merge(v, load=False)
+                    else:
+                        cache_data[key] = await self.aio_session.merge(cache_data[key], load=False)
+                return cache_data[key]
 
         result = await func(self, *args, **kwargs)
 
@@ -73,20 +72,22 @@ def _clear_cache():
 class AjDb():
     """ Context manager which manage AJ database
         Create DB engine and async session maker on enter, and dispose engine on exit
+        Configuration file can be provided at init, otherwise default config info will be internally loaded
     """
     def __init__(self, aj_config:AjConfig=None):
-        self.db_engine: aio_sa.AsyncEngine = None
-        self.db_username:str = None
+        self._internal_config:bool = aj_config is None
+        self._aj_config:AjConfig = aj_config or AjConfig()
+        self.db_engine:aio_sa.AsyncEngine = None
         self.AsyncSessionMaker:aio_sa.async_sessionmaker = None   #pylint: disable=invalid-name   #variable is a class factory
-        self.aio_session: aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
-        self.aj_config = aj_config
+        self.aio_session:aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
 
     async def __aenter__(self):
-        with AjConfig() if not self.aj_config else nullcontext(self.aj_config) as aj_config:
-            self.db_username = aj_config.db_creds['user']
-            # Connect to MariaDB Platform
-            self.db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + aj_config.db_connection_string,
-                                                        echo=aj_config.db_echo)
+        if self._internal_config:
+            self._aj_config.__enter__()
+
+        # Connect to MariaDB Platform
+        self.db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + self._aj_config.db_connection_string,
+                                                    echo=self._aj_config.db_echo)
 
         # aio_sa.async_sessionmaker: a factory for new AsyncSession objects
         # expire_on_commit - don't expire objects after transaction commit
@@ -107,7 +108,8 @@ class AjDb():
         # Close and clean-up pooled connections
         await self.db_engine.dispose()
         self.AsyncSessionMaker = None
-        self.db_username = None
+        if self._internal_config:
+            self._aj_config.__exit__(exc_type, exc_value, traceback)
 
 
     # DB Management
@@ -115,8 +117,8 @@ class AjDb():
     async def drop_create_schema(self):
         """ recreate database schema
         """
-        if self.db_username != 'ajadmin':
-            raise AjDbException(f"L'utilisateur {self.db_username} ne peut pas recréer la base de donnée !")
+        if self._aj_config.db_creds['user'] != 'ajadmin':
+            raise AjDbException(f"L'utilisateur {self._aj_config.db_creds['user']} ne peut pas recréer la base de donnée !")
         # create all tables
         async with self.db_engine.begin() as conn:
             await conn.run_sync(db_t.Base.metadata.drop_all)
@@ -313,11 +315,12 @@ class AjDb():
 
         return members[0]
 
-    async def generate_sign_sheet(self, sign_sheet):
+    async def query_member_sign_sheet(self, sign_sheet_file):
         """ Create a sign sheet PDF file for all members with presence in current season
+            sign_sheet_file: file-like object
         """
         members = await self.query_members_per_season_presence()
-        free_venues = self.aj_config.asso_free_presence
+        free_venues = self._aj_config.asso_free_presence
 
         # sort alphabetically per last name / first name
         members.sort(key=lambda x: x.credential)
@@ -346,7 +349,7 @@ class AjDb():
         input_list += [['']*len(input_columns)]*n_empty_rows
 
         # Create the PDF and write the table to it, splited per page
-        with PdfPages(sign_sheet) as signsheet_file:
+        with PdfPages(sign_sheet_file) as signsheet_file:
             for sub_input_list in divide_list(input_list, row_per_page):
                 _the_table = ax.table(
                     cellText=sub_input_list,
@@ -358,6 +361,22 @@ class AjDb():
                 _the_table.scale(1, table_height_scale)
 
                 signsheet_file.savefig(fig)
+
+    async def query_member_emails(self, last_participation_duration:Optional[timedelta]=None) -> list[db_t.Email]:
+        """ return list of member emails
+
+            last_participation_duration: if None, emails of current season subscribers
+                                         if not none: emails of any people present in the last last_presence_delta
+        """
+        members:list[db_t.Member] = await self.query_table_content(db_t.Member, refresh_cache=True)   #pylint: disable=unexpected-keyword-arg # decorator argument
+
+        return [m.email_principal.email for m in members if     m.email_principal
+                                                            and (   m.is_subscriber
+                                                                or (    last_participation_duration is not None
+                                                                    and m.last_presence
+                                                                    and m.last_presence >= (datetime.now().date() - last_participation_duration)
+                                                                    )
+                                                                )]
 
     # Events
     # -------
