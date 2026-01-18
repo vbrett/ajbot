@@ -1,5 +1,6 @@
 ''' contains configuration variables
 '''
+from typing import Final
 import configparser
 from pathlib import Path
 from urllib.parse import quote_plus
@@ -13,7 +14,7 @@ import ajbot.resources as pkg_resource
 
 
 
-_MIGRATE_MODE = False        #pylint: disable=global-statement   #on purpose, to be able to change class definition
+_MIGRATE_MODE:bool = False
 def set_migrate_mode():
     """ Set migrate mode
     """
@@ -24,40 +25,40 @@ def get_migrate_mode():
     """
     return _MIGRATE_MODE
 
-AJ_ID_PREFIX = "AJ-"
+AJ_ID_PREFIX:Final[str] = "AJ-"
 
-AJ_SIGNSHEET_FILENAME ="emargement.pdf"
+AJ_SIGNSHEET_FILENAME:Final[str] ="emargement.pdf"
 
-_AJ_INFO_FILE = "info.ini"
-_KEY_VERSION = "version"
+_AJ_INFO_FILE:Final[str] = "info.ini"
+_KEY_VERSION:Final[str] = "version"
 
-_AJ_CONFIG_PATH = Path(".env")
-_AJ_CONFIG_FILE = "ajbot"
+_AJ_CONFIG_PATH:Final[Path] = Path(".env")
+_AJ_CONFIG_FILE:Final[str] = "ajbot"
 
-_KEY_CREDS = "creds"
+_KEY_CREDS:Final[str] = "creds"
 
-_KEY_DISCORD = "discord"
-_KEY_GUILD = "guild"
-_KEY_ROLES = "roles"
-_KEY_OWNERS = "owners"
-_KEY_MANAGERS = "managers"
-_KEY_MEMBERS = "members"
-_KEY_DEFAULT_SUBSCRIBER = "subscriber"
-_KEY_DEFAULT_PAST_SUBSCRIBER = "past_subscriber"
-_KEY_DEFAULT_MEMBER = "member"
+_KEY_DISCORD:Final[str] = "discord"
+_KEY_GUILD:Final[str] = "guild"
+_KEY_ROLES:Final[str] = "roles"
+_KEY_OWNERS:Final[str] = "owners"
+_KEY_MANAGERS:Final[str] = "managers"
+_KEY_MEMBERS:Final[str] = "members"
+_KEY_DEFAULT_SUBSCRIBER:Final[str] = "subscriber"
+_KEY_DEFAULT_PAST_SUBSCRIBER:Final[str] = "past_subscriber"
+_KEY_DEFAULT_MEMBER:Final[str] = "member"
 
-_KEY_ASSO = "asso"
-_KEY_ROLE_RESET_TIME_DAYS = "role_reset_time_days"
-_KEY_ASSO_FREE_PRESENCE = "free_presence"
+_KEY_ASSO:Final[str] = "asso"
+_KEY_ROLE_RESET_TIME_DAYS:Final[str] = "role_reset_time_days"
+_KEY_ASSO_FREE_PRESENCE:Final[str] = "free_presence"
 
-_KEY_DB = "db"
-_KEY_DB_HOST = "host"
-_KEY_DB_PORT = "port"
-_KEY_DB_CREDS_USR = "user"
-_KEY_DB_CREDS_PWD = "password"
-_KEY_DB_NAME = "db_name"
-_KEY_DB_ECHO = "db_echo"
-_KEY_CACHE_TIME_SEC = "db_cache_time_sec"
+_KEY_DB:Final[str] = "db"
+_KEY_DB_HOST:Final[str] = "host"
+_KEY_DB_PORT:Final[str] = "port"
+_KEY_DB_CREDS_USR:Final[str] = "user"
+_KEY_DB_CREDS_PWD:Final[str]= "password"
+_KEY_DB_NAME:Final[str] = "db_name"
+_KEY_DB_ECHO:Final[str] = "db_echo"
+_KEY_CACHE_TIME_SEC:Final[str] = "db_cache_time_sec"
 
 @dataclass
 class FormatTypes():
@@ -73,14 +74,14 @@ class AjInfo():
     Class handling information file (version, etc.)
     """
     def __init__(self,
-                 file_path=resources.files(pkg_resource) / _AJ_INFO_FILE):
+                 resource_path=resources.files(pkg_resource) / _AJ_INFO_FILE):
         """
             Initializes the object.
         Args:
         file_path:         path to the info file.
         """
         self._version_dict = {}
-        self._file_path = file_path
+        self._file_path = resource_path
         self._config_dict = None
 
     def __enter__(self):
