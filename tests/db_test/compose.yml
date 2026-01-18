@@ -1,0 +1,37 @@
+
+volumes:
+  ajdb-data:
+  phpmyadmin_data:
+
+networks:
+  ajnet:
+
+services:
+
+  ajdb:
+    container_name: ajdb
+    image: mariadb:10.6
+    restart: unless-stopped
+    env_file:
+      - ajdb-maria.env
+    volumes:
+      - ajdb-data:/var/lib/mysql
+    networks:
+      - ajnet
+    ports:
+      - 3306:3306
+
+  ajdb-phpmyadmin:
+    container_name: ajdb-phpmyadmin
+    image: phpmyadmin:5.2.3
+    restart: unless-stopped
+    env_file:
+    - ajdb-pma.env
+    volumes:
+      - phpmyadmin_data:/var/www/html/
+    networks:
+      - ajnet
+    ports:
+      - 8081:80
+    depends_on:
+      - ajdb

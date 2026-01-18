@@ -1,5 +1,6 @@
 """ Functions event outputs (Views, buttons, message, ...)
 """
+from contextlib import nullcontext
 from datetime import datetime, date
 import dateutil.parser as date_parser
 
@@ -14,73 +15,74 @@ from ajbot._internal.exceptions import OtherException
 
 
 
-async def display(aj_db:AjDb,
-                  interaction: Interaction,
+async def display(interaction: Interaction,
                   season_name:str=None,
-                  event_str:str=None):
+                  event_str:str=None,
+                  aj_db_in:AjDb=None,):
     """ Affiche les infos des évènements
     """
     input_event = [x for x in [season_name, event_str] if x is not None]
 
-    if len(input_event) == 0:
-        eventmodal = await EditEventView.create(aj_db=aj_db)
-        await interaction.response.send_modal(eventmodal)
-        return
+    async with AjDb() if not aj_db_in else nullcontext(aj_db_in) as aj_db:
+        if len(input_event) == 0:
+            eventmodal = await EditEventView.create(aj_db=aj_db)
+            await interaction.response.send_modal(eventmodal)   # ! Cannot send defer before a modal. Hope creating this doesn't last more than 3sec
+            return
 
-    if not interaction.response.type:
-        await interaction.response.defer(ephemeral=True,)
+        if not interaction.response.type:
+            await interaction.response.defer(ephemeral=True,)
 
-    if len(input_event) > 1:
-        input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
-        message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
-        await responses.send_response_as_text(interaction=interaction,
-                                              content=message,
-                                              ephemeral=True)
-        return
+        if len(input_event) > 1:
+            input_types="un (et un seul) élément parmi:\r\n* une saison\r\n* un évènement"
+            message = f"🤢 Tu dois fournir {input_types}\r\nMais pas de mélange, c'est pas bon pour ma santé"
+            await responses.send_response_as_text(interaction=interaction,
+                                                  content=message,
+                                                  ephemeral=True)
+            return
 
-    if event_str:
-        events = await aj_db.query_events(event_str=event_str, lazyload=False, refresh_cache=True)
-    else:
-        events = await aj_db.query_events_per_season(season_name=season_name, lazyload=False)
-
-    if events:
-        format_style = FormatTypes.FULLSIMPLE if checks.is_manager(interaction) else FormatTypes.RESTRICTED
-        if len(events) == 1:
-            [event] = events
-
-            view = dui.LayoutView()
-            container = dui.Container()
-            view.add_item(container)
-
-            participants = [m for m in event.members]
-            participants.sort(key=lambda x:x.credential)
-            message1 = f"# {event:{format_style}}"
-            message2 = f"## {len(participants)} participant" + ('' if not participants else (('s' if len(participants) > 1 else '') + " :"))
-            edit_event_modal = await EditEventView.create(aj_db=aj_db, db_event=event)
-            container.add_item(dui.Section(dui.TextDisplay(message1), accessory=EditEventButton(modal=edit_event_modal,
-                                                                                                disabled = not checks.is_manager(interaction))))
-            container.add_item(dui.Section(dui.TextDisplay(message2), accessory=DeleteEventButton(event=event,
-                                                                                                  disabled = True or not checks.is_manager(interaction))))
-            if participants:
-                container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f"{m:{format_style}}" for m in participants)))
-            await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
+        if event_str:
+            events = await aj_db.query_events(event_str=event_str, lazyload=False, refresh_cache=True)
         else:
-            embed = discord.Embed(color=discord.Color.blue())
-            embed.add_field(name = 'date', inline=True,
-                            value = '\n'.join(str(e.date) for e in events)
-                            )
-            embed.add_field(name = 'Nom', inline=True,
-                            value = '\n'.join(e.name if e.name else '-' for e in events)
-                            )
-            embed.add_field(name = 'Présence', inline=True,
-                            value = '\n'.join(str(len(e.members)) for e in events)
-                            )
+            events = await aj_db.query_events_per_season(season_name=season_name, lazyload=False)
 
-            await responses.send_response_as_text(interaction, content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
-    else:
-        await responses.send_response_as_text(interaction=interaction,
-                                            content="Je n'ai trouvé aucun évènement.",
-                                            ephemeral=True)
+        if events:
+            format_style = FormatTypes.FULLSIMPLE if checks.is_manager(interaction) else FormatTypes.RESTRICTED
+            if len(events) == 1:
+                [event] = events
+
+                view = dui.LayoutView()
+                container = dui.Container()
+                view.add_item(container)
+
+                participants = [m for m in event.members]
+                participants.sort(key=lambda x:x.credential)
+                message1 = f"# {event:{format_style}}"
+                message2 = f"## {len(participants)} participant" + ('' if not participants else (('s' if len(participants) > 1 else '') + " :"))
+                edit_event_modal = await EditEventView.create(aj_db=aj_db, db_event=event)
+                container.add_item(dui.Section(dui.TextDisplay(message1), accessory=EditEventButton(modal=edit_event_modal,
+                                                                                                    disabled = not checks.is_manager(interaction))))
+                container.add_item(dui.Section(dui.TextDisplay(message2), accessory=DeleteEventButton(event=event,
+                                                                                                    disabled = True or not checks.is_manager(interaction))))
+                if participants:
+                    container.add_item(dui.TextDisplay('>>> ' + '\n'.join(f"{m:{format_style}}" for m in participants)))
+                await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
+            else:
+                embed = discord.Embed(color=discord.Color.blue())
+                embed.add_field(name = 'date', inline=True,
+                                value = '\n'.join(str(e.date) for e in events)
+                                )
+                embed.add_field(name = 'Nom', inline=True,
+                                value = '\n'.join(e.name if e.name else '-' for e in events)
+                                )
+                embed.add_field(name = 'Présence', inline=True,
+                                value = '\n'.join(str(len(e.members)) for e in events)
+                                )
+
+                await responses.send_response_as_text(interaction, content=f"{len(events)} évènement(s) trouvé(s) :", embed=embed, ephemeral=True)
+        else:
+            await responses.send_response_as_text(interaction=interaction,
+                                                content="Je n'ai trouvé aucun évènement.",
+                                                ephemeral=True)
 
 
 # Buttons
@@ -184,14 +186,11 @@ class EditEventView(dui.Modal, title='Evènement'):
     async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when clicking on submit button
         """
-        async with AjDb() as aj_db:
+        async with AjDb(modifier_discord=interaction.user.name) as aj_db:
 
-            assert isinstance(self.participants, dui.Label)
-            assert isinstance(self.participants.component, dui.TextInput)
-
-            # check consistency - date
+            # check consistency - date. Can only be edited if new event
             event_date = None
-            if self.event_date.component.value:
+            if not self._db_id:
                 assert isinstance(self.event_date, dui.Label)
                 assert isinstance(self.event_date.component, dui.TextInput)
 
@@ -209,6 +208,9 @@ class EditEventView(dui.Modal, title='Evènement'):
                     event_name = None
 
             # check consistency - participants
+            assert isinstance(self.participants, dui.Label)
+            assert isinstance(self.participants.component, dui.TextInput)
+            participant_ids = None
             try:
                 participant_ids = list(set(int(i.strip()) for i in self.participants.component.value.split(',') if i.strip()))
             except ValueError:
@@ -221,9 +223,9 @@ class EditEventView(dui.Modal, title='Evènement'):
                                                  participant_ids=participant_ids,)
 
 
-            await display(aj_db=aj_db,
-                          interaction=interaction,
-                          event_str=str(event))
+            await display(interaction=interaction,
+                          event_str=str(event),
+                          aj_db_in=aj_db,)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when an error occurs during modal processing

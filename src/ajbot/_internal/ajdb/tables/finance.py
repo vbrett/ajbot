@@ -1,4 +1,4 @@
-''' Lookup tables
+''' Finance related db tables
 '''
 from typing import TYPE_CHECKING
 
@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException
-from ajbot._internal.ajdb.support import Base
+from .base import Base
 
 
 # class Asset(Base):
@@ -58,41 +58,6 @@ from ajbot._internal.ajdb.support import Base
 #     memberships: orm.Mapped[Optional['Membership']] = orm.relationship(back_populates='transactions', lazy='selectin')
 #     seasons: orm.Mapped['Season'] = orm.relationship(back_populates='transactions', lazy='selectin')
 #     logs: orm.Mapped[list['Log']] = orm.relationship(back_populates='transactions', lazy='selectin')
-
-
-# class Log(Base):
-#TODO: ensure ERD is matching
-#     """ Log table class
-#     """
-#     __tablename__ = 'logs'
-#     __table_args__ = (
-#         sa.ForeignKeyConstraint(['author_id'], ['members.id'], name='FK_members_TO_log1'),
-#         sa.ForeignKeyConstraint(['updated_event_id'], ['events.id'], name='FK_events_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_member_id'], ['members.id'], name='FK_members_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_membership_id'], ['memberships.id'], name='FK_memberships_TO_log'),
-#         sa.ForeignKeyConstraint(['updated_transaction_id'], ['transactions.id'], name='FK_transaction_TO_log'),
-#         sa.Index('FK_events_TO_log', 'updated_event_id'),
-#         sa.Index('FK_members_TO_log', 'updated_member_id'),
-#         sa.Index('FK_members_TO_log1', 'author_id'),
-#         sa.Index('FK_memberships_TO_log', 'updated_membership_id'),
-#         sa.Index('FK_transaction_TO_log', 'updated_transaction_id'),
-#         sa.Index('UQ_datetime', 'log_datetime', unique=True)
-#     )
-
-#     log_datetime: orm.Mapped[datetime.datetime] = orm.mapped_column(sa.DateTime, primary_key=True)
-#     author_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.Integer, nullable=False)
-#  ?  name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
-#     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-#     updated_event_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     updated_membership_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-#     updated_member_id: orm.Mapped[Optional[AjMemberId]] = orm.mapped_column(sa.Integer)
-#     updated_transaction_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)
-
-#     members: orm.Mapped['Member'] = orm.relationship(foreign_keys=[author], back_populates='logs', lazy='selectin')
-#     events: orm.Mapped[Optional['Event']] = orm.relationship(back_populates='logs', lazy='selectin')
-#     members_: orm.Mapped[Optional['Member']] = orm.relationship(foreign_keys=[updated_member], back_populates='log_', lazy='selectin')
-#     memberships: orm.Mapped[Optional['Membership']] = orm.relationship(back_populates='logs', lazy='selectin')
-#     transactions: orm.Mapped[Optional['Transaction']] = orm.relationship(back_populates='logs', lazy='selectin')
 
 
 if __name__ == '__main__':

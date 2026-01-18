@@ -1,0 +1,11 @@
+services:
+  backend:
+    container_name: ajbot
+    image: vibrett/ajbot
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    volumes:
+      - ".env:/app/.env"
