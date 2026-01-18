@@ -3,7 +3,7 @@
 import sys
 import asyncio
 from typing import cast
-# from datetime import date
+from datetime import date
 import tempfile
 from pathlib import Path
 
@@ -252,10 +252,15 @@ async def _test_query_events_per_season():
 
 async def _test_add_update_event():
     async with AjDb(modifier_discord="vbrett") as aj_db:
-        event = await aj_db.add_update_event(event_id=101,
-                                            #  event_date=date(2026, 1, 18),
-                                             event_name="bubou",
-                                             participant_ids=[36,151,14],)
+        new_event = await aj_db.add_update_event(event_date=date(2026, 1, 18),
+                                                 event_name="bubou",
+                                                 participant_ids=[36,151,14],)
+    _test_format_types([new_event])
+
+    async with AjDb(modifier_discord="vbrett") as aj_db:
+        event = await aj_db.add_update_event(event_id=new_event.id,
+                                             event_name="ppppp",
+                                             participant_ids=[2,36,14,1,2,3,4,5],)
     _test_format_types([event])
 
 

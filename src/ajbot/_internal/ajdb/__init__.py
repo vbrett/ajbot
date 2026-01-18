@@ -502,6 +502,7 @@ class AjDb():
                                participant_ids:Optional[list[int]]=None,) -> db_t.Event:
         """ add or update an event
         """
+        participant_ids = list(set(participant_ids))    # remove any duplicate
         query = sa.select(sa.func.max(db_t.Member.id))
         last_valid_member_id = (await self._aio_session.scalars(query)).one_or_none()
         unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]

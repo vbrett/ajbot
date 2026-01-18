@@ -65,10 +65,12 @@ class Event(Base, LogMixin):
             case FormatTypes.RESTRICTED:
                 pass
 
-            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+            case FormatTypes.FULLSIMPLE:
                 attr.append(f"{len(self.members)} participant(s)")
-                if format_spec == FormatTypes.FULLCOMPLETE:
-                    attr.insert(0, f"#{self.id}")
+
+            case FormatTypes.FULLCOMPLETE:
+                attr.insert(0, f"#{self.id}")
+                attr.append(f"{len(self.members)} participant(s) ({', '.join(str(m.id) for m in self.members)})")
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
