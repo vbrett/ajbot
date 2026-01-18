@@ -421,8 +421,7 @@ class AjDb():
                                 last_name:Optional[str]=None,
                                 first_name:Optional[str]=None,
                                 birthdate:Optional[date]=None,
-                                discord_name:Optional[str]=None,
-                                modifier_mbr_id:Optional[db_t.AjMemberId]=None) -> db_t.Member:
+                                discord_name:Optional[str]=None) -> db_t.Member:
         """ add or update an event
         """
 
@@ -437,9 +436,9 @@ class AjDb():
         db_member.credential.first_name = first_name
         db_member.credential.last_name = last_name
         db_member.credential.birthdate = birthdate
-        db_member.credential.log_author_id = modifier_mbr_id
+        db_member.credential.log_author_id = self._modifier_id  #TODO see how we can detect when a child item is added during an item update (eg adding new address to an existing member), so we can update self._modifier_id
         db_member.discord = discord_name
-        db_member.log_author_id = modifier_mbr_id
+        db_member.log_author_id = self._modifier_id
 
         await self._aio_session.commit()
         await self._aio_session.refresh(db_member)

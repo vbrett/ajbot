@@ -40,7 +40,6 @@ async def display(interaction: Interaction,
         if members:
             if len(members) == 1:
                 member = members[0]
-                modifier = await aj_db.query_discord_member(discord_member=interaction.user)
 
                 is_self = False if not member.discord else (member.discord == interaction.user.name)
                 editable = is_self or checks.is_manager(interaction)
@@ -68,7 +67,7 @@ async def display(interaction: Interaction,
                         discord_members = [m for m in interaction.guild.members if m.name == member.discord]
                         assert len(discord_members) <= 1, f"More than 1 discord user with same name: {member.discord}"
                     discord_member = discord_members[0] if len(discord_members) > 0 else None
-                    edit_member_creds_modal = await EditMemberViewCreds.create(modifier_mbr_id=modifier.id, db_member=member, discord_member=discord_member)
+                    edit_member_creds_modal = await EditMemberViewCreds.create(db_member=member, discord_member=discord_member)
                     container.add_item(dui.Section(dui.TextDisplay(text),
                                                    accessory=EditMemberButton(modal=edit_member_creds_modal,
                                                                               title=title,
@@ -82,7 +81,7 @@ async def display(interaction: Interaction,
                     else:
                         text += "Pas d'adresse"
                         title = 'Créer adresse'
-                    edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(modifier_mbr_id=modifier.id, db_member=member)
+                    edit_member_principal_address_modal = await EditMemberViewPrincipalAddress.create(db_member=member)
                     container.add_item(dui.Section(dui.TextDisplay(text),
                                                    accessory=EditMemberButton(modal=edit_member_principal_address_modal,
                                                                               title=title,)
@@ -95,7 +94,7 @@ async def display(interaction: Interaction,
                     else:
                         text += "Pas d'email"
                         title = 'Créer email'
-                    edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(modifier_mbr_id=modifier.id, db_member=member)
+                    edit_member_principal_email_modal = await EditMemberViewPrincipalEmail.create(db_member=member)
                     container.add_item(dui.Section(dui.TextDisplay(text),
                                                    accessory=EditMemberButton(modal=edit_member_principal_email_modal,
                                                                               title=title,)
@@ -108,7 +107,7 @@ async def display(interaction: Interaction,
                     else:
                         text += "Pas de téléphone"
                         title = 'Créer téléphone'
-                    edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(modifier_mbr_id=modifier.id, db_member=member)
+                    edit_member_principal_phone_modal = await EditMemberViewPrincipalPhone.create(db_member=member)
                     container.add_item(dui.Section(dui.TextDisplay(text),
                                                    accessory=EditMemberButton(modal=edit_member_principal_phone_modal,
                                                                               title=title,)
@@ -122,7 +121,7 @@ async def display(interaction: Interaction,
                     else:
                         text += "Non cotisant(e) cette saison"
                         title = 'Ajouter cotisation'
-                    edit_member_subscription_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier.id, db_member=member)
+                    edit_member_subscription_modal = await EditMemberViewSubscription.create(db_member=member)
                     container.add_item(dui.Section(dui.TextDisplay(text),
                                                    accessory=EditMemberButton(modal=edit_member_subscription_modal,
                                                                              title=title,)
@@ -135,7 +134,7 @@ async def display(interaction: Interaction,
                     else:
                         text += "Pas de rôle"
                         title = 'Ajouter rôle'
-                    edit_member_role_modal = await EditMemberViewSubscription.create(modifier_mbr_id=modifier.id, db_member=member)   #TODO create modal
+                    edit_member_role_modal = await EditMemberViewSubscription.create(db_member=member)   #TODO create modal
                     container.add_item(dui.Section(dui.TextDisplay(text),
                                                    accessory=EditMemberButton(modal=edit_member_role_modal,
                                                                               title=title,)
@@ -185,7 +184,6 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
     """
 
     def __init__(self):
-        self._modifier_mbr_id = None
         self._db_id = None
         self.last_name = None
         self.first_name = None
@@ -194,12 +192,11 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
         super().__init__()
 
     @classmethod
-    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None, discord_member=None):
+    async def create(cls, db_member:db_t.Member=None, discord_member=None):
         """ awaitable class factory
         """
         self = cls()
 
-        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -255,7 +252,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
     async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when clicking on submit button
         """
-        async with AjDb() as aj_db:
+        async with AjDb(modifier_discord=interaction.user.name) as aj_db:
 
             assert isinstance(self.last_name, dui.Label)
             assert isinstance(self.last_name.component, dui.TextInput)
@@ -302,8 +299,7 @@ class EditMemberViewCreds(dui.Modal, title='Identité Membre'):
                                                    last_name=last_name,
                                                    first_name=first_name,
                                                    birthdate=birthdate,
-                                                   discord_name=discord_name,
-                                                   modifier_mbr_id=self._modifier_mbr_id)
+                                                   discord_name=discord_name)
 
             await display(interaction=interaction,
                           int_member=member.id,
@@ -314,7 +310,6 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
     """
 
     def __init__(self):
-        self._modifier_mbr_id = None
         self._db_id = None
         self.principal = True
         self.street_num = None
@@ -322,16 +317,15 @@ class EditMemberViewPrincipalAddress(dui.Modal, title='Adresse Principale'):
         self.street_name = None
         self.zip_code = None
         self.city = None
-        # self.extra = None
+        # self.extra = None #Not enough fields for this in model (6 max)
         super().__init__()
 
     @classmethod
-    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
-        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -423,19 +417,17 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
     """
 
     def __init__(self):
-        self._modifier_mbr_id = None
         self._db_id = None
         self.principal = True
         self.email = None
         super().__init__()
 
     @classmethod
-    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
-        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -472,19 +464,17 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
     """
 
     def __init__(self):
-        self._modifier_mbr_id = None
         self._db_id = None
         self.principal = True
         self.phone = None
         super().__init__()
 
     @classmethod
-    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
-        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
@@ -521,18 +511,16 @@ class EditMemberViewSubscription(dui.Modal, title='Cotisation'):
     """
 
     def __init__(self):
-        self._modifier_mbr_id = None
         self._db_id = None
         self.price = None
         super().__init__()
 
     @classmethod
-    async def create(cls, modifier_mbr_id:db_t.AjMemberId, db_member:db_t.Member=None):
+    async def create(cls, db_member:db_t.Member=None):
         """ awaitable class factory
         """
         self = cls()
 
-        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         if db_member:
             self._db_id = db_member.id
