@@ -99,10 +99,10 @@ class AjBot():
                                                       content=f"Version du bot: {aj_info.version}",
                                                       ephemeral=True)
 
-        @self.client.tree.command(name="maitenance")
+        @self.client.tree.command(name="maintenance")
         @app_commands.check(checks.is_owner)
         @app_commands.checks.cooldown(1, 5)
-        async def cmd_maitenance(interaction: Interaction):
+        async def cmd_maintenance(interaction: Interaction):
             """ reset ajdb cache
             """
             if not interaction.response.type:
