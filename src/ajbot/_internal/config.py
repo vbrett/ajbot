@@ -13,18 +13,6 @@ from ajbot._internal.exceptions import OtherException
 import ajbot.resources as pkg_resource
 
 
-
-_MIGRATE_MODE:bool = False
-def set_migrate_mode():
-    """ Set migrate mode
-    """
-    global _MIGRATE_MODE     #pylint: disable=global-statement   #on purpose, to be able to change class definition
-    _MIGRATE_MODE = True
-def get_migrate_mode():
-    """ Get migrate mode
-    """
-    return _MIGRATE_MODE
-
 AJ_ID_PREFIX:Final[str] = "AJ-"
 
 AJ_SIGNSHEET_FILENAME:Final[str] ="emargement.pdf"

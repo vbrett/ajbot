@@ -49,9 +49,9 @@ def _async_cached(func):
                     # merge cached data with current session to avoid DetachedInstanceError
                     if isinstance(cache_data[key], list):
                         for i, v in enumerate(cache_data[key]):
-                            cache_data[key][i] = await self.aio_session.merge(v, load=False)
+                            cache_data[key][i] = await self._aio_session.merge(v, load=False)            #pylint: disable=protected-access    #this decorator is for this class
                     else:
-                        cache_data[key] = await self.aio_session.merge(cache_data[key], load=False)
+                        cache_data[key] = await self._aio_session.merge(cache_data[key], load=False)     #pylint: disable=protected-access    #this decorator is for this class
                 return cache_data[key]
 
         result = await func(self, *args, **kwargs)
@@ -124,6 +124,8 @@ class AjDb():
 
     # session operation overrides
     # ===========================
+    #TODO see how we can detect when update when commiting an update query
+    #TODO see how we can detect when a child item is added during an item update (eg adding new address to an existing member), so we can update self._modifier_id
     def add(self, arg):
         """
             replace _aio.session.add
@@ -225,9 +227,9 @@ class AjDb():
         '''
         query = sa.select(db_t.AssoRole)
         if lazyload:
-            query = query.options(orm.lazyload(db_t.AssoRole.discord_roles), orm.lazyload(db_t.AssoRole.members))
+            query = query.options(orm.lazyload(db_t.AssoRole.discord_roles), orm.lazyload(db_t.AssoRole.member_asso_role_associations).lazyload(db_t.MemberAssoRole.member))
         else:
-            query = query.options(orm.selectinload(db_t.AssoRole.discord_roles), orm.selectinload(db_t.AssoRole.members))
+            query = query.options(orm.selectinload(db_t.AssoRole.discord_roles), orm.selectinload(db_t.AssoRole.member_asso_role_associations).selectinload(db_t.MemberAssoRole.member))
 
         return (await self._aio_session.scalars(query)).all()
 
@@ -436,7 +438,7 @@ class AjDb():
         db_member.credential.first_name = first_name
         db_member.credential.last_name = last_name
         db_member.credential.birthdate = birthdate
-        db_member.credential.log_author_id = self._modifier_id  #TODO see how we can detect when a child item is added during an item update (eg adding new address to an existing member), so we can update self._modifier_id
+        db_member.credential.log_author_id = self._modifier_id
         db_member.discord = discord_name
         db_member.log_author_id = self._modifier_id
 

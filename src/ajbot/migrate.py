@@ -7,10 +7,7 @@ from typing import cast
 from pathlib import Path
 
 from vbrpytools.exceltojson import ExcelWorkbook
-
-from ajbot._internal.config import set_migrate_mode
-set_migrate_mode()
-from ajbot._internal.ajdb import AjDb , tables as db_t   #pylint: disable=wrong-import-position #set migrate mode called explicitelly before import ajdb & db_t
+from ajbot._internal.ajdb import AjDb , tables as db_t
 
 async def _create_db_schema(aj_db:AjDb):
     """ Drop and recreate db schema

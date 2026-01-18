@@ -4,10 +4,11 @@ from typing import Optional, TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy import orm
+from sqlalchemy.ext import associationproxy as ap
 
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import FormatTypes, get_migrate_mode
+from ajbot._internal.config import FormatTypes
 from .base import HumanizedDate, SaHumanizedDate, Base, LogMixin
 if TYPE_CHECKING:
     from .member import Member
@@ -53,10 +54,9 @@ class AssoRole(Base):
     is_owner: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
     discord_roles: orm.Mapped[list['DiscordRole']] = orm.relationship(secondary='JCT_asso_discord_role', foreign_keys='[AssoRoleDiscordRole.asso_role_id, AssoRoleDiscordRole.discord_role_id]',
                                                                       back_populates='asso_roles', lazy='selectin', join_depth=2)
-    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_member_asso_role', foreign_keys='[MemberAssoRole.asso_role_id, MemberAssoRole.member_id]',
-                                                           back_populates='manual_asso_roles', lazy='selectin', join_depth=2)
-    if get_migrate_mode():
-        member_asso_roles: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', foreign_keys='MemberAssoRole.asso_role_id', lazy='selectin') #AJDB_MIGRATION
+    member_asso_role_associations: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='asso_role', foreign_keys='MemberAssoRole.asso_role_id', lazy='selectin')
+    members: ap.AssociationProxy[list['Member']] = ap.association_proxy('member_asso_role_associations','asso_role',
+                                                                        creator=lambda asso_role_obj: MemberAssoRole(asso_role=asso_role_obj),)
 
     def __str__(self):
         return f"{self}"
@@ -88,15 +88,15 @@ class MemberAssoRole(Base, LogMixin):
     __tablename__ = 'JCT_member_asso_role'
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
+
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_member_associations', foreign_keys=member_id, lazy='selectin')
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
+    asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_role_associations', foreign_keys=asso_role_id, lazy='selectin')
+
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
     end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
-
-    if get_migrate_mode():
-        asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_roles', foreign_keys=asso_role_id, lazy='selectin') #AJDB_MIGRATION
-        member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_members', foreign_keys=member_id, lazy='selectin') #AJDB_MIGRATION
 
 
     def __str__(self):

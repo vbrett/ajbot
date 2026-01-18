@@ -29,7 +29,7 @@ class Event(Base, LogMixin):
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-    member_event_associations: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', foreign_keys='MemberEvent.event_id', lazy='selectin') #AJDB_MIGRATION
+    member_event_associations: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', foreign_keys='MemberEvent.event_id', lazy='selectin')
     members: ap.AssociationProxy[list['Member']] = ap.association_proxy('member_event_associations','member',
                                                                         creator=lambda event_obj: MemberEvent(event=event_obj),)
 
@@ -89,9 +89,9 @@ class MemberEvent(Base, LogMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.id'), index=True, nullable=False)
-    event: orm.Mapped['Event'] = orm.relationship(back_populates='member_event_associations', foreign_keys=event_id, lazy='selectin') #AJDB_MIGRATION
+    event: orm.Mapped['Event'] = orm.relationship(back_populates='member_event_associations', foreign_keys=event_id, lazy='selectin')
     member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')
-    member: orm.Mapped['Member'] = orm.relationship(back_populates='event_member_associations', foreign_keys=member_id, lazy='selectin') #AJDB_MIGRATION
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='event_member_associations', foreign_keys=member_id, lazy='selectin')
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
