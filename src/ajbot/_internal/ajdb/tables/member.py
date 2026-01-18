@@ -7,6 +7,7 @@ import functools
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm import foreign
+from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes, get_migrate_mode
@@ -49,11 +50,11 @@ class Member(Base, LogMixin):
                                                                                 viewonly=True,)
 
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='member', foreign_keys='Membership.member_id', lazy='selectin')
-    events: orm.Mapped[list['Event']] = orm.relationship(secondary='JCT_event_member', foreign_keys='[MemberEvent.event_id, MemberEvent.member_id]',
-                                                         back_populates='members', lazy='selectin', join_depth=2)
+    event_member_associations: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='member', foreign_keys='MemberEvent.member_id', lazy='selectin') #AJDB_MIGRATION
+    events: ap.AssociationProxy[list['Event']] = ap.association_proxy('event_member_associations','event',
+                                                                       creator=lambda member_obj: MemberEvent(member=member_obj),)
 
     if get_migrate_mode():
-        event_members: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='member', foreign_keys='MemberEvent.member_id', lazy='selectin') #AJDB_MIGRATION
         asso_role_members: orm.Mapped[list['MemberAssoRole']] = orm.relationship(back_populates='member', foreign_keys='MemberAssoRole.member_id', lazy='selectin') #AJDB_MIGRATION
 
 

@@ -3,15 +3,19 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date
+# from datetime import date
 import tempfile
 from pathlib import Path
 
 import sqlalchemy as sa
-# from sqlalchemy import orm
 
 from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.config import AjConfig, FormatTypes
+
+def _test_format_types(objects):
+    print('\n'.join(f"{o:{FormatTypes.RESTRICTED}} ****** {o:{FormatTypes.FULLSIMPLE}} ****** {o:{FormatTypes.FULLCOMPLETE}}" for o in objects))
+
+
 
 async def _search_member(aj_db:AjDb, lookup_val):
     query_result = await aj_db.query_members(lookup_val)
@@ -64,7 +68,8 @@ async def _test_query(aj_db_session):
     season_name = "2025-2026"
                 # .with_only_columns(db_t.Member.id, db_t.Member.credential, sa.func.count(db_t.Member.memberships))\
     query = sa.select(db_t.Member)\
-                .join(db_t.Member.events)\
+                .join(db_t.Member.event_member_associations)\
+                .join(db_t.MemberEvent.event)\
                 .join(db_t.Event.season)\
                 .where(db_t.Season.name == season_name)\
                 .group_by(db_t.Member)
@@ -80,67 +85,63 @@ async def _test_query(aj_db_session):
     print(len(matched_items), 'item(s)')
 
 
-async def _test_create_query(aj_db:AjDb):
-    event_date = date(2026, 1, 15)
-    event_partipant_ids = [2, 3, 36, 155]
+# async def _test_create_query(aj_db:AjDb):
+#     event_date = date(2026, 1, 15)
+#     event_partipant_ids = [2, 3, 36, 155]
 
-    seasons = await aj_db.query_seasons(refresh_cache=True)
+#     seasons = await aj_db.query_seasons(refresh_cache=True)
 
-    new_event = db_t.Event(date = event_date)
-    [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
+#     new_event = db_t.Event(date = event_date)
+#     [new_event.season] = [s for s in seasons if new_event.date >= s.start and new_event.date <= s.end]
 
-    aj_db.aio_session.add(new_event)
+#     aj_db._aio_session.add(new_event)
 
-    await aj_db.aio_session.commit()
-    await aj_db.aio_session.refresh(new_event)
+#     await aj_db._aio_session.commit()
+#     await aj_db._aio_session.refresh(new_event)
 
-    aj_db.aio_session.add_all([db_t.MemberEvent(member_id = i, event_id=new_event.id, presence = True) for i in event_partipant_ids])
+#     aj_db._aio_session.add_all([db_t.MemberEvent(member_id = i, event_id=new_event.id, presence = True) for i in event_partipant_ids])
 
-    new_event.name = 'Coucou'
-
-
-async def _test_update_query(aj_db:AjDb):
-    query = sa.select(db_t.Event).where(db_t.Event.id == 102)
-    query_result = await aj_db.aio_session.execute(query)
-    my_event = query_result.scalars().one_or_none()
-
-    print(my_event)
-    print('\r\n'.join([str(m) for m in my_event.members]))
-
-    my_event.name += ' ...'
-    await aj_db.aio_session.delete(my_event.members[0])  # remove first member from event
-    await aj_db.aio_session.commit()
-    await aj_db.aio_session.refresh(my_event)
-
-    print("----------------------------------")
-    print(my_event)
-    print('\r\n'.join([str(m) for m in my_event.members]))
+#     new_event.name = 'Coucou'
 
 
-async def _test_misc():
+# async def _test_update_query(aj_db:AjDb):
+#     query = sa.select(db_t.Event).where(db_t.Event.id == 102)
+#     query_result = await aj_db._aio_session.execute(query)
+#     my_event = query_result.scalars().one_or_none()
+
+#     print(my_event)
+#     print('\r\n'.join([str(m) for m in my_event.members]))
+
+#     my_event.name += ' ...'
+#     await aj_db._aio_session.delete(my_event.members[0])  # remove first member from event
+#     await aj_db._aio_session.commit()
+#     await aj_db._aio_session.refresh(my_event)
+
+#     print("----------------------------------")
+#     print(my_event)
+#     print('\r\n'.join([str(m) for m in my_event.members]))
+
+
+async def _test_stuff():
+    async with AjDb() as aj_db:
+        await _search_member(aj_db, 'vincent')
+        await _season_events(aj_db)
+        await _principal_address(aj_db)
+
+        await _test_query(aj_db)
+        # await _test_create_query(aj_db)
+        # await _test_update_query(aj_db)
+
+
+
+
+##################################################################
+
+async def _test_membership_format():
     with AjConfig() as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
-
-            query = sa.select(db_t.Membership)
-            # print(query)
-
-            items = (await aj_db.aio_session.scalars(query)).all()
-            # items = await aj_db.query_members_per_season_presence()
-            for qr in items:
-                print(f"{qr:{FormatTypes.FULLCOMPLETE}}")
-                print('-------------------')
-
-async def _test_generate_sign_sheet():
-    # Create a sign sheet PDF file for all members with presence in current season
-    # Store it in a spooled file (max 1MB in memory, then on disk)
-    with AjConfig() as aj_config:
-        async with AjDb(aj_config=aj_config) as aj_db:
-            with tempfile.SpooledTemporaryFile(max_size=1024*1024, mode='w+b') as temp_file:
-
-                await aj_db.query_member_sign_sheet(temp_file)
-
-                temp_file.fileno()
-                input(f"PDF created: {Path(temp_file.name)}, press Enter to continue...")
+            items = await aj_db.query_table_content(db_t.Membership)
+            _test_format_types(items)
 
 
 async def _test_query_members_per_season_presence():
@@ -187,24 +188,104 @@ async def _test_query_members_per_event_presence():
     print(summary)
     print(reply)
 
+async def _test_generate_sign_sheet():
+    # Create a sign sheet PDF file for all members with presence in current season
+    # Store it in a spooled file (max 1MB in memory, then on disk)
+    with AjConfig() as aj_config:
+        async with AjDb(aj_config=aj_config) as aj_db:
+            with tempfile.SpooledTemporaryFile(max_size=1024*1024, mode='w+b') as temp_file:
 
+                await aj_db.query_member_sign_sheet(temp_file)
+
+                temp_file.fileno()
+                input(f"PDF created: {Path(temp_file.name)}, press Enter to continue...")
+
+
+
+
+async def _test_member():
+    await _test_membership_format()
+    await _test_query_members_per_season_presence()
+    await _test_query_members_per_event_presence()
+
+    await _test_generate_sign_sheet()    #must be last as it wait for user input
+
+
+
+
+
+##################################################################
+
+async def _test_query_events():
+    print("*"*20)
+    for event in [None, "Jan 10 2025 - Epiphanie 2025"]:
+        print(f"Testing query_events with {event if event else "--"}")
+        print("--- Lazy loading")
+        async with AjDb() as aj_db:
+            events_lazy = await aj_db.query_events(event, lazyload=True)
+            try:
+                _test_format_types(events_lazy)
+            except sa.exc.StatementError:
+                print("Cannot print - excepted since we're lazy loading data")
+        print("--- Eager loading")
+        async with AjDb() as aj_db:
+            events_eager = await aj_db.query_events(event, lazyload=False)
+            _test_format_types(events_eager)
+        print("\r\n" * 3)
+
+async def _test_query_events_per_season():
+    print("*"*20)
+    for season in [None, "2023-2024"]:
+        print(f"Testing query_events_per_season with {season if season else "--"}")
+        print("--- Lazy loading")
+        async with AjDb() as aj_db:
+            events_lazy = await aj_db.query_events_per_season(season, lazyload=True)
+            try:
+                _test_format_types(events_lazy)
+            except sa.exc.StatementError:
+                print("Cannot print - excepted since we're lazy loading data")
+        print("--- Eager loading")
+        async with AjDb() as aj_db:
+            events_eager = await aj_db.query_events_per_season(season, lazyload=False)
+            _test_format_types(events_eager)
+        print("\r\n" * 3)
+
+async def _test_add_update_event():
+    async with AjDb(modifier_discord="vbrett") as aj_db:
+        event = await aj_db.add_update_event(event_id=101,
+                                            #  event_date=date(2026, 1, 18),
+                                             event_name="bubou",
+                                             participant_ids=[36,151,14],)
+    _test_format_types([event])
+
+
+async def _test_event():
+    await _test_query_events_per_season()
+    await _test_query_events()
+    await _test_add_update_event()
+
+
+
+
+
+
+##################################################################
+##################################################################
+##################################################################
 async def _main():
     """ main function - async version
     """
-    async with AjDb() as aj_db:
-        await _search_member(aj_db, 'vincent')
-        await _season_events(aj_db)
-        await _principal_address(aj_db)
 
-        await _test_query(aj_db)
-        # await _test_create_query(aj_db)
-        # await _test_update_query(aj_db)
+    # Original test
+    # await _test_stuff()
 
-    await _test_misc()
-    await _test_generate_sign_sheet()
-    await _test_query_members_per_event_presence()
+    # Test event stuff
+    await _test_event()
 
-    await _test_query_members_per_season_presence() #must be last as it wait for user input
+    # Test member stuff
+    await _test_member()    #must be last as it wait for user input
+
+
     return 0
 
 

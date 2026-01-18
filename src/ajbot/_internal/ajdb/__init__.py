@@ -74,43 +74,80 @@ class AjDb():
         Create DB engine and async session maker on enter, and dispose engine on exit
         Configuration file can be provided at init, otherwise default config info will be internally loaded
     """
-    def __init__(self, aj_config:AjConfig=None):
+    def __init__(self, aj_config:AjConfig=None, modifier_discord:Optional[str]=None):
+        self._modifier_discord = modifier_discord
+        self._modifier_id = None
         self._internal_config:bool = aj_config is None
         self._aj_config:AjConfig = aj_config or AjConfig()
-        self.db_engine:aio_sa.AsyncEngine = None
-        self.AsyncSessionMaker:aio_sa.async_sessionmaker = None   #pylint: disable=invalid-name   #variable is a class factory
-        self.aio_session:aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
+        self._db_engine:aio_sa.AsyncEngine = None
+        self._AsyncSessionMaker:aio_sa.async_sessionmaker = None   #pylint: disable=invalid-name   #variable is a class factory
+        self._aio_session:aio_sa.async_sessionmaker[aio_sa.AsyncSession] = None
 
     async def __aenter__(self):
         if self._internal_config:
             self._aj_config.__enter__()
 
         # Connect to MariaDB Platform
-        self.db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + self._aj_config.db_connection_string,
+        self._db_engine = aio_sa.create_async_engine("mysql+aiomysql://" + self._aj_config.db_connection_string,
                                                     echo=self._aj_config.db_echo)
 
         # aio_sa.async_sessionmaker: a factory for new AsyncSession objects
         # expire_on_commit - don't expire objects after transaction commit
-        self.AsyncSessionMaker = aio_sa.async_sessionmaker(bind = self.db_engine, expire_on_commit=False)
-        self.aio_session = self.AsyncSessionMaker()
+        self._AsyncSessionMaker = aio_sa.async_sessionmaker(bind = self._db_engine, expire_on_commit=False)
+        self._aio_session = self._AsyncSessionMaker()
+
+        # If modifier discord name is provided, retrieve user id from it
+        if self._modifier_discord:
+            query = sa.select(db_t.Member.id).where(db_t.Member.discord == self._modifier_discord)
+            member_id = (await self._aio_session.scalars(query)).one_or_none()
+            if member_id is None:
+                raise AjDbException(f"le pseudo discord '{self._modifier_discord}' n'est associé à aucun membre de l'asso.")
+            self._modifier_id = member_id
+
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         # Commit & close session, flushing all pending changes
         try:
-            await self.aio_session.commit()
+            await self._aio_session.commit()
         except Exception:
-            await self.aio_session.rollback()
+            await self._aio_session.rollback()
             raise
         finally:
-            await self.aio_session.close()
-        self.aio_session = None
+            await self._aio_session.close()
+        self._aio_session = None
         # Close and clean-up pooled connections
-        await self.db_engine.dispose()
-        self.AsyncSessionMaker = None
+        await self._db_engine.dispose()
+        self._AsyncSessionMaker = None
         if self._internal_config:
             self._aj_config.__exit__(exc_type, exc_value, traceback)
 
+    # session operation overrides
+    # ===========================
+    def add(self, arg):
+        """
+            replace _aio.session.add
+        """
+        if not self._modifier_id:
+            raise AjDbException("Cannot add without a modifier ID")
+
+        if isinstance(arg, db_t.LogMixin):
+            arg.log_author_id = self._modifier_id
+
+        self._aio_session.add(arg)
+
+    def add_all(self, argl:list):
+        """
+            replace _aio.session.add
+        """
+        if not self._modifier_id:
+            raise AjDbException("Cannot add without a modifier ID")
+
+        for arg in argl:
+            if isinstance(arg, db_t.LogMixin):
+                arg.log_author_id = self._modifier_id
+
+        self._aio_session.add_all(argl)
 
     # DB Management
     # =============
@@ -120,7 +157,7 @@ class AjDb():
         if self._aj_config.db_creds['user'] != 'ajadmin':
             raise AjDbException(f"L'utilisateur {self._aj_config.db_creds['user']} ne peut pas recréer la base de donnée !")
         # create all tables
-        async with self.db_engine.begin() as conn:
+        async with self._db_engine.begin() as conn:
             await conn.run_sync(db_t.Base.metadata.drop_all)
             await conn.run_sync(db_t.Base.metadata.create_all)
 
@@ -157,7 +194,7 @@ class AjDb():
         if options:
             for option in options:
                 query = query.options(option)
-        return (await self.aio_session.scalars(query)).all()
+        return (await self._aio_session.scalars(query)).all()
 
 
     @_async_cached
@@ -175,7 +212,7 @@ class AjDb():
         else:
             query = query.options(orm.selectinload(db_t.Season.events), orm.selectinload(db_t.Season.memberships))
 
-        return (await self.aio_session.scalars(query)).all()
+        return (await self._aio_session.scalars(query)).all()
 
     @_async_cached
     async def query_asso_roles(self, lazyload:bool=True) -> list[db_t.AssoRole]:
@@ -192,7 +229,7 @@ class AjDb():
         else:
             query = query.options(orm.selectinload(db_t.AssoRole.discord_roles), orm.selectinload(db_t.AssoRole.members))
 
-        return (await self.aio_session.scalars(query)).all()
+        return (await self._aio_session.scalars(query)).all()
 
 
     # Members
@@ -236,7 +273,7 @@ class AjDb():
             raise AjDbException(f"Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '{type(lookup_val)}'")
 
 
-        matched_members = (await self.aio_session.scalars(query)).all()
+        matched_members = (await self._aio_session.scalars(query)).all()
 
         if len(matched_members) <= 1:
             return matched_members
@@ -270,7 +307,7 @@ class AjDb():
         if subscriber_only:
             query = query.join(db_t.Member.memberships)
         else:
-            query = query.join(db_t.Member.events)
+            query = query.join(db_t.Member.event_member_associations).join(db_t.MemberEvent.event)
 
         if season_name:
             where = db_t.Season.name == season_name
@@ -281,7 +318,7 @@ class AjDb():
                      .where(where)\
                      .group_by(db_t.Member)
 
-        members = (await self.aio_session.scalars(query)).all()
+        members = (await self._aio_session.scalars(query)).all()
         return members
 
     async def query_members_per_event_presence(self, event_id) -> list[db_t.Member]:
@@ -292,11 +329,11 @@ class AjDb():
                 [all found members with number of presence]
         '''
         query = sa.select(db_t.Member)\
-                  .join(db_t.Member.events)\
-                  .where(db_t.Event.id == event_id)\
+                  .join(db_t.Member.event_member_associations)\
+                  .where(db_t.MemberEvent.event_id == event_id)\
                   .group_by(db_t.Member)
 
-        return (await self.aio_session.scalars(query)).all()
+        return (await self._aio_session.scalars(query)).all()
 
     async def query_discord_member(self, discord_member: discord.Member, must_exist=True) -> db_t.Member:
         ''' retrieve user from discord member, checking for its unicity and existence (if asked)
@@ -306,12 +343,12 @@ class AjDb():
                                            break_if_multi_perfect_match = False)
         if not members:
             if must_exist:
-                raise AjDbException(f"{discord_member} n'est pas associé à un membre de l'asso.", ephemeral=True)
+                raise AjDbException(f"{discord_member} n'est pas associé à un membre de l'asso.")
 
             return None
 
         if len(members) > 1:
-            raise AjDbException(f"{discord_member} est associé à plus d'un membre de l'asso: {','.join(u.id for u in members)}.", ephemeral=True)
+            raise AjDbException(f"{discord_member} est associé à plus d'un membre de l'asso: {','.join(u.id for u in members)}.")
 
         return members[0]
 
@@ -392,10 +429,10 @@ class AjDb():
         if not member_id:
             db_member = db_t.Member()
             db_member.credential = db_t.Credential()
-            self.aio_session.add(db_member)
+            self.add(db_member)
         else:
             query = sa.select(db_t.Member).where(db_t.Member.id == member_id)
-            db_member = (await self.aio_session.scalars(query)).one_or_none()
+            db_member = (await self._aio_session.scalars(query)).one_or_none()
 
         db_member.credential.first_name = first_name
         db_member.credential.last_name = last_name
@@ -404,8 +441,8 @@ class AjDb():
         db_member.discord = discord_name
         db_member.log_author_id = modifier_mbr_id
 
-        await self.aio_session.commit()
-        await self.aio_session.refresh(db_member)
+        await self._aio_session.commit()
+        await self._aio_session.refresh(db_member)
 
         return db_member
 
@@ -423,11 +460,11 @@ class AjDb():
         '''
         query = sa.select(db_t.Event)
         if lazyload:
-            query = query.options(orm.lazyload(db_t.Event.members))
+            query = query.options(orm.lazyload(db_t.Event.member_event_associations).lazyload(db_t.MemberEvent.member))
         else:
-            query = query.options(orm.selectinload(db_t.Event.members))
+            query = query.options(orm.selectinload(db_t.Event.member_event_associations).selectinload(db_t.MemberEvent.member))
 
-        events = (await self.aio_session.scalars(query)).all()
+        events = (await self._aio_session.scalars(query)).all()
         if event_str:
             events = [e for e in events if str(e) == event_str]
 
@@ -448,11 +485,11 @@ class AjDb():
         else:
             query = sa.select(db_t.Event).where(db_t.Event.is_in_current_season)
         if lazyload:
-            query = query.options(orm.lazyload(db_t.Event.members))
+            query = query.options(orm.lazyload(db_t.Event.member_event_associations).lazyload(db_t.MemberEvent.member))
         else:
-            query = query.options(orm.selectinload(db_t.Event.members))
+            query = query.options(orm.selectinload(db_t.Event.member_event_associations).selectinload(db_t.MemberEvent.member))
 
-        events = (await self.aio_session.scalars(query)).all()
+        events = (await self._aio_session.scalars(query)).all()
 
         return events
 
@@ -461,12 +498,11 @@ class AjDb():
                                event_id = None,
                                event_date:Optional[date]=None,
                                event_name:Optional[str]=None,
-                               participant_ids:Optional[list[int]]=None,
-                               modifier_mbr_id:Optional[db_t.AjMemberId]=None,) -> db_t.Event:
+                               participant_ids:Optional[list[int]]=None,) -> db_t.Event:
         """ add or update an event
         """
         query = sa.select(sa.func.max(db_t.Member.id))
-        last_valid_member_id = (await self.aio_session.scalars(query)).one_or_none()
+        last_valid_member_id = (await self._aio_session.scalars(query)).one_or_none()
         unkown_participant_ids = [i for i in participant_ids if i > last_valid_member_id]
 
         if unkown_participant_ids:
@@ -479,37 +515,37 @@ class AjDb():
             db_event = db_t.Event(date=event_date)
             seasons:list[db_t.Season] = await self.query_table_content(db_t.Season, orm.lazyload(db_t.Season.events), orm.lazyload(db_t.Season.memberships))
             [db_event.season] = [s for s in seasons if db_event.date >= s.start and db_event.date <= s.end]
-            self.aio_session.add(db_event)
+            self.add(db_event)
 
             # Need to create event first to have its id, before being able to add participants
             # This will also raise an error if event at same date already exists
-            await self.aio_session.commit()
-            await self.aio_session.refresh(db_event)
+            await self._aio_session.commit()
+            await self._aio_session.refresh(db_event)
         else:
             if event_date:
                 raise AjDbException("Evènement existe et date fournie. Ce n'est pas permis.")
             query = sa.select(db_t.Event).where(db_t.Event.id == event_id)
-            db_event = (await self.aio_session.scalars(query)).one_or_none()
+            db_event = (await self._aio_session.scalars(query)).one_or_none()
             if not db_event:
                 raise AjDbException(f"Evènement inconnu: {event_id}")
 
         # set name
         db_event.name = event_name
 
-        db_event.log_author_id = modifier_mbr_id
+        db_event.log_author_id = self._modifier_id
 
         # delete / add participants
-        for mbr in db_event.members:
-            if mbr.id not in participant_ids:
-                await self.aio_session.delete(mbr)
+        for mbr_evt in db_event.member_event_associations:
+            if mbr_evt.member_id not in participant_ids:
+                await self._aio_session.delete(mbr_evt)
 
         existing_participant_ids = [mbr.id for mbr in db_event.members]
-        self.aio_session.add_all([db_t.MemberEvent(member_id = mbr_id, event_id=db_event.id, presence = True, log_author_id = modifier_mbr_id)
-                                  for mbr_id in participant_ids
-                                  if mbr_id not in existing_participant_ids])
+        self.add_all([db_t.MemberEvent(member_id = mbr_id, event_id=db_event.id, presence = True)
+                      for mbr_id in participant_ids
+                      if mbr_id not in existing_participant_ids])
 
-        await self.aio_session.commit()
-        await self.aio_session.refresh(db_event)
+        await self._aio_session.commit()
+        await self._aio_session.refresh(db_event)
 
         return db_event
 

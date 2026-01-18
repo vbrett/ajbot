@@ -5,9 +5,10 @@ import functools
 
 import sqlalchemy as sa
 from sqlalchemy import orm
+from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
-from ajbot._internal.config import FormatTypes, get_migrate_mode
+from ajbot._internal.config import FormatTypes
 from .base import HumanizedDate, SaHumanizedDate, Base, LogMixin
 from .season import Season
 if TYPE_CHECKING:
@@ -28,10 +29,10 @@ class Event(Base, LogMixin):
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-    members: orm.Mapped[list['Member']] = orm.relationship(secondary='JCT_event_member', foreign_keys='[MemberEvent.event_id, MemberEvent.member_id]',
-                                                           back_populates='events', lazy='selectin', join_depth=2)
-    if get_migrate_mode():
-        member_events: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', foreign_keys='MemberEvent.event_id', lazy='selectin') #AJDB_MIGRATION
+    member_event_associations: orm.Mapped[list['MemberEvent']] = orm.relationship(back_populates='event', foreign_keys='MemberEvent.event_id', lazy='selectin') #AJDB_MIGRATION
+    members: ap.AssociationProxy[list['Member']] = ap.association_proxy('member_event_associations','member',
+                                                                        creator=lambda event_obj: MemberEvent(event=event_obj),)
+
 
     is_in_current_season: orm.Mapped[bool] = orm.column_property(sa.exists().where(
                     sa.and_(
@@ -59,12 +60,20 @@ class Event(Base, LogMixin):
     def __format__(self, format_spec):
         """ override format
         """
+        attr = [self.date, self.name]
         match format_spec:
-            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE | FormatTypes.RESTRICTED:
-                return ' - '.join(f"{x}" for x in [self.date, self.name] if x)
+            case FormatTypes.RESTRICTED:
+                pass
+
+            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+                attr.append(f"{len(self.members)} participant(s)")
+                if format_spec == FormatTypes.FULLCOMPLETE:
+                    attr.insert(0, f"#{self.id}")
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' - '.join(f"{x}" for x in attr if x)
 
 # many-to-many association tables
 #################################
@@ -80,13 +89,11 @@ class MemberEvent(Base, LogMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.id'), index=True, nullable=False)
+    event: orm.Mapped['Event'] = orm.relationship(back_populates='member_event_associations', foreign_keys=event_id, lazy='selectin') #AJDB_MIGRATION
     member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')
+    member: orm.Mapped['Member'] = orm.relationship(back_populates='event_member_associations', foreign_keys=member_id, lazy='selectin') #AJDB_MIGRATION
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
-
-    if get_migrate_mode():
-        event: orm.Mapped['Event'] = orm.relationship(back_populates='member_events', foreign_keys=event_id, lazy='selectin') #AJDB_MIGRATION
-        member: orm.Mapped['Member'] = orm.relationship(back_populates='event_members', foreign_keys=member_id, lazy='selectin') #AJDB_MIGRATION
 
     def __str__(self):
         return f"{self.id}, event #{self.event_id}, member #{self.member_id}"

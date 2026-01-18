@@ -61,7 +61,7 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         if val.get('is_owner') is not None:
             new_asso_role.is_owner=bool(val.get('is_owner'))
 
-    async with aj_db.AsyncSessionMaker() as session:
+    async with aj_db._AsyncSessionMaker() as session:
         async with session.begin():
             session.add_all(lut_tables)
 
@@ -156,7 +156,7 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                                             principal=True)
             member_tables.append(new_jct)
 
-    async with aj_db.AsyncSessionMaker() as session:
+    async with aj_db._AsyncSessionMaker() as session:
         async with session.begin():
             session.add_all(member_tables)
 
@@ -242,7 +242,7 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                                                   end = end,)
                 event_tables.append(new_memberassorole)
 
-    async with aj_db.AsyncSessionMaker() as session:
+    async with aj_db._AsyncSessionMaker() as session:
         async with session.begin():
             session.add_all(membership_tables)
             session.add_all(event_tables)

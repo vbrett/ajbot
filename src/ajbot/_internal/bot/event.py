@@ -8,7 +8,7 @@ import discord
 from discord import Interaction, ui as dui
 
 from ajbot._internal.config import FormatTypes
-from ajbot._internal.ajdb import AjDb, tables as db_t
+from ajbot._internal.ajdb import AjDb
 from ajbot._internal.bot import checks, params, responses
 from ajbot._internal.exceptions import OtherException
 
@@ -24,10 +24,8 @@ async def display(interaction: Interaction,
     input_event = [x for x in [season_name, event_str] if x is not None]
 
     async with AjDb() if not aj_db_in else nullcontext(aj_db_in) as aj_db:
-        modifier = await aj_db.query_discord_member(discord_member=interaction.user)
-
         if len(input_event) == 0:
-            eventmodal = await EditEventView.create(modifier_mbr_id=modifier.id, aj_db=aj_db)
+            eventmodal = await EditEventView.create(aj_db=aj_db)
             await interaction.response.send_modal(eventmodal)   # ! Cannot send defer before a modal. Hope creating this doesn't last more than 3sec
             return
 
@@ -60,7 +58,7 @@ async def display(interaction: Interaction,
                 participants.sort(key=lambda x:x.credential)
                 message1 = f"# {event:{format_style}}"
                 message2 = f"## {len(participants)} participant" + ('' if not participants else (('s' if len(participants) > 1 else '') + " :"))
-                edit_event_modal = await EditEventView.create(modifier_mbr_id=modifier.id, aj_db=aj_db, db_event=event)
+                edit_event_modal = await EditEventView.create(aj_db=aj_db, db_event=event)
                 container.add_item(dui.Section(dui.TextDisplay(message1), accessory=EditEventButton(modal=edit_event_modal,
                                                                                                     disabled = not checks.is_manager(interaction))))
                 container.add_item(dui.Section(dui.TextDisplay(message2), accessory=DeleteEventButton(event=event,
@@ -123,7 +121,6 @@ class EditEventView(dui.Modal, title='Evènement'):
     """
 
     def __init__(self):
-        self._modifier_mbr_id = None
         self._db_id = None
         self.event_date = None
         self.event_name = None
@@ -131,12 +128,11 @@ class EditEventView(dui.Modal, title='Evènement'):
         super().__init__()
 
     @classmethod
-    async def create(cls, modifier_mbr_id:db_t.AjMemberId, aj_db:AjDb, db_event=None):
+    async def create(cls, aj_db:AjDb, db_event=None):
         """ awaitable class factory
         """
         self = cls()
 
-        self._modifier_mbr_id = modifier_mbr_id
         self._db_id = None
         present_members = None
         if db_event:
@@ -190,7 +186,7 @@ class EditEventView(dui.Modal, title='Evènement'):
     async def on_submit(self, interaction: discord.Interaction):    #pylint: disable=arguments-differ   #No sure why this warning is raised
         """ Event triggered when clicking on submit button
         """
-        async with AjDb() as aj_db:
+        async with AjDb(modifier_discord=interaction.user.name) as aj_db:
 
             # check consistency - date. Can only be edited if new event
             event_date = None
