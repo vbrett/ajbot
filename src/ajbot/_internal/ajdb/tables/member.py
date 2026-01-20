@@ -57,10 +57,6 @@ class Member(Base, LogMixin):
                                                                        creator=lambda member_obj: MemberEvent(member=member_obj),)
 
 
-
-#     logs: orm.Mapped[list['Log']] = orm.relationship(foreign_keys='[Log.author]', back_populates='members', lazy='selectin')
-#     logs_: orm.Mapped[list['Log']] = orm.relationship(foreign_keys='[Log.updated_member]', back_populates='members_', lazy='selectin')
-
     def season_presence_count(self, season_name = None):
         """ return number of related events in provided season. Current if empty
         """

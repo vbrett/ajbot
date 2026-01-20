@@ -44,7 +44,6 @@ class Membership(Base, LogMixin):
     contribution_type_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('LUT_contribution_types.id'), index=True, nullable=False)
     contribution_type: orm.Mapped['ContributionType'] = orm.relationship(back_populates='memberships', foreign_keys=contribution_type_id, lazy='selectin')
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='memberships')
-    # logs: orm.Mapped[list['Log']] = orm.relationship(back_populates='memberships', lazy='selectin')
 
     def __str__(self):
         return format(self, FormatTypes.RESTRICTED)
