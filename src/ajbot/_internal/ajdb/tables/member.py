@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from .member_private import Credential, MemberEmail, MemberPhone, MemberAddress
 
 
+_now = datetime.datetime.now().date()
 
 @functools.total_ordering
 class Member(Base, LogMixin):
@@ -56,6 +57,47 @@ class Member(Base, LogMixin):
     events: ap.AssociationProxy[list['Event']] = ap.association_proxy('event_member_associations','event',
                                                                        creator=lambda member_obj: MemberEvent(member=member_obj),)
 
+    is_subscriber:orm.Mapped[Optional[bool]] = orm.column_property(sa.exists(
+        sa.select(1)
+        .select_from(Membership.__table__.join(Season, Season.id == Membership.season_id))
+        .where(
+            sa.and_(
+                Membership.member_id == id,
+                _now >= Season.start,
+                sa.or_(Season.end == None, _now <= Season.end),  #pylint: disable=singleton-comparison   #this is SQL syntax
+            )
+        )
+    ))
+
+    is_past_subscriber:orm.Mapped[Optional[bool]] = orm.column_property(sa.exists(
+        sa.select(1)
+        .select_from(Membership.__table__.join(Season, Season.id == Membership.season_id))
+        .where(
+            sa.and_(
+                Membership.member_id == id,
+                Season.end <= _now,
+            )
+        )
+    ))
+
+    last_presence:orm.Mapped[Optional[datetime.date]] = orm.column_property(
+        sa.select(sa.func.max(Event.date))
+        .select_from(
+            Event.__table__.join(
+                MemberEvent,
+                MemberEvent.event_id == Event.id,
+            )
+        )
+        .where(
+            sa.and_(
+                MemberEvent.member_id == id,
+                MemberEvent.presence == True,             #pylint: disable=singleton-comparison
+            )
+        )
+        .scalar_subquery()
+    )
+
+    current_asso_role = None  # Will be set later using a selectable mapping
 
     def season_presence_count(self, season_name = None):
         """ return number of related events in provided season. Current if empty
@@ -107,7 +149,6 @@ class Member(Base, LogMixin):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 # Build a selectable mapping member -> computed asso_role_id using CASE
-_now = datetime.datetime.now().date()
 
 _active_manual_role_cond = sa.and_(
     MemberAssoRole.member_id == Member.id,
@@ -126,34 +167,11 @@ _active_manual_role_select = (
     .scalar_subquery()
 )
 
-_current_membership_exists = sa.exists(
-    sa.select(1)
-    .select_from(Membership.__table__.join(Season, Season.id == Membership.season_id))
-    .where(
-        sa.and_(
-            Membership.member_id == Member.id,
-            _now >= Season.start,
-            sa.or_(Season.end == None, _now <= Season.end),  #pylint: disable=singleton-comparison   #this is SQL syntax
-        )
-    )
-)
-
 _subscriber_role_select = (
     sa.select(AssoRole.id)
     .where(AssoRole.is_subscriber == True) #pylint: disable=singleton-comparison   #this is SQL syntax
     .limit(1)
     .scalar_subquery()
-)
-
-_past_membership_exists = sa.exists(
-    sa.select(1)
-    .select_from(Membership.__table__.join(Season, Season.id == Membership.season_id))
-    .where(
-        sa.and_(
-            Membership.member_id == Member.id,
-            Season.end <= _now,
-        )
-    )
 )
 
 _past_subscriber_role_select = (
@@ -182,8 +200,8 @@ _current_asso_role_sq = sa.select(
     Member.id.label("member_id"),
     sa.case(
         (_active_manual_role_exists, _active_manual_role_select),
-        (_current_membership_exists, _subscriber_role_select),
-        (_past_membership_exists, _past_subscriber_role_select),
+        (Member.is_subscriber, _subscriber_role_select),
+        (Member.is_past_subscriber, _past_subscriber_role_select),
         else_=_default_member_role_select,
     ).label("asso_role_id"),
 ).subquery("current_asso_role")
@@ -198,26 +216,6 @@ Member.current_asso_role = orm.relationship(
     lazy='selectin',
 )
 
-Member.is_subscriber = orm.column_property(_current_membership_exists)
-
-Member.is_past_subscriber = orm.column_property(_past_membership_exists)
-
-Member.last_presence = orm.column_property(
-    sa.select(sa.func.max(Event.date))
-    .select_from(
-        Event.__table__.join(
-            MemberEvent,
-            MemberEvent.event_id == Event.id,
-        )
-    )
-    .where(
-        sa.and_(
-            MemberEvent.member_id == Member.id,
-            MemberEvent.presence == True,             #pylint: disable=singleton-comparison
-        )
-    )
-    .scalar_subquery()
-)
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

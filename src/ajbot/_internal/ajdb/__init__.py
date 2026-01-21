@@ -1,13 +1,8 @@
 ''' manage AJ database
-
-Classes generated using:
-sqlacodegen mariadb://user:password@server:port/aj > ./output.py
-then manually reformated
 '''
 from functools import wraps
 from typing import Optional
 from datetime import date, datetime,timedelta
-from contextlib import nullcontext
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages

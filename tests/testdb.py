@@ -3,20 +3,40 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date
+from datetime import date, timedelta
 import tempfile
 from pathlib import Path
+from functools import wraps
 
+import humanize
 import sqlalchemy as sa
 
 from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.config import AjConfig, FormatTypes
 
 def _test_format_types(objects):
-    print('\n'.join(f"{o:{FormatTypes.RESTRICTED}} ****** {o:{FormatTypes.FULLSIMPLE}} ****** {o:{FormatTypes.FULLCOMPLETE}}" for o in objects))
+    for o in objects:
+        print(f"{o:{FormatTypes.RESTRICTED}} ****** {o:{FormatTypes.FULLSIMPLE}} ****** {o:{FormatTypes.FULLCOMPLETE}}")
+    # WARNING: cannot print that a '\r\n'.join(..).
+    # There is currently a bug with the Python extension for VS Code that results in sufficiently long strings
+    # being truncated when printed in the terminal. The bug report and its status can be found here: https://github.com/microsoft/debugpy/issues/1285
+
+
+def _test_case(func):
+    """ Decorator to test functions
+    """
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        result = await func(*args, **kwargs)
+        print()
+        print()
+        return result
+    return wrapper
 
 
 
+
+@_test_case
 async def _search_member(aj_db:AjDb, lookup_val):
     query_result = await aj_db.query_members(lookup_val)
     print('')
@@ -32,9 +52,8 @@ async def _search_member(aj_db:AjDb, lookup_val):
         print(f"{qr:{FormatTypes.FULLCOMPLETE}}")
         print('')
     print('-------------------')
-    print('')
-    print('')
 
+@_test_case
 async def _season_events(aj_db_session):
     query = sa.select(db_t.Event).where(db_t.Event.is_in_current_season)
     async with aj_db_session.AsyncSessionMaker() as session:
@@ -49,6 +68,7 @@ async def _season_events(aj_db_session):
     print(len(matched_events), 'évènement(s)')
     print('-------------------')
 
+@_test_case
 async def _principal_address(aj_db_session):
     query = sa.select(db_t.MemberAddress).where(db_t.Member.address_principal is not None)
     async with aj_db_session.AsyncSessionMaker() as session:
@@ -64,6 +84,7 @@ async def _principal_address(aj_db_session):
     print('-------------------')
 
 
+@_test_case
 async def _test_query(aj_db_session):
     season_name = "2025-2026"
                 # .with_only_columns(db_t.Member.id, db_t.Member.credential, sa.func.count(db_t.Member.memberships))\
@@ -137,6 +158,7 @@ async def _test_stuff():
 
 ##################################################################
 
+@_test_case
 async def _test_membership_format():
     with AjConfig() as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
@@ -144,6 +166,7 @@ async def _test_membership_format():
             _test_format_types(items)
 
 
+@_test_case
 async def _test_query_members_per_season_presence():
     async with AjDb() as aj_db:
         season_name = '2025-2026'
@@ -173,6 +196,7 @@ async def _test_query_members_per_season_presence():
     print(summary)
     print(reply)
 
+@_test_case
 async def _test_query_members_per_event_presence():
     async with AjDb() as aj_db:
         event_id = 97
@@ -188,6 +212,33 @@ async def _test_query_members_per_event_presence():
     print(summary)
     print(reply)
 
+
+@_test_case
+async def _test_query_members():
+    print("Membres")
+    async with AjDb() as aj_db:
+        items = await aj_db.query_table_content(db_t.Member)
+        _test_format_types(items)
+
+
+@_test_case
+async def _test_query_member_emails():
+    for days in [1,25,155,555]:
+        async with AjDb() as aj_db:
+            delta = timedelta(days)
+            emails = await aj_db.query_member_emails(last_participation_duration=delta)
+        print(f"Emails - participants {humanize.naturaldelta(delta)} dernières semaines - {len(emails)} email(s)")
+        _test_format_types(emails)
+        print()
+        print()
+    async with AjDb() as aj_db:
+        delta = None
+        emails = await aj_db.query_member_emails(last_participation_duration=delta)
+    print(f"Emails - cotisants seuls - {len(emails)} email(s)")
+    _test_format_types(emails)
+
+
+@_test_case
 async def _test_generate_sign_sheet():
     # Create a sign sheet PDF file for all members with presence in current season
     # Store it in a spooled file (max 1MB in memory, then on disk)
@@ -207,6 +258,8 @@ async def _test_member():
     await _test_membership_format()
     await _test_query_members_per_season_presence()
     await _test_query_members_per_event_presence()
+    await _test_query_members()
+    await _test_query_member_emails()
 
     await _test_generate_sign_sheet()    #must be last as it wait for user input
 
@@ -216,6 +269,7 @@ async def _test_member():
 
 ##################################################################
 
+@_test_case
 async def _test_query_events():
     print("*"*20)
     for event in [None, "Jan 10 2025 - Epiphanie 2025"]:
@@ -233,6 +287,7 @@ async def _test_query_events():
             _test_format_types(events_eager)
         print("\r\n" * 3)
 
+@_test_case
 async def _test_query_events_per_season():
     print("*"*20)
     for season in [None, "2023-2024"]:
@@ -250,6 +305,7 @@ async def _test_query_events_per_season():
             _test_format_types(events_eager)
         print("\r\n" * 3)
 
+@_test_case
 async def _test_add_update_event():
     async with AjDb(modifier_discord="vbrett") as aj_db:
         new_event = await aj_db.add_update_event(event_date=date(2026, 1, 18),
