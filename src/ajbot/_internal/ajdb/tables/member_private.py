@@ -88,7 +88,7 @@ class Credential(Base, LogMixin):
                 name_list = [self.last_name, self.first_name, mbr_match]
 
             case FormatTypes.FULLCOMPLETE:
-                name_list = [self.last_name, self.first_name, mbr_match, self.birthdate]
+                name_list = [self.id, '-', self.last_name, self.first_name, mbr_match, self.birthdate]
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
@@ -119,8 +119,11 @@ class Email(Base, LogMixin):
             case FormatTypes.RESTRICTED:
                 return 'xxxxxx@yyyy.zzz'
 
-            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+            case FormatTypes.FULLSIMPLE:
                 return self.address
+
+            case FormatTypes.FULLCOMPLETE:
+                return f"{self.id} - {self.address}"
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
@@ -147,10 +150,13 @@ class Phone(Base, LogMixin):
         """
         match format_spec:
             case FormatTypes.RESTRICTED:
-                return '(+33)000000000'
+                return '(+33)XXXXXXXXX'
 
-            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
+            case FormatTypes.FULLSIMPLE:
                 return self.number
+
+            case FormatTypes.FULLCOMPLETE:
+                return f"{self.id} - {self.number}"
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
@@ -184,18 +190,29 @@ class PostalAddress(Base, LogMixin):
         """
         match format_spec:
             case FormatTypes.RESTRICTED:
-                return self.city
+                name_list = [self.city]
 
-            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
-                return ' '.join([f"{x}" for x in [self.street_num,
-                                                  self.street_type,
-                                                  self.street_name,
-                                                  self.zip_code,
-                                                  self.city,
-                                                  self.extra] if x])
+            case FormatTypes.FULLSIMPLE:
+                name_list = [self.street_num,
+                             self.street_type,
+                             self.street_name,
+                             self.zip_code,
+                             self.city,
+                             self.extra]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-',
+                             self.street_num,
+                             self.street_type,
+                             self.street_name,
+                             self.zip_code,
+                             self.city,
+                             self.extra]
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 
@@ -220,6 +237,9 @@ class MemberEmail(Base, LogMixin):
     def __str__(self):
         return f"{self.id}, member #{self.member_id}, email #{self.email_id}"
 
+    # def __format__(self, format_spec):
+    #     """ override format
+    #     """
 
 class MemberPhone(Base, LogMixin):
     """ Junction table between members and phones
