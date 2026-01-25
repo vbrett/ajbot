@@ -19,7 +19,7 @@ services:
     networks:
       - ajnet
     ports:
-      - 3306:3306
+      - 3106:3306
 
   ajdb-phpmyadmin:
     container_name: ajdb-phpmyadmin

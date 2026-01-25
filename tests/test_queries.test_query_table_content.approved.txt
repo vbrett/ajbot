@@ -1,0 +1,93 @@
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: ) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: full_simple) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: full_complete) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: ) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: full_simple) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: full_complete) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: ) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: full_simple) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: full_complete) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: ) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: full_simple) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+
+(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: full_complete) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+

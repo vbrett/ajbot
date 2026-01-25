@@ -248,11 +248,10 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 
 
 
-async def _async_main():
+async def _async_main(ajdb_xls_file:Path):
     """ main function
     """
     async with AjDb() as aj_db:
-        ajdb_xls_file = Path(sys.argv[1])
         try:
             ajdb_xls = ExcelWorkbook(ajdb_xls_file)
         except FileNotFoundError:
@@ -277,7 +276,8 @@ async def _async_main():
 
 
 def _main():
-    asyncio.run(_async_main())
+    ajdb_xls_file = Path(sys.argv[1])
+    asyncio.run(_async_main(ajdb_xls_file=ajdb_xls_file))
     return 0
 
 
