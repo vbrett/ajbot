@@ -151,7 +151,7 @@ class AjDb():
     async def drop_create_schema(self):
         """ recreate database schema
         """
-        if self._aj_config.db_creds['user'] != 'ajadmin':
+        if self._aj_config.db_creds['user'] not in  ['root', 'ajadmin']:
             raise AjDbException(f"L'utilisateur {self._aj_config.db_creds['user']} ne peut pas recréer la base de donnée !")
         # create all tables
         async with self._db_engine.begin() as conn:
