@@ -7,7 +7,7 @@ from ajbot._internal.exceptions import OtherException
 from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.config import AjConfig, FormatTypes
 
-from tests.support import async_verify_all_combinations_with_labeled_input, get_printable_ajdb_objects, pre_condition
+from tests.support import async_verify_all_combinations_with_labeled_input, get_printable_ajdb_objects
 
 
 
@@ -25,8 +25,6 @@ async def test_query_table_content():
     """
     Unit test for aj_db.query_table_content
     """
-    pre_condition()
-
     tables = [
               db_t.StreetType,
               db_t.ContributionType,

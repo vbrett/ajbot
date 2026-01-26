@@ -4,7 +4,7 @@ approval tests
 from pathlib import Path
 import pytest
 
-from tests.support import pre_condition, TEST_PATH, TEST_MIGRATE_FILE
+from tests.support import TEST_PATH, TEST_MIGRATE_FILE
 
 
 from ajbot._internal.exceptions import OtherException
@@ -16,7 +16,6 @@ async def test_migrate():
     """
     Unit test for migrating a db
     """
-    pre_condition()
     await migrate(ajdb_xls_file=Path(TEST_PATH) / TEST_MIGRATE_FILE)
 
 if __name__ == '__main__':

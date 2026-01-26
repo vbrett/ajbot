@@ -8,11 +8,9 @@ from pathlib import Path
 import approvaltests
 
 from ajbot._internal.exceptions import OtherException
-import ajbot._internal.config
 
 REPORT_EOL = '\n'
 TEST_PATH = Path('tests/db_test')
-TEST_ENV_FILE = 'test.env'
 TEST_MIGRATE_FILE = 'db_test.xlsx'
 
 
@@ -60,14 +58,6 @@ def get_printable_ajdb_objects(ajdb_objects, str_format, merge=True):
         return REPORT_EOL.join(output)
 
     return output
-
-def pre_condition():
-    """
-    prepare test environement
-    """
-    ajbot._internal.config._AJ_CONFIG_PATH = TEST_PATH  #pylint: disable=protected-access #override default ajconfif path & file for test
-    ajbot._internal.config._AJ_CONFIG_FILE = TEST_ENV_FILE  #pylint: disable=protected-access #override default ajconfif path & file for test
-
 
 
 
