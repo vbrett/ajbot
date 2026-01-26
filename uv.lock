@@ -91,6 +91,7 @@ dev = [
     { name = "pytest-approvaltests" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "pytest-env" },
 ]
 
 [package.dev-dependencies]
@@ -116,6 +117,7 @@ requires-dist = [
     { name = "pytest-approvaltests", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
+    { name = "pytest-env", marker = "extra == 'dev'" },
     { name = "sqlalchemy", extras = ["asyncio"] },
     { name = "thefuzz", extras = ["speedup"] },
     { name = "vbrpytools" },
