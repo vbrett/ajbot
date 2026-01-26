@@ -155,8 +155,8 @@ class AjDb():
             raise AjDbException(f"L'utilisateur {self._aj_config.db_creds['user']} ne peut pas recréer la base de donnée !")
         # create all tables
         async with self._db_engine.begin() as conn:
-            await conn.run_sync(db_t.Base.metadata.drop_all)
-            await conn.run_sync(db_t.Base.metadata.create_all)
+            await conn.run_sync(db_t.BaseWithId.metadata.drop_all)
+            await conn.run_sync(db_t.BaseWithId.metadata.create_all)
 
     async def clear_cache(self):
         """ clear db cache

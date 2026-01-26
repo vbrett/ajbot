@@ -6,18 +6,17 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException
-from .base import Base
+from .base import BaseWithId
 if TYPE_CHECKING:
     from .membership import Membership
     from .member_private import PostalAddress
 
 
-class StreetType(Base):
+class StreetType(BaseWithId):
     """ Supported street type table class
     """
     __tablename__ = 'LUT_street_types'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     addresses: orm.Mapped[list['PostalAddress']] = orm.relationship(back_populates='street_type', foreign_keys='PostalAddress.street_type_id', lazy='selectin')
@@ -31,12 +30,11 @@ class StreetType(Base):
         return self.name
 
 
-class ContributionType(Base):
+class ContributionType(BaseWithId):
     """ Supported contribution type table class
     """
     __tablename__ = 'LUT_contribution_types'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='contribution_type', foreign_keys='Membership.contribution_type_id', lazy='selectin')
@@ -50,12 +48,11 @@ class ContributionType(Base):
         return self.name
 
 
-class KnowFromSource(Base):
+class KnowFromSource(BaseWithId):
     """ Table class for source of knowing about the association
     """
     __tablename__ = 'LUT_know_from_sources'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='know_from_source', foreign_keys='Membership.know_from_source_id', lazy='selectin')
@@ -69,12 +66,11 @@ class KnowFromSource(Base):
         return self.name
 
 
-class AccountType(Base):
+class AccountType(BaseWithId):
     """ Supported account type table class
     """
     __tablename__ = 'LUT_accounts'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='account_type', foreign_keys='Transaction.account_type_id', lazy='selectin')

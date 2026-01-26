@@ -11,7 +11,7 @@ from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import AjMemberId, SaAjMemberId, Base, LogMixin
+from .base import AjMemberId, SaAjMemberId, BaseWithId, LogMixin
 from .season import Season
 from .role import AssoRole, MemberAssoRole
 from .membership import Membership
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 _now = datetime.datetime.now().date()
 
 @functools.total_ordering
-class Member(Base, LogMixin):
+class Member(BaseWithId, LogMixin):
     """ Member table class
     """
     __tablename__ = 'members'

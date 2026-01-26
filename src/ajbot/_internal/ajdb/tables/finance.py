@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException
-from .base import Base
+from .base import BaseWithId
 
 
 # class Asset(Base):
@@ -15,7 +15,6 @@ from .base import Base
 #     """
 #     __tablename__ = 'assets'
 #
-#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
 #     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 #     description: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 #
@@ -39,7 +38,6 @@ from .base import Base
 #         sa.Index('UQ_transaction_id', 'transaction_id', unique=True)
 #     )
 
-#     id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, comment='UUID')
 #     date: orm.Mapped[HumanizedDate] = orm.mapped_column(saHumanized.Date, nullable=False)
 #     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
 #     account: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)

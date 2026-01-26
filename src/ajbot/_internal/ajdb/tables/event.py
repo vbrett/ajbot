@@ -9,7 +9,7 @@ from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, Base, LogMixin
+from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
 from .season import Season
 if TYPE_CHECKING:
     from .member import Member
@@ -17,12 +17,11 @@ if TYPE_CHECKING:
 
 
 @functools.total_ordering
-class Event(Base, LogMixin):
+class Event(BaseWithId, LogMixin):
     """ Event table class
     """
     __tablename__ = 'events'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True)
     date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True, unique=True)
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, index=True)
     season: orm.Mapped['Season'] = orm.relationship(back_populates='events', foreign_keys=season_id, lazy='selectin')
@@ -69,7 +68,7 @@ class Event(Base, LogMixin):
                 attr.append(f"{len(self.members)} participant(s)")
 
             case FormatTypes.FULLCOMPLETE:
-                attr.insert(0, f"#{self.id}")
+                attr.insert(0, f"{self.id}")
                 attr.append(f"{len(self.members)} participant(s) ({', '.join(str(m.id) if m else 'inconnu(e)' for m in self.members)})")
 
             case _:
@@ -80,7 +79,7 @@ class Event(Base, LogMixin):
 # many-to-many association tables
 #################################
 
-class MemberEvent(Base, LogMixin):
+class MemberEvent(BaseWithId, LogMixin):
     """ Junction table between events and members
     """
     __tablename__ = 'JCT_event_member'
@@ -89,7 +88,6 @@ class MemberEvent(Base, LogMixin):
                             comment='each member can only be present once per event'),
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     event_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('events.id'), index=True, nullable=False)
     event: orm.Mapped['Event'] = orm.relationship(back_populates='member_event_associations', foreign_keys=event_id, lazy='selectin')
     member_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=True, comment='Can be null name/id is lost.')

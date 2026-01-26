@@ -98,9 +98,46 @@ class SaAjMemberId(ABC, sa.types.TypeDecorator):
         return value
 
 
-class Base(aio_sa.AsyncAttrs, orm.DeclarativeBase):
+class AjId(int):
+    """ Class that handles generic db id as integer, and represents it in with correct format
+    """
+    def __str__(self):
+        return f"{self}"
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return f"#{str(int(self))}"
+
+class SaAjId(ABC, sa.types.TypeDecorator):
+    """ SqlAlchemy class to report generic db id using specific class
+    """
+    impl = sa.Integer
+    cache_ok = True
+    _default_type = sa.Integer
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, AjId):
+            value = AjId(value)
+        return int(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, AjId):
+            value = AjId(value)
+        return value
+
+
+class BaseWithId(aio_sa.AsyncAttrs, orm.DeclarativeBase):
     """ Base ORM class
     """
+
+    id: orm.Mapped[AjId] = orm.mapped_column(SaAjId, primary_key=True, index=True, autoincrement=True)
 
 class LogMixin:
     """ Abstract mixin for tables with log information : update timestamp & author

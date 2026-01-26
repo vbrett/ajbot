@@ -6,17 +6,17 @@ import datetime
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from ajbot._internal.exceptions import OtherException
-from .base import HumanizedDate, SaHumanizedDate, Base, LogMixin
+from ajbot._internal.exceptions import OtherException, AjDbException
+from ajbot._internal.config import FormatTypes
+from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
 if TYPE_CHECKING:
     from .member import Membership, Event
 
-class Season(Base, LogMixin):
+class Season(BaseWithId, LogMixin):
     """ Season table class
     """
     __tablename__ = 'seasons'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(10), nullable=False, index=True)
     start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, unique=True)
     end: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
@@ -50,10 +50,26 @@ class Season(Base, LogMixin):
     def __str__(self):
         return f"{self}"
 
-    def __format__(self, _format_spec):
+    def __format__(self, format_spec):
         """ override format
         """
-        return self.name
+        dates = f"from {self.start} to {self.end}"
+        current = '(current)' if self.is_current_season else ''
+        # return self.name
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                name_list = [self.name]
+
+            case FormatTypes.FULLSIMPLE:
+                name_list = [self.name, current, dates]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, self.name,current, dates]
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 if __name__ == '__main__':
     raise OtherException('This module is not meant to be executed directly.')

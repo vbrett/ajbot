@@ -9,18 +9,17 @@ from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, Base, LogMixin
+from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
 if TYPE_CHECKING:
     from .member import Member
 
 
 
-class DiscordRole(Base):
+class DiscordRole(BaseWithId):
     """ Discord role table class
     """
     __tablename__ = 'discord_roles'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.BigInteger, primary_key=True, index=True, unique=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     asso_roles: orm.Mapped[list['AssoRole']] = orm.relationship(secondary='JCT_asso_discord_role', foreign_keys='[AssoRoleDiscordRole.asso_role_id, AssoRoleDiscordRole.discord_role_id]',
@@ -40,12 +39,11 @@ class DiscordRole(Base):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
-class AssoRole(Base):
+class AssoRole(BaseWithId):
     """ Asso role table class
     """
     __tablename__ = 'asso_roles'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, autoincrement=True,)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True, unique=True,)
     is_member: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False)
     is_past_subscriber: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=True)
@@ -70,24 +68,21 @@ class AssoRole(Base):
 # many-to-many association tables
 #################################
 
-class AssoRoleDiscordRole(Base):
+class AssoRoleDiscordRole(BaseWithId):
     """ Junction table between Asso and Discord roles
     """
     __tablename__ = 'JCT_asso_discord_role'
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
     discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
 
     def __str__(self):
         return f"{self.id}, asso role #{self.asso_role_id}, discord role #{self.discord_role_id}"
 
-class MemberAssoRole(Base, LogMixin):
+class MemberAssoRole(BaseWithId, LogMixin):
     """ Junction table between members and asso roles
     """
     __tablename__ = 'JCT_member_asso_role'
-
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
 
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_member_associations', foreign_keys=member_id, lazy='selectin')

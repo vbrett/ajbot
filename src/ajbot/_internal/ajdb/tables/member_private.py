@@ -10,7 +10,7 @@ from thefuzz import fuzz
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, Base, LogMixin
+from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
 if TYPE_CHECKING:
     from .member import Member
     from .lookup import StreetType
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @functools.total_ordering
-class Credential(Base, LogMixin):
+class Credential(BaseWithId, LogMixin):
     """ user credential table class
     """
     __tablename__ = 'member_credentials'
@@ -27,7 +27,6 @@ class Credential(Base, LogMixin):
                       {'comment': 'contains RGPD info'},
                      )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, index=True, unique=True, autoincrement=True)
     member: orm.Mapped[Optional['Member']] = orm.relationship(back_populates='credential', foreign_keys='Member.credential_id', uselist=False, lazy='selectin')
     first_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
@@ -96,7 +95,7 @@ class Credential(Base, LogMixin):
         return ' '.join([f"{x}" for x in name_list if x])
 
 
-class Email(Base, LogMixin):
+class Email(BaseWithId, LogMixin):
     """ user email table class
     """
     __tablename__ = 'member_emails'
@@ -104,7 +103,6 @@ class Email(Base, LogMixin):
         {'comment': 'contains RGPD info'}
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     address: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, unique=True, index=True)
 
     members: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='email', foreign_keys='MemberEmail.email_id', lazy='selectin')
@@ -129,7 +127,7 @@ class Email(Base, LogMixin):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
-class Phone(Base, LogMixin):
+class Phone(BaseWithId, LogMixin):
     """ user phone number table class
     """
     __tablename__ = 'member_phones'
@@ -137,7 +135,6 @@ class Phone(Base, LogMixin):
         {'comment': 'contains RGPD info'}
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
 
     members: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='phone', foreign_keys='MemberPhone.phone_id', lazy='selectin')
@@ -162,7 +159,7 @@ class Phone(Base, LogMixin):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
 
-class PostalAddress(Base, LogMixin):
+class PostalAddress(BaseWithId, LogMixin):
     """ user address table class
     """
     __tablename__ = 'member_addresses'
@@ -171,7 +168,6 @@ class PostalAddress(Base, LogMixin):
         {'comment': 'contains RGPD info'}
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, index=True, autoincrement=True)
     street_num: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50), nullable=True)
     street_type_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('LUT_street_types.id'), index=True, nullable=True)
     street_type: orm.Mapped[Optional['StreetType']] = orm.relationship(back_populates='addresses', foreign_keys='PostalAddress.street_type_id', lazy='selectin')
@@ -219,7 +215,7 @@ class PostalAddress(Base, LogMixin):
 # many-to-many association tables
 #################################
 
-class MemberEmail(Base, LogMixin):
+class MemberEmail(BaseWithId, LogMixin):
     """ Junction table between members and emails
     """
     __tablename__ = 'JCT_member_email'
@@ -227,7 +223,6 @@ class MemberEmail(Base, LogMixin):
         {'comment': 'contains RGPD info'}
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Member'] = orm.relationship(back_populates='emails', foreign_keys=member_id, lazy='selectin')
     email_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_emails.id'), index=True, nullable=False)
@@ -241,7 +236,7 @@ class MemberEmail(Base, LogMixin):
     #     """ override format
     #     """
 
-class MemberPhone(Base, LogMixin):
+class MemberPhone(BaseWithId, LogMixin):
     """ Junction table between members and phones
     """
     __tablename__ = 'JCT_member_phone'
@@ -249,7 +244,6 @@ class MemberPhone(Base, LogMixin):
         {'comment': 'contains RGPD info'}
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Member'] = orm.relationship(back_populates='phones', foreign_keys=member_id, lazy='selectin')
     phone_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_phones.id'), index=True, nullable=False)
@@ -260,7 +254,7 @@ class MemberPhone(Base, LogMixin):
         return f"{self.id}, member #{self.member_id}, phone #{self.phone_id}"
 
 
-class MemberAddress(Base, LogMixin):
+class MemberAddress(BaseWithId, LogMixin):
     """ Junction table between members and addresses
     """
     __tablename__ = 'JCT_member_address'
@@ -268,7 +262,6 @@ class MemberAddress(Base, LogMixin):
         {'comment': 'contains RGPD info'}
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sa.Integer, primary_key=True, unique=True, autoincrement=True, index=True)
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Member'] = orm.relationship(back_populates='addresses', foreign_keys=member_id, lazy='selectin')
     address_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('member_addresses.id'), index=True, nullable=False)
