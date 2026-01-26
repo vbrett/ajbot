@@ -1,5 +1,6 @@
 ''' contains configuration variables
 '''
+import os
 from typing import Final
 import configparser
 from pathlib import Path
@@ -20,8 +21,8 @@ AJ_SIGNSHEET_FILENAME:Final[str] ="emargement.pdf"
 _AJ_INFO_FILE:Final[str] = "info.ini"
 _KEY_VERSION:Final[str] = "version"
 
-_AJ_CONFIG_PATH:Final[Path] = Path(".env")
-_AJ_CONFIG_FILE:Final[str] = "ajbot"
+_AJ_CONFIG_ENV_VAR:Final[str] = "AJ_CONFIG_FILE"
+_AJ_CONFIG_DEFAULT:Final[Path] = Path(".env") / "ajbot"
 
 _KEY_CREDS:Final[str] = "creds"
 
@@ -107,7 +108,7 @@ class AjConfig():
     """
 
     def __init__(self,
-                 file_path=_AJ_CONFIG_PATH / _AJ_CONFIG_FILE,
+                 file_path=None,
                  save_on_exit:bool=False):
         """
             Initializes the AjConfig object.
@@ -116,6 +117,8 @@ class AjConfig():
         save_on_exit:      if True, save the config on exit.
         """
         self._config_dict = {}
+        if file_path is None:
+            file_path = Path(os.environ.get(_AJ_CONFIG_ENV_VAR, _AJ_CONFIG_DEFAULT))
         self._file_path = file_path
         self._save_on_exit = save_on_exit
 
