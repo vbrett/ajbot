@@ -13,7 +13,6 @@ dynamic = ['version']
 dependencies = ['discord.py',
                 'sqlalchemy[asyncio]', 'aiomysql',
                 'vbrpytools',
-                'humanize',
                 'dateparser',
                 'thefuzz[speedup]',
                 'pwinput',

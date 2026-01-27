@@ -7,6 +7,7 @@ from typing import cast
 from pathlib import Path
 
 from vbrpytools.exceltojson import ExcelWorkbook
+from ajbot._internal.types import AjDate, AjMemberId
 from ajbot._internal.ajdb import AjDb , tables as db_t
 
 async def _create_db_schema(aj_db:AjDb):
@@ -22,8 +23,8 @@ async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
     lut_role_tables = []
     for val in ajdb_xls.dict_from_table('saisons'):
         lut_role_tables.append(db_t.Season(name=val['nom'],
-                                      start=cast(datetime, val['debut']).date(),
-                                      end=cast(datetime, val['fin']).date()),
+                                      start=cast(AjDate, val['debut']).date(),
+                                      end=cast(AjDate, val['fin']).date()),
                                     )
     for val in ajdb_xls.dict_from_table('contribution'):
         lut_role_tables.append(db_t.ContributionType(name=val['val']))
@@ -75,7 +76,7 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
         new_member = db_t.Member()
         member_tables.append(new_member)
 
-        new_member.id=db_t.AjMemberId(val['id'])
+        new_member.id=AjMemberId(val['id'])
 
         if val.get('pseudo_discord'):
             new_member.discord=val['pseudo_discord']
@@ -85,7 +86,7 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
             new_member.credential.first_name=val.get('prenom')
             new_member.credential.last_name=val.get('nom')
             if val.get('date_naissance'):
-                new_member.credential.birthdate = cast(datetime, val['date_naissance']).date()
+                new_member.credential.birthdate = cast(AjDate, val['date_naissance']).date()
 
         if val.get('emails'):
             principal = True
@@ -171,7 +172,7 @@ async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook
         if val['entree']['categorie'] == 'Cotisation':
             new_membership = db_t.Membership()
             membership_tables.append(new_membership)
-            new_membership.date = cast(datetime, val['date']).date()
+            new_membership.date = cast(AjDate, val['date']).date()
             new_membership.season            = [elt for elt in lut_tables    if isinstance(elt, db_t.Season         ) and elt.name == val['entree']['nom']][0]
             new_membership.member            = [elt for elt in member_tables if isinstance(elt, db_t.Member         ) and elt.id   == val['membre']['id']][0]
             new_membership.contribution_type = [elt for elt in lut_tables    if isinstance(elt, db_t.ContributionType) and elt.name == val['cotisation']][0]
@@ -184,13 +185,13 @@ async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook
 
         # Event
         if val['entree']['categorie'] == 'Evènement' and not val['entree'].get('detail'):
-            matched_event = [elt for elt in event_tables if isinstance(elt, db_t.Event) and elt.date == cast(datetime, val['date']).date()]
+            matched_event = [elt for elt in event_tables if isinstance(elt, db_t.Event) and elt.date == cast(AjDate, val['date']).date()]
             if matched_event:
                 matched_event[0].name = val['entree']['nom']
             else:
                 new_event = db_t.Event()
                 event_tables.append(new_event)
-                new_event.date   = cast(datetime, val['date']).date()
+                new_event.date   = cast(AjDate, val['date']).date()
                 new_event.season = [elt for elt in lut_tables if isinstance(elt, db_t.Season) and new_event.date >= elt.start
                                                                                                 and new_event.date <= elt.end][0]
                 new_event.name   = val['entree']['nom']
@@ -203,13 +204,13 @@ async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook
             new_memberevent = db_t.MemberEvent()
             event_tables.append(new_memberevent)
             new_memberevent.presence = val['entree']['categorie'] == 'Présence'
-            matched_event = [elt for elt in event_tables if isinstance(elt, db_t.Event) and elt.date == cast(datetime, val['date']).date()]
+            matched_event = [elt for elt in event_tables if isinstance(elt, db_t.Event) and elt.date == cast(AjDate, val['date']).date()]
             if matched_event:
                 new_memberevent.event = matched_event[0]
             else:
                 new_event = db_t.Event()
                 event_tables.append(new_event)
-                new_event.date = cast(datetime, val['date']).date()
+                new_event.date = cast(AjDate, val['date']).date()
                 new_event.season = [elt for elt in lut_tables if isinstance(elt, db_t.Season) and new_event.date >= elt.start
                                                                                                 and new_event.date <= elt.end][0]
                 new_memberevent.event = new_event
@@ -223,10 +224,10 @@ async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook
         # Member - Asso role
         if val['entree']['categorie'] == 'Info Membre' and val.get('membre') and val['membre'].get('asso_role'):
 
-            start = cast(datetime, val['date']).date()
+            start = cast(AjDate, val['date']).date()
             end = None
             if val['entree'].get('detail'):
-                end = cast(datetime, val['entree']['detail']).date()
+                end = cast(AjDate, val['entree']['detail']).date()
             member_id = val['membre']['id']
             [matched_role] = [elt for elt in lut_tables if isinstance(elt, db_t.AssoRole) and elt.name == val['membre']['asso_role']]
             previous_member_asso_roles = [elt for elt in event_tables if isinstance(elt, db_t.MemberAssoRole) and elt.member_id == member_id and not elt.end]

@@ -7,7 +7,8 @@ from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
+from ajbot._internal.types import AjDate
+from .base import SaAjDate, BaseWithId, LogMixin
 from .season import Season
 if TYPE_CHECKING:
     from .member import Member
@@ -24,7 +25,7 @@ class Membership(BaseWithId, LogMixin):
                             comment='each member can have only one membership per season'),
     )
 
-    date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, comment='coupling between this and season')
+    date: orm.Mapped[AjDate] = orm.mapped_column(SaAjDate, nullable=False, comment='coupling between this and season')
     member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Member'] = orm.relationship(back_populates='memberships', foreign_keys=member_id, lazy='selectin')
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), index=True, nullable=False)

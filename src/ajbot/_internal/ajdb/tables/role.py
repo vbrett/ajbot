@@ -9,7 +9,8 @@ from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
+from ajbot._internal.types import AjDate
+from .base import SaAjDate, BaseWithId, LogMixin
 if TYPE_CHECKING:
     from .member import Member
 
@@ -90,8 +91,8 @@ class MemberAssoRole(BaseWithId, LogMixin):
     asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
     asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_role_associations', foreign_keys=asso_role_id, lazy='selectin')
 
-    start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
-    end: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate, nullable=True)
+    start: orm.Mapped[AjDate] = orm.mapped_column(SaAjDate, nullable=False)
+    end: orm.Mapped[Optional[AjDate]] = orm.mapped_column(SaAjDate, nullable=True)
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
 

@@ -7,7 +7,6 @@ then manually reformated
 '''
 
 from ajbot._internal.exceptions import OtherException
-from .base import HumanizedDate, SaHumanizedDate, AjMemberId, SaAjMemberId
 from .member import *
 from .member_private import *
 from .season import *

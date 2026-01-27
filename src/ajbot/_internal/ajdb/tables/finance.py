@@ -6,6 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException
+from ajbot._internal.types import AjDate
 from .base import BaseWithId
 
 
@@ -38,7 +39,7 @@ from .base import BaseWithId
 #         sa.Index('UQ_transaction_id', 'transaction_id', unique=True)
 #     )
 
-#     date: orm.Mapped[HumanizedDate] = orm.mapped_column(saHumanized.Date, nullable=False)
+#     date: orm.Mapped[AjDate] = orm.mapped_column(saHumanized.Date, nullable=False)
 #     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, comment='shall be computed based on transaction_date', index=True)
 #     account: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=False)
 #     associated_event: orm.Mapped[Optional[int]] = orm.mapped_column(sa.Integer)

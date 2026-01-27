@@ -11,6 +11,9 @@ class AjBotException(Exception):
 class AjDbException(Exception):
     """ Aj DB related exception """
 
+class AjTypeException(Exception):
+    """ Aj custom type related exception """
+
 class OtherException(Exception):
     """ General exception for Support package """
 

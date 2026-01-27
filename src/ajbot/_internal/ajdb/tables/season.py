@@ -8,7 +8,8 @@ from sqlalchemy import orm
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
+from ajbot._internal.types import AjDate
+from .base import SaAjDate, BaseWithId, LogMixin
 if TYPE_CHECKING:
     from .member import Membership, Event
 
@@ -18,8 +19,8 @@ class Season(BaseWithId, LogMixin):
     __tablename__ = 'seasons'
 
     name: orm.Mapped[str] = orm.mapped_column(sa.String(10), nullable=False, index=True)
-    start: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, unique=True)
-    end: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False)
+    start: orm.Mapped[AjDate] = orm.mapped_column(SaAjDate, nullable=False, unique=True)
+    end: orm.Mapped[AjDate] = orm.mapped_column(SaAjDate, nullable=False)
     is_current_season: orm.Mapped[bool] = orm.column_property(
                     sa.and_(
                         datetime.datetime.now().date() >= start,
@@ -53,8 +54,8 @@ class Season(BaseWithId, LogMixin):
     def __format__(self, format_spec):
         """ override format
         """
-        dates = f"from {self.start} to {self.end}"
-        current = '(current)' if self.is_current_season else ''
+        dates = f"du {self.start} au {self.end}"
+        current = '(en cours)' if self.is_current_season else ''
         # return self.name
         match format_spec:
             case FormatTypes.RESTRICTED:

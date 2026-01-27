@@ -10,7 +10,8 @@ from thefuzz import fuzz
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
+from ajbot._internal.types import AjDate
+from .base import SaAjDate, BaseWithId, LogMixin
 if TYPE_CHECKING:
     from .member import Member
     from .lookup import StreetType
@@ -30,7 +31,7 @@ class Credential(BaseWithId, LogMixin):
     member: orm.Mapped[Optional['Member']] = orm.relationship(back_populates='credential', foreign_keys='Member.credential_id', uselist=False, lazy='selectin')
     first_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
     last_name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
-    birthdate: orm.Mapped[Optional[HumanizedDate]] = orm.mapped_column(SaHumanizedDate)
+    birthdate: orm.Mapped[Optional[AjDate]] = orm.mapped_column(SaAjDate)
 
     @orm.reconstructor
     def __init__(self):

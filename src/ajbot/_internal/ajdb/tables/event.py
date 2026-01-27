@@ -9,7 +9,8 @@ from sqlalchemy.ext import associationproxy as ap
 
 from ajbot._internal.exceptions import OtherException, AjDbException
 from ajbot._internal.config import FormatTypes
-from .base import HumanizedDate, SaHumanizedDate, BaseWithId, LogMixin
+from ajbot._internal.types import AjDate
+from .base import SaAjDate, BaseWithId, LogMixin
 from .season import Season
 if TYPE_CHECKING:
     from .member import Member
@@ -22,7 +23,7 @@ class Event(BaseWithId, LogMixin):
     """
     __tablename__ = 'events'
 
-    date: orm.Mapped[HumanizedDate] = orm.mapped_column(SaHumanizedDate, nullable=False, index=True, unique=True)
+    date: orm.Mapped[AjDate] = orm.mapped_column(SaAjDate, nullable=False, index=True, unique=True)
     season_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('seasons.id'), nullable=False, index=True)
     season: orm.Mapped['Season'] = orm.relationship(back_populates='events', foreign_keys=season_id, lazy='selectin')
     name: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(50))
