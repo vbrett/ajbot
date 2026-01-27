@@ -31,6 +31,13 @@ async def test_query_table_content():
               db_t.AccountType,
               db_t.KnowFromSource,
 
+              db_t.Season,
+
+              db_t.AssoRole,
+              db_t.DiscordRole,
+              db_t.MemberAssoRole,
+              db_t.AssoRoleDiscordRole,
+
               db_t.Member,
               db_t.Credential,
               db_t.Email,
@@ -43,13 +50,6 @@ async def test_query_table_content():
               db_t.Membership,
               db_t.Event,
               db_t.MemberEvent,
-
-              db_t.Season,
-
-              db_t.AssoRole,
-              db_t.DiscordRole,
-              db_t.MemberAssoRole,
-              db_t.AssoRoleDiscordRole,
              ]
     formats = [None,
                FormatTypes.RESTRICTED,

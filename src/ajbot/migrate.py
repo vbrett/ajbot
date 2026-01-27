@@ -42,11 +42,6 @@ async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
     for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = db_t.AssoRole(name=val['asso'])
         lut_role_tables.append(new_asso_role)
-        if val.get('discord'):
-            for d_role in val['discord'].split(','):
-                [matched_discord_role] = [elt for elt in lut_role_tables
-                                if isinstance(elt, db_t.DiscordRole) and elt.name == d_role]
-                new_asso_role.discord_roles.append(matched_discord_role)
 
         if val.get('is_member') is not None:
             new_asso_role.is_member=bool(val.get('is_member'))
@@ -63,7 +58,25 @@ async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         async with session.begin():
             session.add_all(lut_role_tables)
 
-    return lut_role_tables
+
+    role_mapping_tables = []
+    for val in ajdb_xls.dict_from_table('roles'):
+        [asso_role] = [i for i in lut_role_tables
+                        if isinstance(i, db_t.AssoRole) and i.name == val['asso']]
+        if val.get('discord'):
+            for d_role in val['discord'].split(','):
+                [matched_discord_role] = [elt for elt in lut_role_tables
+                                if isinstance(elt, db_t.DiscordRole) and elt.name == d_role]
+                role_mapping_tables.append(db_t.AssoRoleDiscordRole(asso_role_id=asso_role.id,
+                                                                    discord_role_id=matched_discord_role.id,
+                                                                   )
+                                         )
+
+    async with aj_db._AsyncSessionMaker() as session:   # pylint: disable=protected-access  # accessing protected member on purpose
+        async with session.begin():
+            session.add_all(role_mapping_tables)
+
+    return lut_role_tables + role_mapping_tables
 
 
 async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables):
@@ -242,10 +255,9 @@ async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook
 
     async with aj_db._AsyncSessionMaker() as session:  # pylint: disable=protected-access  # accessing protected member on purpose
         async with session.begin():
-            session.add_all(membership_tables)
-            session.add_all(event_tables)
+            session.add_all(membership_tables + event_tables)
 
-    return event_tables, membership_tables
+    return event_tables + membership_tables
 
 
 
@@ -257,8 +269,7 @@ async def migrate(ajdb_xls_file:Path):
     all_tables = []
     lut_role_tables = []
     member_tables = []
-    membership_tables = []
-    event_tables = []
+    event_membership_tables = []
     async with AjDb() as aj_db:
         try:
             ajdb_xls = ExcelWorkbook(ajdb_xls_file)
@@ -288,9 +299,8 @@ async def migrate(ajdb_xls_file:Path):
             if member_tables:
                 # membership & event tables
                 print(">>  Populating event & membership tables...")
-                event_tables, membership_tables = await _populate_events_memberships_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables, member_tables=member_tables)
-                all_tables.extend(membership_tables)
-                all_tables.extend(event_tables)
+                event_membership_tables = await _populate_events_memberships_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables, member_tables=member_tables)
+                all_tables.extend(event_membership_tables)
 
         print("Migration done.")
     return all_tables

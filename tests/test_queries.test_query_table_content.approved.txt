@@ -122,6 +122,266 @@ Forum Asso
 Gobelin / Dédale / Afterwork
 Réseaux sociaux
 
+(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: None) =>
+2015-2016
+2016-2017
+2017-2018
+2018-2019
+2019-2020
+2020-2021
+2021-2022
+2022-2023
+2023-2024
+2024-2025
+2025-2026
+
+(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: ) =>
+2015-2016
+2016-2017
+2017-2018
+2018-2019
+2019-2020
+2020-2021
+2021-2022
+2022-2023
+2023-2024
+2024-2025
+2025-2026
+
+(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: full_simple) =>
+2015-2016 du 01/01/2016 au 31/08/2016
+2016-2017 du 01/09/2016 au 31/08/2017
+2017-2018 du 01/09/2017 au 31/08/2018
+2018-2019 du 01/09/2018 au 31/08/2019
+2019-2020 du 01/09/2019 au 31/08/2020
+2020-2021 du 01/09/2020 au 31/08/2021
+2021-2022 du 01/09/2021 au 31/08/2022
+2022-2023 du 01/09/2022 au 31/08/2023
+2023-2024 du 01/09/2023 au 31/08/2024
+2024-2025 du 01/09/2024 au 31/08/2025
+2025-2026 (en cours) du 01/09/2025 au 31/08/2026
+
+(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: full_complete) =>
+#1 2015-2016 du 01/01/2016 au 31/08/2016
+#2 2016-2017 du 01/09/2016 au 31/08/2017
+#3 2017-2018 du 01/09/2017 au 31/08/2018
+#4 2018-2019 du 01/09/2018 au 31/08/2019
+#5 2019-2020 du 01/09/2019 au 31/08/2020
+#6 2020-2021 du 01/09/2020 au 31/08/2021
+#7 2021-2022 du 01/09/2021 au 31/08/2022
+#8 2022-2023 du 01/09/2022 au 31/08/2023
+#9 2023-2024 du 01/09/2023 au 31/08/2024
+#10 2024-2025 du 01/09/2024 au 31/08/2025
+#11 2025-2026 (en cours) du 01/09/2025 au 31/08/2026
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: None) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: ) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: full_simple) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: full_complete) =>
+#1 - Bureau - Admin
+#2 - Bureau - Président
+#3 - Bureau - Trésorier
+#4 - Bureau - Secrétaire
+#5 - Bureau - Communication
+#6 - Bureau - Autre
+#7 - Cotisant
+#8 - Cotisant saison préc
+#9 - Membre
+#10 - Bot - ProBot
+#11 - Bot - VbrBot
+#12 - Invité
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: None) =>
+@everyone
+admin
+bureau
+Chevalier de l'assaut
+Chevalier Errant
+Ecuyer de l'assaut
+ProBot ✨
+VbrBot
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: ) =>
+@everyone
+admin
+bureau
+Chevalier de l'assaut
+Chevalier Errant
+Ecuyer de l'assaut
+ProBot ✨
+VbrBot
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: full_simple) =>
+@everyone
+admin
+bureau
+Chevalier de l'assaut
+Chevalier Errant
+Ecuyer de l'assaut
+ProBot ✨
+VbrBot
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: full_complete) =>
+691003175037042788 - @everyone
+1430301775864270919 - admin
+1465046676988235887 - bureau
+1465047049081979223 - Chevalier de l'assaut
+1465047359468732638 - Chevalier Errant
+1465047502712471552 - Ecuyer de l'assaut
+1419044271595716765 - ProBot ✨
+1419010453023227968 - VbrBot
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: None) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: ) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: full_simple) =>
+membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2019 au 31/08/2021)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
+membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2020 au 31/08/2021)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2020 au 31/08/2023)
+membre AJ-00003 ==> asso role Bureau - Trésorier (du 01/09/2021 au 31/08/2023)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2021 au 31/08/2023)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2022 au 31/08/2023)
+membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Trésorier (depuis le 01/09/2023)
+membre AJ-00005 ==> asso role Bureau - Communication (du 01/09/2023 au 31/08/2024)
+membre AJ-00004 - @VbrBot ==> asso role Bot - VbrBot (depuis le 21/09/2025)
+membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/11/2025)
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: full_complete) =>
+#1 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2019 au 31/08/2021)
+#2 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
+#3 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2020 au 31/08/2021)
+#4 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2020 au 31/08/2023)
+#5 - membre AJ-00003 ==> asso role #3 - Bureau - Trésorier (du 01/09/2021 au 31/08/2023)
+#6 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2021 au 31/08/2023)
+#7 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2022 au 31/08/2023)
+#8 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #3 - Bureau - Trésorier (depuis le 01/09/2023)
+#9 - membre AJ-00005 ==> asso role #5 - Bureau - Communication (du 01/09/2023 au 31/08/2024)
+#10 - membre AJ-00004 - @VbrBot ==> asso role #11 - Bot - VbrBot (depuis le 21/09/2025)
+#11 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #1 - Bureau - Admin (depuis le 01/11/2025)
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: None) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: ) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: full_simple) =>
+le role #1 est associé au role discord 1465046676988235887
+le role #1 est associé au role discord 1430301775864270919
+le role #2 est associé au role discord 1465046676988235887
+le role #3 est associé au role discord 1465046676988235887
+le role #4 est associé au role discord 1465046676988235887
+le role #5 est associé au role discord 1465046676988235887
+le role #6 est associé au role discord 1465046676988235887
+le role #7 est associé au role discord 1465047049081979223
+le role #8 est associé au role discord 1465047359468732638
+le role #9 est associé au role discord 1465047502712471552
+le role #10 est associé au role discord 1419044271595716765
+le role #11 est associé au role discord 1419010453023227968
+le role #12 est associé au role discord 691003175037042788
+
+(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: full_complete) =>
+#1 - le role #1 est associé au role discord 1465046676988235887
+#2 - le role #1 est associé au role discord 1430301775864270919
+#3 - le role #2 est associé au role discord 1465046676988235887
+#4 - le role #3 est associé au role discord 1465046676988235887
+#5 - le role #4 est associé au role discord 1465046676988235887
+#6 - le role #5 est associé au role discord 1465046676988235887
+#7 - le role #6 est associé au role discord 1465046676988235887
+#8 - le role #7 est associé au role discord 1465047049081979223
+#9 - le role #8 est associé au role discord 1465047359468732638
+#10 - le role #9 est associé au role discord 1465047502712471552
+#11 - le role #10 est associé au role discord 1419044271595716765
+#12 - le role #11 est associé au role discord 1419010453023227968
+#13 - le role #12 est associé au role discord 691003175037042788
+
 (input_table: <class 'ajbot._internal.ajdb.tables.member.Member'>, input_format: None) =>
 AJ-00001 - Jean - @vbrett
 AJ-00002 - Marie - @AjBot
@@ -1395,264 +1655,4 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 #119 - évènement #91, membre AJ-00001
 #120 - évènement #92, membre AJ-00001
 #121 - évènement #92, membre AJ-00002
-
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: None) =>
-2015-2016
-2016-2017
-2017-2018
-2018-2019
-2019-2020
-2020-2021
-2021-2022
-2022-2023
-2023-2024
-2024-2025
-2025-2026
-
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: ) =>
-2015-2016
-2016-2017
-2017-2018
-2018-2019
-2019-2020
-2020-2021
-2021-2022
-2022-2023
-2023-2024
-2024-2025
-2025-2026
-
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: full_simple) =>
-2015-2016 du 01/01/2016 au 31/08/2016
-2016-2017 du 01/09/2016 au 31/08/2017
-2017-2018 du 01/09/2017 au 31/08/2018
-2018-2019 du 01/09/2018 au 31/08/2019
-2019-2020 du 01/09/2019 au 31/08/2020
-2020-2021 du 01/09/2020 au 31/08/2021
-2021-2022 du 01/09/2021 au 31/08/2022
-2022-2023 du 01/09/2022 au 31/08/2023
-2023-2024 du 01/09/2023 au 31/08/2024
-2024-2025 du 01/09/2024 au 31/08/2025
-2025-2026 (en cours) du 01/09/2025 au 31/08/2026
-
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: full_complete) =>
-#1 2015-2016 du 01/01/2016 au 31/08/2016
-#2 2016-2017 du 01/09/2016 au 31/08/2017
-#3 2017-2018 du 01/09/2017 au 31/08/2018
-#4 2018-2019 du 01/09/2018 au 31/08/2019
-#5 2019-2020 du 01/09/2019 au 31/08/2020
-#6 2020-2021 du 01/09/2020 au 31/08/2021
-#7 2021-2022 du 01/09/2021 au 31/08/2022
-#8 2022-2023 du 01/09/2022 au 31/08/2023
-#9 2023-2024 du 01/09/2023 au 31/08/2024
-#10 2024-2025 du 01/09/2024 au 31/08/2025
-#11 2025-2026 (en cours) du 01/09/2025 au 31/08/2026
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: None) =>
-Bureau - Admin
-Bureau - Président
-Bureau - Trésorier
-Bureau - Secrétaire
-Bureau - Communication
-Bureau - Autre
-Cotisant
-Cotisant saison préc
-Membre
-Bot - ProBot
-Bot - VbrBot
-Invité
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: ) =>
-Bureau - Admin
-Bureau - Président
-Bureau - Trésorier
-Bureau - Secrétaire
-Bureau - Communication
-Bureau - Autre
-Cotisant
-Cotisant saison préc
-Membre
-Bot - ProBot
-Bot - VbrBot
-Invité
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: full_simple) =>
-Bureau - Admin
-Bureau - Président
-Bureau - Trésorier
-Bureau - Secrétaire
-Bureau - Communication
-Bureau - Autre
-Cotisant
-Cotisant saison préc
-Membre
-Bot - ProBot
-Bot - VbrBot
-Invité
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: full_complete) =>
-#1 - Bureau - Admin
-#2 - Bureau - Président
-#3 - Bureau - Trésorier
-#4 - Bureau - Secrétaire
-#5 - Bureau - Communication
-#6 - Bureau - Autre
-#7 - Cotisant
-#8 - Cotisant saison préc
-#9 - Membre
-#10 - Bot - ProBot
-#11 - Bot - VbrBot
-#12 - Invité
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: None) =>
-@everyone
-admin
-bureau
-Chevalier de l'assaut
-Chevalier Errant
-Ecuyer de l'assaut
-ProBot ✨
-VbrBot
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: ) =>
-@everyone
-admin
-bureau
-Chevalier de l'assaut
-Chevalier Errant
-Ecuyer de l'assaut
-ProBot ✨
-VbrBot
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: full_simple) =>
-@everyone
-admin
-bureau
-Chevalier de l'assaut
-Chevalier Errant
-Ecuyer de l'assaut
-ProBot ✨
-VbrBot
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: full_complete) =>
-691003175037042788 - @everyone
-1430301775864270919 - admin
-1465046676988235887 - bureau
-1465047049081979223 - Chevalier de l'assaut
-1465047359468732638 - Chevalier Errant
-1465047502712471552 - Ecuyer de l'assaut
-1419044271595716765 - ProBot ✨
-1419010453023227968 - VbrBot
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: None) =>
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: ) =>
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: full_simple) =>
-membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2019 au 31/08/2021)
-membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
-membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2020 au 31/08/2021)
-membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2020 au 31/08/2023)
-membre AJ-00003 ==> asso role Bureau - Trésorier (du 01/09/2021 au 31/08/2023)
-membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2021 au 31/08/2023)
-membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2022 au 31/08/2023)
-membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Trésorier (depuis le 01/09/2023)
-membre AJ-00005 ==> asso role Bureau - Communication (du 01/09/2023 au 31/08/2024)
-membre AJ-00004 - @VbrBot ==> asso role Bot - VbrBot (depuis le 21/09/2025)
-membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/11/2025)
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: full_complete) =>
-#1 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2019 au 31/08/2021)
-#2 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
-#3 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2020 au 31/08/2021)
-#4 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2020 au 31/08/2023)
-#5 - membre AJ-00003 ==> asso role #3 - Bureau - Trésorier (du 01/09/2021 au 31/08/2023)
-#6 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2021 au 31/08/2023)
-#7 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2022 au 31/08/2023)
-#8 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #3 - Bureau - Trésorier (depuis le 01/09/2023)
-#9 - membre AJ-00005 ==> asso role #5 - Bureau - Communication (du 01/09/2023 au 31/08/2024)
-#10 - membre AJ-00004 - @VbrBot ==> asso role #11 - Bot - VbrBot (depuis le 21/09/2025)
-#11 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #1 - Bureau - Admin (depuis le 01/11/2025)
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: None) =>
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: ) =>
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-#####
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: full_simple) =>
-le role #8 est associé au role discord 1465047359468732638
-le role #11 est associé au role discord 1419010453023227968
-le role #5 est associé au role discord 1465046676988235887
-le role #10 est associé au role discord 1419044271595716765
-le role #3 est associé au role discord 1465046676988235887
-le role #9 est associé au role discord 1465047502712471552
-le role #1 est associé au role discord 1465046676988235887
-le role #1 est associé au role discord 1430301775864270919
-le role #6 est associé au role discord 1465046676988235887
-le role #2 est associé au role discord 1465046676988235887
-le role #12 est associé au role discord 691003175037042788
-le role #4 est associé au role discord 1465046676988235887
-le role #7 est associé au role discord 1465047049081979223
-
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: full_complete) =>
-#1 - le role #8 est associé au role discord 1465047359468732638
-#2 - le role #11 est associé au role discord 1419010453023227968
-#3 - le role #5 est associé au role discord 1465046676988235887
-#4 - le role #10 est associé au role discord 1419044271595716765
-#5 - le role #3 est associé au role discord 1465046676988235887
-#6 - le role #9 est associé au role discord 1465047502712471552
-#7 - le role #1 est associé au role discord 1465046676988235887
-#8 - le role #1 est associé au role discord 1430301775864270919
-#9 - le role #6 est associé au role discord 1465046676988235887
-#10 - le role #2 est associé au role discord 1465046676988235887
-#11 - le role #12 est associé au role discord 691003175037042788
-#12 - le role #4 est associé au role discord 1465046676988235887
-#13 - le role #7 est associé au role discord 1465047049081979223
 
