@@ -31,11 +31,16 @@ class DiscordRole(BaseWithId):
         """ override format
         """
         match format_spec:
-            case FormatTypes.FULLCOMPLETE | FormatTypes.FULLSIMPLE | FormatTypes.RESTRICTED:
-                return self.name
+            case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
+                name_list = [self.name]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-', self.name]
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 class AssoRole(BaseWithId):
@@ -55,10 +60,20 @@ class AssoRole(BaseWithId):
     members: ap.AssociationProxy[list['Member']] = ap.association_proxy('member_asso_role_associations','asso_role',
                                                                         creator=lambda asso_role_obj: MemberAssoRole(asso_role=asso_role_obj),)
 
-    def __format__(self, _format_spec):
+    def __format__(self, format_spec):
         """ override format
         """
-        return self.name
+        match format_spec:
+            case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
+                name_list = [self.name]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-', self.name]
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 # many-to-many association tables
@@ -69,13 +84,13 @@ class AssoRoleDiscordRole(BaseWithId):
     """
     __tablename__ = 'JCT_asso_discord_role'
 
-    asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
-    discord_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
+    asso_role_id: orm.Mapped[AjId] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
+    discord_role_id: orm.Mapped[DiscordId] = orm.mapped_column(sa.ForeignKey('discord_roles.id'), index=True, nullable=False)
 
     def __format__(self, format_spec):
         """ override format
         """
-        asso_role = f"asso role {self.asso_role_id}, discord role {self.discord_role_id}"
+        asso_role = f"le role {self.asso_role_id:{format_spec}} est associé au role discord {self.discord_role_id:{format_spec}}"
         match format_spec:
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
@@ -96,9 +111,9 @@ class MemberAssoRole(BaseWithId, LogMixin):
     """
     __tablename__ = 'JCT_member_asso_role'
 
-    member_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
+    member_id: orm.Mapped[AjMemberId] = orm.mapped_column(sa.ForeignKey('members.id'), index=True, nullable=False)
     member: orm.Mapped['Member'] = orm.relationship(back_populates='asso_role_member_associations', foreign_keys=member_id, lazy='selectin')
-    asso_role_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
+    asso_role_id: orm.Mapped[AjId] = orm.mapped_column(sa.ForeignKey('asso_roles.id'), index=True, nullable=False)
     asso_role: orm.Mapped['AssoRole'] = orm.relationship(back_populates='member_asso_role_associations', foreign_keys=asso_role_id, lazy='selectin')
 
     start: orm.Mapped[AjDate] = orm.mapped_column(SaAjDate, nullable=False)
@@ -109,16 +124,18 @@ class MemberAssoRole(BaseWithId, LogMixin):
     def __format__(self, format_spec):
         """ override format
         """
-        member_asso_role = f"membre {self.member_id}, asso role {self.asso_role_id}"
+        member_format = format_spec if format_spec != FormatTypes.FULLCOMPLETE else FormatTypes.FULLSIMPLE
+        dates = f"du {self.start:{format_spec}} au {self.end:{format_spec}}" if self.end else f"depuis le {self.start:{format_spec}}"
+        asso_role_membre = f"membre {self.member:{member_format}} ==> asso role {self.asso_role:{format_spec}} ({dates})"
         match format_spec:
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
             case FormatTypes.FULLSIMPLE:
-                name_list = [member_asso_role]
+                name_list = [asso_role_membre]
 
             case FormatTypes.FULLCOMPLETE:
-                name_list = [self.id, '-', member_asso_role]
+                name_list = [self.id, '-', asso_role_membre]
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")

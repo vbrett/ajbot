@@ -128,10 +128,10 @@ class Member(BaseWithId, LogMixin):
         mbr_id = f"{self.id:{format_spec}}"
         mbr_creds = f"{self.credential:{format_spec}}" if self.credential else ''
         mbr_disc = ('@' + self.discord) if self.discord else ''
-        mbr_email = f"{self.email_principal.email:{format_spec}}" if self.email_principal else ''
-        mbr_address = f"{self.address_principal.address:{format_spec}}" if self.address_principal else ''
-        mbr_phone = f"{self.phone_principal.phone:{format_spec}}" if self.phone_principal else ''
-        mbr_role = f"{self.current_asso_role:{format_spec}}"
+        mbr_email = f"email: {self.email_principal.email:{format_spec}}" if self.email_principal else ''
+        mbr_address = f"addresse: {self.address_principal.address:{format_spec}}" if self.address_principal else ''
+        mbr_phone = f"téléphone: {self.phone_principal.phone:{format_spec}}" if self.phone_principal else ''
+        mbr_role = f"role: {self.current_asso_role:{format_spec}}"
 
         mbr_asso_info = '' if self.is_subscriber else 'non ' #pylint: disable=using-constant-test #variable is not constant
         mbr_asso_info += f"cotisant, {self.season_presence_count()} participation(s) cette saison."
@@ -141,7 +141,7 @@ class Member(BaseWithId, LogMixin):
                 return ' - '.join([x for x in [mbr_id, mbr_creds, mbr_disc,] if x])
 
             case FormatTypes.FULLCOMPLETE:
-                return '\n'.join([x for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
+                return '\n    '.join([x for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")

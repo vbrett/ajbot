@@ -48,21 +48,27 @@ class Membership(BaseWithId, LogMixin):
     def __format__(self, format_spec):
         """ override format
         """
+        member_format = format_spec if format_spec != FormatTypes.FULLCOMPLETE else FormatTypes.FULLSIMPLE
+        member_season = f"membre {self.member:{member_format}} pour la **saison {self.season:{format_spec}}**"
+        membership_date = f"cotisé le {self.date}"
+        statutes = "- statuts" + (" __**non**__" if not self.statutes_accepted else "") + " acceptés"
+        civil = "- assurance civile" + (" __**non**__" if not self.has_civil_insurance else "") + " fournie"
+        picture = "- droit à l'image" + (" __**non**__" if not self.picture_authorized else "") + " accordé"
 
         match format_spec:
             case FormatTypes.RESTRICTED:
-                return '****'
+                name_list = ['****']
 
-            case FormatTypes.FULLSIMPLE | FormatTypes.FULLCOMPLETE:
-                season_name = f"**saison {self.season:{format_spec}}**"
-                membership_date = f"cotisé le {self.date}"
-                statutes = "- statuts" + (" __**non**__" if not self.statutes_accepted else "") + " acceptés"
-                civil = "- assurance civile" + (" __**non**__" if not self.has_civil_insurance else "") + " fournie"
-                picture = "- droit à l'image" + (" __**non**__" if not self.picture_authorized else "") + " accordé"
-                return '\n'.join(x for x in [season_name, membership_date, statutes, civil, picture] if x)
+            case FormatTypes.FULLSIMPLE:
+                name_list = [member_season, membership_date, statutes, civil, picture]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [f"{self.id} - {member_season}", membership_date, statutes, civil, picture]
 
             case _:
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return '\n    '.join([f"{x}" for x in name_list if x])
 
 
 if __name__ == '__main__':
