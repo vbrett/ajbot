@@ -31,10 +31,10 @@ class DiscordRole(BaseWithId):
         """ override format
         """
         match format_spec:
-            case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
+            case FormatTypes.RESTRICTED | FormatTypes.FULL:
                 name_list = [self.name]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', self.name]
 
             case _:
@@ -64,10 +64,10 @@ class AssoRole(BaseWithId):
         """ override format
         """
         match format_spec:
-            case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
+            case FormatTypes.RESTRICTED | FormatTypes.FULL:
                 name_list = [self.name]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', self.name]
 
             case _:
@@ -95,10 +95,10 @@ class AssoRoleDiscordRole(BaseWithId):
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [asso_role]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', asso_role]
 
             case _:
@@ -124,17 +124,17 @@ class MemberAssoRole(BaseWithId, LogMixin):
     def __format__(self, format_spec):
         """ override format
         """
-        member_format = format_spec if format_spec != FormatTypes.FULLCOMPLETE else FormatTypes.FULLSIMPLE
+        member_format = format_spec if format_spec != FormatTypes.DEBUG else FormatTypes.FULL
         dates = f"du {self.start:{format_spec}} au {self.end:{format_spec}}" if self.end else f"depuis le {self.start:{format_spec}}"
         asso_role_membre = f"membre {self.member:{member_format}} ==> asso role {self.asso_role:{format_spec}} ({dates})"
         match format_spec:
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [asso_role_membre]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', asso_role_membre]
 
             case _:

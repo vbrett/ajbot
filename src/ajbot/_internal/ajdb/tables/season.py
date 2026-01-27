@@ -58,10 +58,10 @@ class Season(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = [self.name]
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [self.name, current, dates]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, self.name,current, dates]
 
             case _:

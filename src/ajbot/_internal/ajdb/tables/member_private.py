@@ -81,10 +81,10 @@ class Credential(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = [self.first_name, mbr_match]
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [self.last_name, self.first_name, mbr_match]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', self.last_name, self.first_name, mbr_match, self.birthdate]
 
             case _:
@@ -112,10 +112,10 @@ class Email(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 return 'xxxxxx@yyyy.zzz'
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 return self.address
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 return f"{self.id} - {self.address}"
 
             case _:
@@ -141,10 +141,10 @@ class Phone(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 return '(+33)XXXXXXXXX'
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 return self.number
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 return f"{self.id} - {self.number}"
 
             case _:
@@ -177,7 +177,7 @@ class PostalAddress(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = [self.city]
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [self.street_num,
                              self.street_type,
                              self.street_name,
@@ -185,7 +185,7 @@ class PostalAddress(BaseWithId, LogMixin):
                              self.city,
                              self.extra]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-',
                              self.street_num,
                              self.street_type,
@@ -226,10 +226,10 @@ class MemberEmail(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [member_email]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', member_email]
 
             case _:
@@ -259,10 +259,10 @@ class MemberPhone(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [member_phone]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', member_phone]
 
             case _:
@@ -293,10 +293,10 @@ class MemberAddress(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [member_address]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', member_address]
 
             case _:

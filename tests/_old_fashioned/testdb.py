@@ -16,7 +16,7 @@ from ajbot._internal.config import AjConfig, FormatTypes
 
 def _test_format_types(objects):
     for o in objects:
-        print(f"{o:{FormatTypes.RESTRICTED}} ****** {o:{FormatTypes.FULLSIMPLE}} ****** {o:{FormatTypes.FULLCOMPLETE}}")
+        print(f"{o:{FormatTypes.RESTRICTED}} ****** {o:{FormatTypes.FULL}} ****** {o:{FormatTypes.DEBUG}}")
     # WARNING: cannot print that a '\r\n'.join(..).
     # There is currently a bug with the Python extension for VS Code that results in sufficiently long strings
     # being truncated when printed in the terminal. The bug report and its status can be found here: https://github.com/microsoft/debugpy/issues/1285
@@ -46,10 +46,10 @@ async def _search_member(aj_db:AjDb, lookup_val):
         print(f"{qr:{FormatTypes.RESTRICTED}}")
     print('-------------------')
     for qr in query_result:
-        print(f"{qr:{FormatTypes.FULLSIMPLE}}")
+        print(f"{qr:{FormatTypes.FULL}}")
     print('-------------------')
     for qr in query_result:
-        print(f"{qr:{FormatTypes.FULLCOMPLETE}}")
+        print(f"{qr:{FormatTypes.DEBUG}}")
         print('')
     print('-------------------')
 
@@ -102,7 +102,7 @@ async def _test_query(aj_db_session):
     for m in matched_items:
         presence = len([event for event in cast(db_t.Member, m).events
                         if event.season.name == season_name])
-        print(f"{m:{FormatTypes.FULLSIMPLE}} - {presence} présence(s)")
+        print(f"{m:{FormatTypes.FULL}} - {presence} présence(s)")
     print(len(matched_items), 'item(s)')
 
 
@@ -170,7 +170,7 @@ async def _test_membership_format():
 async def _test_query_members_per_season_presence():
     async with AjDb() as aj_db:
         season_name = '2025-2026'
-        format_style = FormatTypes.FULLSIMPLE
+        format_style = FormatTypes.FULL
 
         participants = await aj_db.query_members_per_season_presence(season_name)
         subscribers = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
@@ -200,7 +200,7 @@ async def _test_query_members_per_season_presence():
 async def _test_query_members_per_event_presence():
     async with AjDb() as aj_db:
         event_id = 97
-        format_style = FormatTypes.FULLSIMPLE
+        format_style = FormatTypes.FULL
 
         participants = await aj_db.query_members_per_event_presence(event_id)
         summary = f"{len(participants)} personne(s) sont venues"

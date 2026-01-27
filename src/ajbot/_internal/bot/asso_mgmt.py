@@ -80,7 +80,7 @@ async def email_display(last_participation_delay_weeks:int,
     async with AjDb() as aj_db:
         emails = await aj_db.query_member_emails(last_participation_duration=timedelta(weeks=last_participation_delay_weeks))
         summary = last_participation_delay_text + f" - {len(emails)} email(s)"
-        reply = ';'.join(f"{email:{FormatTypes.FULLCOMPLETE}}" for email in emails)
+        reply = ';'.join(f"{email:{FormatTypes.DEBUG}}" for email in emails)
 
     await responses.send_response_as_view(interaction=interaction, title="Emails", summary=summary, content=reply, ephemeral=True)
 

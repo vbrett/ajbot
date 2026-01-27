@@ -53,8 +53,8 @@ async def test_query_table_content():
              ]
     formats = [None,
                FormatTypes.RESTRICTED,
-               FormatTypes.FULLSIMPLE,
-               FormatTypes.FULLCOMPLETE]
+               FormatTypes.FULL,
+               FormatTypes.DEBUG]
 
     await async_verify_all_combinations_with_labeled_input(_do_test_query_table_content,
                                                            input_table = tables,

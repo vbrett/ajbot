@@ -46,7 +46,7 @@ async def display(interaction: Interaction,
             events = await aj_db.query_events_per_season(season_name=season_name, lazyload=False)
 
         if events:
-            format_style = FormatTypes.FULLSIMPLE if checks.is_manager(interaction) else FormatTypes.RESTRICTED
+            format_style = FormatTypes.FULL if checks.is_manager(interaction) else FormatTypes.RESTRICTED
             if len(events) == 1:
                 [event] = events
 

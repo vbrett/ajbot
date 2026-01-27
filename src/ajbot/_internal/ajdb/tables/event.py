@@ -62,11 +62,11 @@ class Event(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 pass
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 attr.append(f"saison {self.season.name}")
                 attr.append(f"{len(self.members)} participant(s)")
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 attr.insert(0, f"{self.id}")
                 attr.append(f"saison {self.season.name}")
                 attr.append(f"{len(self.members)} participant(s) ({', '.join(str(m.id) if m else 'inconnu(e)' for m in self.members)})")
@@ -103,10 +103,10 @@ class MemberEvent(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = ['#####']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [event_member]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [self.id, '-', event_member]
 
             case _:

@@ -137,10 +137,10 @@ class Member(BaseWithId, LogMixin):
         mbr_asso_info += f"cotisant, {self.season_presence_count()} participation(s) cette saison."
 
         match format_spec:
-            case FormatTypes.RESTRICTED | FormatTypes.FULLSIMPLE:
+            case FormatTypes.RESTRICTED | FormatTypes.FULL:
                 return ' - '.join([x for x in [mbr_id, mbr_creds, mbr_disc,] if x])
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 return '\n    '.join([x for x in [mbr_id, mbr_creds, mbr_disc, mbr_role, mbr_email, mbr_address, mbr_phone,] if x]+[mbr_asso_info])
 
             case _:

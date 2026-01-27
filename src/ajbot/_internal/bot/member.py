@@ -51,7 +51,7 @@ async def display(interaction: Interaction,
                 if not editable:
                     container.add_item(dui.TextDisplay(format(member, FormatTypes.RESTRICTED)))
                 else:
-                    format_style = FormatTypes.FULLCOMPLETE
+                    format_style = FormatTypes.FULL
                     container.add_item(dui.TextDisplay(f"# __{member.id}__"))
 
                     text = ''
@@ -143,7 +143,7 @@ async def display(interaction: Interaction,
                 await responses.send_response_as_view(interaction=interaction, container=container, ephemeral=True)
             else:
                 embed = discord.Embed(color=discord.Color.orange())
-                format_style = FormatTypes.FULLSIMPLE if (checks.is_manager(interaction)) else FormatTypes.RESTRICTED
+                format_style = FormatTypes.FULL if (checks.is_manager(interaction)) else FormatTypes.RESTRICTED
                 embed.add_field(name = 'Id', inline=True,
                                 value = '\n'.join(str(m.id) for m in members)
                                )
@@ -446,7 +446,7 @@ class EditMemberViewPrincipalEmail(dui.Modal, title='Email Principale'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.short,
                                                     required=False,
-                                                    default='' if (not email)  else format(email, FormatTypes.FULLCOMPLETE),
+                                                    default='' if (not email)  else format(email, FormatTypes.FULL),
                                                     max_length=120,
                                                 ),
                         )
@@ -493,7 +493,7 @@ class EditMemberViewPrincipalPhone(dui.Modal, title='Téléphone Principale'):
                             component=dui.TextInput(
                                                     style=discord.TextStyle.short,
                                                     required=False,
-                                                    default='' if (not phone)  else format(phone, FormatTypes.FULLCOMPLETE),
+                                                    default='' if (not phone)  else format(phone, FormatTypes.FULL),
                                                     max_length=120,
                                                 ),
                         )

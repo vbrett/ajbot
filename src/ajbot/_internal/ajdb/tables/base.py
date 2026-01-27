@@ -12,6 +12,7 @@ from sqlalchemy import orm
 # from sqlalchemy.ext.declarative import declared_attr
 
 from ajbot._internal.exceptions import OtherException, AjTypeException
+from ajbot._internal.config import FormatTypes
 from ajbot._internal.types import AjDate, AjMemberId, AjId, DiscordId
 if TYPE_CHECKING:
     from .member import Member
@@ -117,7 +118,7 @@ class BaseWithId(aio_sa.AsyncAttrs, orm.DeclarativeBase):
     id: orm.Mapped[AjId] = orm.mapped_column(SaAjId, primary_key=True, index=True, unique=True, autoincrement=True)
 
     def __repr__(self):  # Ensure every table repr uses its format method
-        return f"{self}"
+        return f"{self:{FormatTypes.DEBUG}}"
 
     def __str__(self):  # Ensure every table stringifies using its format method
         return f"{self}"

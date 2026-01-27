@@ -364,8 +364,8 @@ class AjDb():
         fig, ax = plt.subplots(figsize=(21/inch_to_cm, 29.7/inch_to_cm))  # A4 size in inches
 
         ax.axis('off')
-        input_dic = [{'ID': f"{member.id:{FormatTypes.FULLSIMPLE}}",
-                      'Nom': f"{member.credential:{FormatTypes.FULLSIMPLE}}",
+        input_dic = [{'ID': f"{member.id:{FormatTypes.FULL}}",
+                      'Nom': f"{member.credential:{FormatTypes.FULL}}",
                       '#': "" if member.is_subscriber else f"{'>' if member.season_presence_count() >= free_venues else ''}{member.season_presence_count()}",
                       'Signature': '',
                      } for member in members]

@@ -48,7 +48,7 @@ class Membership(BaseWithId, LogMixin):
     def __format__(self, format_spec):
         """ override format
         """
-        member_format = format_spec if format_spec != FormatTypes.FULLCOMPLETE else FormatTypes.FULLSIMPLE
+        member_format = format_spec if format_spec != FormatTypes.DEBUG else FormatTypes.FULL
         member_season = f"membre {self.member:{member_format}} pour la **saison {self.season:{format_spec}}**"
         membership_date = f"cotisé le {self.date}"
         statutes = "- statuts" + (" __**non**__" if not self.statutes_accepted else "") + " acceptés"
@@ -59,10 +59,10 @@ class Membership(BaseWithId, LogMixin):
             case FormatTypes.RESTRICTED:
                 name_list = ['****']
 
-            case FormatTypes.FULLSIMPLE:
+            case FormatTypes.FULL:
                 name_list = [member_season, membership_date, statutes, civil, picture]
 
-            case FormatTypes.FULLCOMPLETE:
+            case FormatTypes.DEBUG:
                 name_list = [f"{self.id} - {member_season}", membership_date, statutes, civil, picture]
 
             case _:

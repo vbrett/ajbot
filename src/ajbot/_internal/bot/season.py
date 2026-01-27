@@ -17,7 +17,7 @@ async def display(interaction: Interaction,
     async with AjDb() as aj_db:
         participants = await aj_db.query_members_per_season_presence(season_name)
         subscribers = await aj_db.query_members_per_season_presence(season_name, subscriber_only=True)
-        format_style = FormatTypes.FULLSIMPLE if checks.is_manager(interaction) else FormatTypes.RESTRICTED
+        format_style = FormatTypes.FULL if checks.is_manager(interaction) else FormatTypes.RESTRICTED
 
         if participants:
             summary = f"{len(participants)} personne(s) sont venues"

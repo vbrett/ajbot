@@ -54,8 +54,8 @@ class FormatTypes():
     """ supported format types
     """
     RESTRICTED = ''     # since f'{xxx}' is equivalent to format(xxx, ''), defining RESTRICTED to '' enforces f'' string woth no format to be same as restricted
-    FULLSIMPLE = 'full_simple'
-    FULLCOMPLETE = 'full_complete'
+    FULL = 'full_simple'
+    DEBUG = 'full_complete'
 
 
 class AjInfo():
