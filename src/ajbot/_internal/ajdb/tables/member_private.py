@@ -73,9 +73,6 @@ class Credential(BaseWithId, LogMixin):
         except AttributeError:
             return NotImplemented
 
-    def __str__(self):
-        return format(self, FormatTypes.RESTRICTED)
-
     def __format__(self, format_spec):
         """ override format
         """
@@ -108,9 +105,6 @@ class Email(BaseWithId, LogMixin):
 
     members: orm.Mapped[list['MemberEmail']] = orm.relationship(back_populates='email', foreign_keys='MemberEmail.email_id', lazy='selectin')
 
-    def __str__(self):
-        return format(self, FormatTypes.RESTRICTED)
-
     def __format__(self, format_spec):
         """ override format
         """
@@ -139,9 +133,6 @@ class Phone(BaseWithId, LogMixin):
     number: orm.Mapped[str] = orm.mapped_column(sa.String(20), unique=True, index=True, nullable=False)
 
     members: orm.Mapped[list['MemberPhone']] = orm.relationship(back_populates='phone', foreign_keys='MemberPhone.phone_id', lazy='selectin')
-
-    def __str__(self):
-        return f"{self}"
 
     def __format__(self, format_spec):
         """ override format
@@ -178,9 +169,6 @@ class PostalAddress(BaseWithId, LogMixin):
     extra: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255), nullable=True)
 
     members: orm.Mapped[list['MemberAddress']] = orm.relationship(back_populates='address', foreign_keys='MemberAddress.address_id', lazy='selectin')
-
-    def __str__(self):
-        return format(self, FormatTypes.RESTRICTED)
 
     def __format__(self, format_spec):
         """ override format
@@ -230,12 +218,24 @@ class MemberEmail(BaseWithId, LogMixin):
     email: orm.Mapped['Email'] = orm.relationship(back_populates='members', foreign_keys=email_id, lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
-    def __str__(self):
-        return f"{self.id}, member #{self.member_id}, email #{self.email_id}"
+    def __format__(self, format_spec):
+        """ override format
+        """
+        member_email = f"membre {self.member_id}, email {self.email_id}"
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                name_list = ['#####']
 
-    # def __format__(self, format_spec):
-    #     """ override format
-    #     """
+            case FormatTypes.FULLSIMPLE:
+                name_list = [member_email]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-', member_email]
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 class MemberPhone(BaseWithId, LogMixin):
     """ Junction table between members and phones
@@ -251,8 +251,24 @@ class MemberPhone(BaseWithId, LogMixin):
     phone: orm.Mapped['Phone'] = orm.relationship(back_populates='members', foreign_keys=phone_id, lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
-    def __str__(self):
-        return f"{self.id}, member #{self.member_id}, phone #{self.phone_id}"
+    def __format__(self, format_spec):
+        """ override format
+        """
+        member_phone = f"membre {self.member_id}, téléphone {self.phone_id}"
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                name_list = ['#####']
+
+            case FormatTypes.FULLSIMPLE:
+                name_list = [member_phone]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-', member_phone]
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 class MemberAddress(BaseWithId, LogMixin):
@@ -269,8 +285,24 @@ class MemberAddress(BaseWithId, LogMixin):
     address: orm.Mapped['PostalAddress'] = orm.relationship(back_populates='members', foreign_keys=address_id, lazy='selectin')
     principal: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=False, comment='shall be TRUE for only 1 member_id occurence')
 
-    def __str__(self):
-        return f"{self.id}, member #{self.member_id}, address #{self.address_id}"
+    def __format__(self, format_spec):
+        """ override format
+        """
+        member_address = f"membre {self.member_id}, adresse {self.address_id}"
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                name_list = ['#####']
+
+            case FormatTypes.FULLSIMPLE:
+                name_list = [member_address]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-', member_address]
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 

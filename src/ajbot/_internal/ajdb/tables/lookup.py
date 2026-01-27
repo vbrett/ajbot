@@ -21,9 +21,6 @@ class StreetType(BaseWithId):
 
     addresses: orm.Mapped[list['PostalAddress']] = orm.relationship(back_populates='street_type', foreign_keys='PostalAddress.street_type_id', lazy='selectin')
 
-    def __str__(self):
-        return f"{self}"
-
     def __format__(self, _format_spec):
         """ override format
         """
@@ -38,9 +35,6 @@ class ContributionType(BaseWithId):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='contribution_type', foreign_keys='Membership.contribution_type_id', lazy='selectin')
-
-    def __str__(self):
-        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format
@@ -57,9 +51,6 @@ class KnowFromSource(BaseWithId):
 
     memberships: orm.Mapped[list['Membership']] = orm.relationship(back_populates='know_from_source', foreign_keys='Membership.know_from_source_id', lazy='selectin')
 
-    def __str__(self):
-        return f"{self}"
-
     def __format__(self, _format_spec):
         """ override format
         """
@@ -74,9 +65,6 @@ class AccountType(BaseWithId):
     name: orm.Mapped[str] = orm.mapped_column(sa.String(50), nullable=False, index=True,)
 
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='account_type', foreign_keys='Transaction.account_type_id', lazy='selectin')
-
-    def __str__(self):
-        return f"{self}"
 
     def __format__(self, _format_spec):
         """ override format

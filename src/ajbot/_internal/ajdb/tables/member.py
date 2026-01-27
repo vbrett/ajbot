@@ -122,9 +122,6 @@ class Member(BaseWithId, LogMixin):
         except AttributeError:
             return NotImplemented
 
-    def __str__(self):
-        return format(self, FormatTypes.RESTRICTED)
-
     def __format__(self, format_spec):
         """ override format
         """

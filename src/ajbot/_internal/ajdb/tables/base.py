@@ -11,8 +11,8 @@ from sqlalchemy.ext import asyncio as aio_sa
 from sqlalchemy import orm
 # from sqlalchemy.ext.declarative import declared_attr
 
+from ajbot._internal.exceptions import OtherException, AjTypeException
 from ajbot._internal.types import AjDate, AjMemberId, AjId
-from ajbot._internal.exceptions import OtherException
 if TYPE_CHECKING:
     from .member import Member
 
@@ -92,6 +92,18 @@ class BaseWithId(aio_sa.AsyncAttrs, orm.DeclarativeBase):
     """
 
     id: orm.Mapped[AjId] = orm.mapped_column(SaAjId, primary_key=True, index=True, unique=True, autoincrement=True)
+
+    def __repr__(self):  # Ensure every table repr uses its format method
+        return f"{self}"
+
+    def __str__(self):  # Ensure every table stringifies using its format method
+        return f"{self}"
+
+    def __format__(self, _format_spec):     # ensure every table has defined its format method
+        """ override format
+        """
+        raise AjTypeException(f"Format function not implemented for db table class {self.__class__.__name__}")
+
 
 class LogMixin:
     """ Abstract mixin for tables with log information : update timestamp & author

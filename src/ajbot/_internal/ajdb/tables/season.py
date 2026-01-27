@@ -48,9 +48,6 @@ class Season(BaseWithId, LogMixin):
         except AttributeError:
             return NotImplemented
 
-    def __str__(self):
-        return f"{self}"
-
     def __format__(self, format_spec):
         """ override format
         """

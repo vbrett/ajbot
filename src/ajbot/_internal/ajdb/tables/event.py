@@ -54,9 +54,6 @@ class Event(BaseWithId, LogMixin):
         except AttributeError:
             return NotImplemented
 
-    def __str__(self):
-        return format(self, FormatTypes.RESTRICTED)
-
     def __format__(self, format_spec):
         """ override format
         """
@@ -66,10 +63,12 @@ class Event(BaseWithId, LogMixin):
                 pass
 
             case FormatTypes.FULLSIMPLE:
+                attr.append(f"saison {self.season.name}")
                 attr.append(f"{len(self.members)} participant(s)")
 
             case FormatTypes.FULLCOMPLETE:
                 attr.insert(0, f"{self.id}")
+                attr.append(f"saison {self.season.name}")
                 attr.append(f"{len(self.members)} participant(s) ({', '.join(str(m.id) if m else 'inconnu(e)' for m in self.members)})")
 
             case _:
@@ -96,8 +95,24 @@ class MemberEvent(BaseWithId, LogMixin):
     presence: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, nullable=False, default=True, comment='if false: delegated vote')
     comment: orm.Mapped[Optional[str]] = orm.mapped_column(sa.String(255))
 
-    def __str__(self):
-        return f"{self.id}, event #{self.event_id}, member #{self.member_id}"
+    def __format__(self, format_spec):
+        """ override format
+        """
+        event_member = f"évènement {self.event_id}, membre {self.member_id}"
+        match format_spec:
+            case FormatTypes.RESTRICTED:
+                name_list = ['#####']
+
+            case FormatTypes.FULLSIMPLE:
+                name_list = [event_member]
+
+            case FormatTypes.FULLCOMPLETE:
+                name_list = [self.id, '-', event_member]
+
+            case _:
+                raise AjDbException(f"Le format {format_spec} n'est pas supporté")
+
+        return ' '.join([f"{x}" for x in name_list if x])
 
 
 if __name__ == '__main__':

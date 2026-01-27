@@ -45,9 +45,6 @@ class Membership(BaseWithId, LogMixin):
     contribution_type: orm.Mapped['ContributionType'] = orm.relationship(back_populates='memberships', foreign_keys=contribution_type_id, lazy='selectin')
     # transactions: orm.Mapped[list['Transaction']] = orm.relationship(back_populates='memberships')
 
-    def __str__(self):
-        return format(self, FormatTypes.RESTRICTED)
-
     def __format__(self, format_spec):
         """ override format
         """
