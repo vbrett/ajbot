@@ -15,35 +15,35 @@ async def _create_db_schema(aj_db:AjDb):
     await aj_db.drop_create_schema()
 
 
-async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
-    """ Populate lookup tables
+async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
+    """ Populate lookup & role tables
     """
 
-    lut_tables = []
+    lut_role_tables = []
     for val in ajdb_xls.dict_from_table('saisons'):
-        lut_tables.append(db_t.Season(name=val['nom'],
+        lut_role_tables.append(db_t.Season(name=val['nom'],
                                       start=cast(datetime, val['debut']).date(),
                                       end=cast(datetime, val['fin']).date()),
                                     )
     for val in ajdb_xls.dict_from_table('contribution'):
-        lut_tables.append(db_t.ContributionType(name=val['val']))
+        lut_role_tables.append(db_t.ContributionType(name=val['val']))
     for val in ajdb_xls.dict_from_table('connaissance'):
-        lut_tables.append(db_t.KnowFromSource(name=val['val']))
+        lut_role_tables.append(db_t.KnowFromSource(name=val['val']))
     for val in ajdb_xls.dict_from_table('compte'):
-        lut_tables.append(db_t.AccountType(name=val['val']))
+        lut_role_tables.append(db_t.AccountType(name=val['val']))
     for val in ajdb_xls.dict_from_table('type_voie'):
-        lut_tables.append(db_t.StreetType(name=val['val']))
+        lut_role_tables.append(db_t.StreetType(name=val['val']))
 
     for val in ajdb_xls.dict_from_table('discord_role'):
         new_discord_role = db_t.DiscordRole(name=val['val'],
                                              id=int(val['id']),)
-        lut_tables.append(new_discord_role)
+        lut_role_tables.append(new_discord_role)
     for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = db_t.AssoRole(name=val['asso'])
-        lut_tables.append(new_asso_role)
+        lut_role_tables.append(new_asso_role)
         if val.get('discord'):
             for d_role in val['discord'].split(','):
-                [matched_discord_role] = [elt for elt in lut_tables
+                [matched_discord_role] = [elt for elt in lut_role_tables
                                 if isinstance(elt, db_t.DiscordRole) and elt.name == d_role]
                 new_asso_role.discord_roles.append(matched_discord_role)
 
@@ -58,11 +58,11 @@ async def _populate_lut_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
         if val.get('is_owner') is not None:
             new_asso_role.is_owner=bool(val.get('is_owner'))
 
-    async with aj_db._AsyncSessionMaker() as session:
+    async with aj_db._AsyncSessionMaker() as session:   # pylint: disable=protected-access  # accessing protected member on purpose
         async with session.begin():
-            session.add_all(lut_tables)
+            session.add_all(lut_role_tables)
 
-    return lut_tables
+    return lut_role_tables
 
 
 async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables):
@@ -153,13 +153,13 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                                             principal=True)
             member_tables.append(new_jct)
 
-    async with aj_db._AsyncSessionMaker() as session:
+    async with aj_db._AsyncSessionMaker() as session:  # pylint: disable=protected-access  # accessing protected member on purpose
         async with session.begin():
             session.add_all(member_tables)
 
     return member_tables
 
-async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables, member_tables):
+async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables, member_tables):
     """ Populate all event related tables
     """
 
@@ -239,45 +239,64 @@ async def _populate_events_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
                                                   end = end,)
                 event_tables.append(new_memberassorole)
 
-    async with aj_db._AsyncSessionMaker() as session:
+    async with aj_db._AsyncSessionMaker() as session:  # pylint: disable=protected-access  # accessing protected member on purpose
         async with session.begin():
             session.add_all(membership_tables)
             session.add_all(event_tables)
 
+    return event_tables, membership_tables
 
 
 
 
-async def _async_main(ajdb_xls_file:Path):
+
+async def migrate(ajdb_xls_file:Path):
     """ main function
     """
+    all_tables = []
+    lut_role_tables = []
+    member_tables = []
+    membership_tables = []
+    event_tables = []
     async with AjDb() as aj_db:
         try:
             ajdb_xls = ExcelWorkbook(ajdb_xls_file)
+            print(f"Loaded Excel file '{ajdb_xls_file}'.")
         except FileNotFoundError:
             print(f"Excel file '{ajdb_xls_file}' not found.")
             return 1
 
         # create all tables
         # -----------------
+        print("Creating DB schema...")
         await _create_db_schema(aj_db=aj_db)
 
         # Populate all tables
         # -------------------
+        print("Populating DB...")
 
         # lookup tables
-        lut_tables = await _populate_lut_tables(aj_db=aj_db, ajdb_xls=ajdb_xls)
-        if lut_tables:
+        print(">>  Populating lookup & role tables...")
+        lut_role_tables = await _populate_lut_role_tables(aj_db=aj_db, ajdb_xls=ajdb_xls)
+        all_tables.extend(lut_role_tables)
+        if lut_role_tables:
             # member tables
-            member_tables = await _populate_member_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_tables)
+            print(">>  Populating member tables...")
+            member_tables = await _populate_member_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables)
+            all_tables.extend(member_tables)
             if member_tables:
-                # membership tables
-                await _populate_events_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_tables, member_tables=member_tables)
+                # membership & event tables
+                print(">>  Populating event & membership tables...")
+                event_tables, membership_tables = await _populate_events_memberships_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables, member_tables=member_tables)
+                all_tables.extend(membership_tables)
+                all_tables.extend(event_tables)
 
+        print("Migration done.")
+    return all_tables
 
 def _main():
     ajdb_xls_file = Path(sys.argv[1])
-    asyncio.run(_async_main(ajdb_xls_file=ajdb_xls_file))
+    asyncio.run(migrate(ajdb_xls_file=ajdb_xls_file))
     return 0
 
 
