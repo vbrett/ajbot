@@ -28,7 +28,7 @@ class Member(BaseWithId, LogMixin):
     """
     __tablename__ = 'members'
 
-    id: orm.Mapped[AjMemberId] = orm.mapped_column(SaAjMemberId, primary_key=True, index=True, unique=True, autoincrement=True)
+    id: orm.Mapped[AjMemberId] = orm.mapped_column(SaAjMemberId, primary_key=True, index=True, unique=True, autoincrement=True)  # override default ID to use AJ id
 
     credential_id: orm.Mapped[Optional[int]] = orm.mapped_column(sa.ForeignKey('member_credentials.id'), index=True, nullable=True)
     credential: orm.Mapped[Optional['Credential']] = orm.relationship(back_populates='member', foreign_keys=credential_id, uselist=False, lazy='selectin')

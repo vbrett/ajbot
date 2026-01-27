@@ -137,7 +137,7 @@ class BaseWithId(aio_sa.AsyncAttrs, orm.DeclarativeBase):
     """ Base ORM class
     """
 
-    id: orm.Mapped[AjId] = orm.mapped_column(SaAjId, primary_key=True, index=True, autoincrement=True)
+    id: orm.Mapped[AjId] = orm.mapped_column(SaAjId, primary_key=True, index=True, unique=True, autoincrement=True)
 
 class LogMixin:
     """ Abstract mixin for tables with log information : update timestamp & author
