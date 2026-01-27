@@ -75,7 +75,7 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
         new_member = db_t.Member()
         member_tables.append(new_member)
 
-        new_member.id=int(val['id'])
+        new_member.id=db_t.AjMemberId(val['id'])
 
         if val.get('pseudo_discord'):
             new_member.discord=val['pseudo_discord']

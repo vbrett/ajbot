@@ -7,6 +7,7 @@ from pathlib import Path
 
 import approvaltests
 
+from ajbot._internal.config import FormatTypes
 from ajbot._internal.exceptions import OtherException
 
 REPORT_EOL = '\n'
@@ -49,10 +50,13 @@ async def async_verify_all_combinations_with_labeled_input(
     approvaltests.verify("".join(approval_strings))
 
 
-def get_printable_ajdb_objects(ajdb_objects, str_format, merge=True):
+def get_printable_ajdb_objects(ajdb_objects, str_format:Optional[FormatTypes]=None, merge=True):
     """ transform list of db objects as printed list
     """
-    output = [f"{o:{str_format}}" for o in ajdb_objects]
+    if str_format is None:
+        output = [str(o) for o in ajdb_objects]
+    else:
+        output = [f"{o:{str_format}}" for o in ajdb_objects]
 
     if merge:
         return REPORT_EOL.join(output)
