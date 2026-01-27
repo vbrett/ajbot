@@ -7,7 +7,7 @@ from typing import cast
 from pathlib import Path
 
 from vbrpytools.exceltojson import ExcelWorkbook
-from ajbot._internal.types import AjDate, AjMemberId
+from ajbot._internal.types import AjDate, AjMemberId, DiscordId
 from ajbot._internal.ajdb import AjDb , tables as db_t
 
 async def _create_db_schema(aj_db:AjDb):
@@ -37,7 +37,7 @@ async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
 
     for val in ajdb_xls.dict_from_table('discord_role'):
         new_discord_role = db_t.DiscordRole(name=val['val'],
-                                             id=int(val['id']),)
+                                             id=DiscordId(val['id']),)
         lut_role_tables.append(new_discord_role)
     for val in ajdb_xls.dict_from_table('roles'):
         new_asso_role = db_t.AssoRole(name=val['asso'])

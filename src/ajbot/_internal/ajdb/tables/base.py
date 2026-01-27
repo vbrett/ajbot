@@ -12,7 +12,7 @@ from sqlalchemy import orm
 # from sqlalchemy.ext.declarative import declared_attr
 
 from ajbot._internal.exceptions import OtherException, AjTypeException
-from ajbot._internal.types import AjDate, AjMemberId, AjId
+from ajbot._internal.types import AjDate, AjMemberId, AjId, DiscordId
 if TYPE_CHECKING:
     from .member import Member
 
@@ -84,6 +84,29 @@ class SaAjId(ABC, sa.types.TypeDecorator):
 
         if not isinstance(value, AjId):
             value = AjId(value)
+        return value
+
+class SaDiscordId(ABC, sa.types.TypeDecorator):
+    """ SqlAlchemy class to report discord id using DiscordjId custom class
+    """
+    impl = sa.BigInteger
+    cache_ok = True
+    _default_type = sa.BigInteger
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, DiscordId):
+            value = DiscordId(value)
+        return int(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+
+        if not isinstance(value, DiscordId):
+            value = DiscordId(value)
         return value
 
 

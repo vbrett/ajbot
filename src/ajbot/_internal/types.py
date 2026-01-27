@@ -37,7 +37,6 @@ class AjMemberId(int):
         return f"{AJ_ID_PREFIX}{str(int(self)).zfill(5)}"
 
 
-
 class AjId(int):
     """ Class that handles generic db id as integer, and represents it in with correct format
     """
@@ -48,6 +47,18 @@ class AjId(int):
         """ override format
         """
         return f"#{str(int(self))}"
+
+
+class DiscordId(int):
+    """ Class that handles discord id as integer, and represents it in with correct format
+    """
+    def __str__(self):
+        return f"{self}"
+
+    def __format__(self, _format_spec):
+        """ override format
+        """
+        return f"{str(int(self))}"
 
 
 if __name__ == '__main__':
