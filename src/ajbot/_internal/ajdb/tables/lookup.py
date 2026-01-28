@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from ajbot._internal.exceptions import OtherException
 from .base import BaseWithId
 if TYPE_CHECKING:
     from .membership import Membership
@@ -70,6 +69,3 @@ class AccountType(BaseWithId):
         """ override format
         """
         return self.name
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

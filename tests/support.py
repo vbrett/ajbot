@@ -8,7 +8,6 @@ from pathlib import Path
 import approvaltests
 
 from ajbot._internal.config import FormatTypes
-from ajbot._internal.exceptions import OtherException
 
 REPORT_EOL = '\n'
 TEST_PATH = Path('tests/db_test')
@@ -62,8 +61,3 @@ def get_printable_ajdb_objects(ajdb_objects, str_format:Optional[FormatTypes]=No
         return REPORT_EOL.join(output)
 
     return output
-
-
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

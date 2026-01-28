@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from ajbot._internal.exceptions import OtherException
 from ajbot._internal.types import AjDate
 from .base import BaseWithId
 
@@ -57,7 +56,3 @@ from .base import BaseWithId
 #     memberships: orm.Mapped[Optional['Membership']] = orm.relationship(back_populates='transactions', lazy='selectin')
 #     seasons: orm.Mapped['Season'] = orm.relationship(back_populates='transactions', lazy='selectin')
 #     logs: orm.Mapped[list['Log']] = orm.relationship(back_populates='transactions', lazy='selectin')
-
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

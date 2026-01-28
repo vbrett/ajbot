@@ -13,6 +13,8 @@ from .season import *
 from .membership import *
 from .lookup import *
 from .role import *
+from .event import *
+from .finance import *
 
 
 if __name__ == '__main__':

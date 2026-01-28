@@ -71,10 +71,13 @@
 <class 'ajbot._internal.ajdb.tables.member_private.Phone'> #1
 <class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'> #1
 <class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'> #1
-<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'> #1
+<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'> #2
 <class 'ajbot._internal.ajdb.tables.member.Member'> AJ-00002
+<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'> #2
 <class 'ajbot._internal.ajdb.tables.member.Member'> AJ-00003
 <class 'ajbot._internal.ajdb.tables.member.Member'> AJ-00004
+<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'> #2
+<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'> #1
 <class 'ajbot._internal.ajdb.tables.member.Member'> AJ-00005
 <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'> #1
 <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'> #2

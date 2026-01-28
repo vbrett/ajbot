@@ -9,7 +9,7 @@ from sqlalchemy import orm
 from sqlalchemy.orm import foreign
 from sqlalchemy.ext import associationproxy as ap
 
-from ajbot._internal.exceptions import OtherException, AjDbException
+from ajbot._internal.exceptions import AjDbException
 from ajbot._internal.config import FormatTypes
 from ajbot._internal.types import AjMemberId
 from .base import SaAjMemberId, BaseWithId, LogMixin
@@ -213,7 +213,3 @@ Member.current_asso_role = orm.relationship(
     uselist=False,
     lazy='selectin',
 )
-
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

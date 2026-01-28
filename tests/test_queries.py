@@ -1,9 +1,8 @@
 """
-approval tests
+approval tests - queries
 """
 import pytest
 
-from ajbot._internal.exceptions import OtherException
 from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.config import AjConfig, FormatTypes
 
@@ -60,6 +59,3 @@ async def test_query_table_content():
                                                            input_table = tables,
                                                            input_format = formats)
 
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

@@ -7,7 +7,7 @@ from sqlalchemy import orm
 from sqlalchemy.ext import associationproxy as ap
 
 
-from ajbot._internal.exceptions import OtherException, AjDbException
+from ajbot._internal.exceptions import AjDbException
 from ajbot._internal.config import FormatTypes
 from ajbot._internal.types import AjDate, AjMemberId, AjId, DiscordId
 from .base import SaAjDate, SaDiscordId, BaseWithId, LogMixin
@@ -141,6 +141,3 @@ class MemberAssoRole(BaseWithId, LogMixin):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
         return ' '.join([f"{x}" for x in name_list if x])
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

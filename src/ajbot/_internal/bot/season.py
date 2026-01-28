@@ -5,7 +5,6 @@ from discord import Interaction
 from ajbot._internal.config import FormatTypes
 from ajbot._internal.ajdb import AjDb
 from ajbot._internal.bot import checks, responses
-from ajbot._internal.exceptions import OtherException
 
 async def display(interaction: Interaction,
                   season_name:str=None):
@@ -43,6 +42,3 @@ async def display(interaction: Interaction,
                                           summary=summary,
                                           content=reply,
                                           ephemeral=True)
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')

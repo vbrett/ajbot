@@ -1,0 +1,10 @@
+(modules: ('ajbot.migrate', [WindowsPath('tests/db_test/elsewhere/db_test.xlsx')])) => 0
+(modules: ('ajbot._internal', None)) => No module named ajbot._internal.__main__; 'ajbot._internal' is a package and cannot be directly executed
+(modules: ('ajbot._internal.config', None)) => This module is not meant to be executed directly.
+(modules: ('ajbot._internal.exceptions', None)) => This module should not be called directly.
+(modules: ('ajbot._internal.types', None)) => This module is not meant to be executed directly.
+(modules: ('ajbot._internal.ajdb', None)) => No module named ajbot._internal.ajdb.__main__; 'ajbot._internal.ajdb' is a package and cannot be directly executed
+(modules: ('ajbot._internal.ajdb.__init__', None)) => This module is not meant to be executed directly.
+(modules: ('ajbot._internal.ajdb.tables', None)) => No module named ajbot._internal.ajdb.tables.__main__; 'ajbot._internal.ajdb.tables' is a package and cannot be directly executed
+(modules: ('ajbot._internal.ajdb.tables.__init__', None)) => This module is not meant to be executed directly.
+(modules: ('ajbot._internal.ajdb.tables.base', None)) => This module is not meant to be executed directly.

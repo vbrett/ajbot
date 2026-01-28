@@ -6,7 +6,7 @@ import datetime
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from ajbot._internal.exceptions import OtherException, AjDbException
+from ajbot._internal.exceptions import AjDbException
 from ajbot._internal.config import FormatTypes
 from ajbot._internal.types import AjDate
 from .base import SaAjDate, BaseWithId, LogMixin
@@ -68,6 +68,3 @@ class Season(BaseWithId, LogMixin):
                 raise AjDbException(f"Le format {format_spec} n'est pas supporté")
 
         return ' '.join([f"{x}" for x in name_list if x])
-
-if __name__ == '__main__':
-    raise OtherException('This module is not meant to be executed directly.')
