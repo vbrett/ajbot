@@ -3,11 +3,12 @@
 import sys
 import asyncio
 from datetime import datetime
-from typing import cast
+from typing import cast, Optional
 from pathlib import Path
 
 from vbrpytools.exceltojson import ExcelWorkbook
 from ajbot._internal.types import AjDate, AjMemberId, DiscordId
+from ajbot._internal.config import AjConfig
 from ajbot._internal.ajdb import AjDb , tables as db_t
 
 async def _create_db_schema(aj_db:AjDb):
@@ -263,46 +264,51 @@ async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook
 
 
 
-async def migrate(ajdb_xls_file:Path):
+async def migrate(ajdb_xls_file:Path, config_file:Optional[Path]=None):
     """ main function
     """
     all_tables = []
     lut_role_tables = []
     member_tables = []
     event_membership_tables = []
-    async with AjDb() as aj_db:
-        try:
-            ajdb_xls = ExcelWorkbook(ajdb_xls_file)
-            print(f"Loaded Excel file '{ajdb_xls_file}'.")
-        except FileNotFoundError:
-            print(f"Excel file '{ajdb_xls_file}' not found.")
-            return 1
+    with AjConfig(file_path=config_file, save_on_exit=True) as aj_config:
+        async with AjDb(aj_config=aj_config) as aj_db:
+            try:
+                ajdb_xls = ExcelWorkbook(ajdb_xls_file)
+                print(f"Loaded Excel file '{ajdb_xls_file}'.")
+            except FileNotFoundError:
+                print(f"Excel file '{ajdb_xls_file}' not found.")
+                return 1
 
-        # create all tables
-        # -----------------
-        print("Creating DB schema...")
-        await _create_db_schema(aj_db=aj_db)
+            # create all tables
+            # -----------------
+            print("Creating DB schema...")
+            await _create_db_schema(aj_db=aj_db)
 
-        # Populate all tables
-        # -------------------
-        print("Populating DB...")
+            # Populate all tables
+            # -------------------
+            print("Populating DB...")
 
-        # lookup tables
-        print(">>  Populating lookup & role tables...")
-        lut_role_tables = await _populate_lut_role_tables(aj_db=aj_db, ajdb_xls=ajdb_xls)
-        all_tables.extend(lut_role_tables)
-        if lut_role_tables:
-            # member tables
-            print(">>  Populating member tables...")
-            member_tables = await _populate_member_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables)
-            all_tables.extend(member_tables)
-            if member_tables:
-                # membership & event tables
-                print(">>  Populating event & membership tables...")
-                event_membership_tables = await _populate_events_memberships_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables, member_tables=member_tables)
-                all_tables.extend(event_membership_tables)
+            # lookup tables
+            print(">>  Populating lookup & role tables...")
+            lut_role_tables = await _populate_lut_role_tables(aj_db=aj_db, ajdb_xls=ajdb_xls)
+            all_tables.extend(lut_role_tables)
+            if lut_role_tables:
+                # member tables
+                print(">>  Populating member tables...")
+                member_tables = await _populate_member_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables)
+                all_tables.extend(member_tables)
+                if member_tables:
+                    # membership & event tables
+                    print(">>  Populating event & membership tables...")
+                    event_membership_tables = await _populate_events_memberships_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables, member_tables=member_tables)
+                    all_tables.extend(event_membership_tables)
 
-        print("Migration done.")
+
+            print("Update config file...")
+            await aj_config.udpate_roles(aj_db=aj_db)
+
+    print("Migration done.")
     return all_tables
 
 def _main():
