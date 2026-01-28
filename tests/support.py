@@ -61,3 +61,6 @@ def get_printable_ajdb_objects(ajdb_objects, str_format:Optional[FormatTypes]=No
         return REPORT_EOL.join(output)
 
     return output
+
+class ExpectedExceptionDuringTest(Exception):
+    """ Exception related to expected exception """
