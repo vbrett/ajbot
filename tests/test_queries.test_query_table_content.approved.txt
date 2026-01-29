@@ -1,4 +1,4 @@
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: None, refresh_cache: True) =>
 allée
 avenue
 boulevard
@@ -9,7 +9,7 @@ place
 rue
 sente
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: None, refresh_cache: False) =>
 allée
 avenue
 boulevard
@@ -20,7 +20,7 @@ place
 rue
 sente
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: , refresh_cache: True) =>
 allée
 avenue
 boulevard
@@ -31,7 +31,7 @@ place
 rue
 sente
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.StreetType'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: , refresh_cache: False) =>
 allée
 avenue
 boulevard
@@ -42,87 +42,211 @@ place
 rue
 sente
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: full_simple, refresh_cache: True) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: full_simple, refresh_cache: False) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: full_complete, refresh_cache: True) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.StreetType'>,), input_format: full_complete, refresh_cache: False) =>
+allée
+avenue
+boulevard
+chemin
+impasse
+passage
+place
+rue
+sente
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: None, refresh_cache: True) =>
 Autre
 Inconnu
 Offert
 Plein
 Réduit
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: None, refresh_cache: False) =>
 Autre
 Inconnu
 Offert
 Plein
 Réduit
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: , refresh_cache: True) =>
 Autre
 Inconnu
 Offert
 Plein
 Réduit
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: , refresh_cache: False) =>
 Autre
 Inconnu
 Offert
 Plein
 Réduit
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: full_simple, refresh_cache: True) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: full_simple, refresh_cache: False) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: full_complete, refresh_cache: True) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.ContributionType'>,), input_format: full_complete, refresh_cache: False) =>
+Autre
+Inconnu
+Offert
+Plein
+Réduit
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: None, refresh_cache: True) =>
 Banque
 Chèque
 Espèce
 helloAsso
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: None, refresh_cache: False) =>
 Banque
 Chèque
 Espèce
 helloAsso
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: , refresh_cache: True) =>
 Banque
 Chèque
 Espèce
 helloAsso
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.AccountType'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: , refresh_cache: False) =>
 Banque
 Chèque
 Espèce
 helloAsso
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: full_simple, refresh_cache: True) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: full_simple, refresh_cache: False) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: full_complete, refresh_cache: True) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.AccountType'>,), input_format: full_complete, refresh_cache: False) =>
+Banque
+Chèque
+Espèce
+helloAsso
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: None, refresh_cache: True) =>
 Autre
 Bouche à oreille
 Forum Asso
 Gobelin / Dédale / Afterwork
 Réseaux sociaux
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: None, refresh_cache: False) =>
 Autre
 Bouche à oreille
 Forum Asso
 Gobelin / Dédale / Afterwork
 Réseaux sociaux
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: , refresh_cache: True) =>
 Autre
 Bouche à oreille
 Forum Asso
 Gobelin / Dédale / Afterwork
 Réseaux sociaux
 
-(input_table: <class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: , refresh_cache: False) =>
 Autre
 Bouche à oreille
 Forum Asso
 Gobelin / Dédale / Afterwork
 Réseaux sociaux
 
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: full_simple, refresh_cache: True) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: full_simple, refresh_cache: False) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: full_complete, refresh_cache: True) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+
+(args: (<class 'ajbot._internal.ajdb.tables.lookup.KnowFromSource'>,), input_format: full_complete, refresh_cache: False) =>
+Autre
+Bouche à oreille
+Forum Asso
+Gobelin / Dédale / Afterwork
+Réseaux sociaux
+
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: None, refresh_cache: True) =>
 2015-2016
 2016-2017
 2017-2018
@@ -135,7 +259,7 @@ Réseaux sociaux
 2024-2025
 2025-2026
 
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: None, refresh_cache: False) =>
 2015-2016
 2016-2017
 2017-2018
@@ -148,7 +272,33 @@ Réseaux sociaux
 2024-2025
 2025-2026
 
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: , refresh_cache: True) =>
+2015-2016
+2016-2017
+2017-2018
+2018-2019
+2019-2020
+2020-2021
+2021-2022
+2022-2023
+2023-2024
+2024-2025
+2025-2026
+
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: , refresh_cache: False) =>
+2015-2016
+2016-2017
+2017-2018
+2018-2019
+2019-2020
+2020-2021
+2021-2022
+2022-2023
+2023-2024
+2024-2025
+2025-2026
+
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: full_simple, refresh_cache: True) =>
 2015-2016 du 01/01/2016 au 31/08/2016
 2016-2017 du 01/09/2016 au 31/08/2017
 2017-2018 du 01/09/2017 au 31/08/2018
@@ -161,7 +311,20 @@ Réseaux sociaux
 2024-2025 du 01/09/2024 au 31/08/2025
 2025-2026 (en cours) du 01/09/2025 au 31/08/2026
 
-(input_table: <class 'ajbot._internal.ajdb.tables.season.Season'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: full_simple, refresh_cache: False) =>
+2015-2016 du 01/01/2016 au 31/08/2016
+2016-2017 du 01/09/2016 au 31/08/2017
+2017-2018 du 01/09/2017 au 31/08/2018
+2018-2019 du 01/09/2018 au 31/08/2019
+2019-2020 du 01/09/2019 au 31/08/2020
+2020-2021 du 01/09/2020 au 31/08/2021
+2021-2022 du 01/09/2021 au 31/08/2022
+2022-2023 du 01/09/2022 au 31/08/2023
+2023-2024 du 01/09/2023 au 31/08/2024
+2024-2025 du 01/09/2024 au 31/08/2025
+2025-2026 (en cours) du 01/09/2025 au 31/08/2026
+
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: full_complete, refresh_cache: True) =>
 #1 2015-2016 du 01/01/2016 au 31/08/2016
 #2 2016-2017 du 01/09/2016 au 31/08/2017
 #3 2017-2018 du 01/09/2017 au 31/08/2018
@@ -174,7 +337,20 @@ Réseaux sociaux
 #10 2024-2025 du 01/09/2024 au 31/08/2025
 #11 2025-2026 (en cours) du 01/09/2025 au 31/08/2026
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.season.Season'>,), input_format: full_complete, refresh_cache: False) =>
+#1 2015-2016 du 01/01/2016 au 31/08/2016
+#2 2016-2017 du 01/09/2016 au 31/08/2017
+#3 2017-2018 du 01/09/2017 au 31/08/2018
+#4 2018-2019 du 01/09/2018 au 31/08/2019
+#5 2019-2020 du 01/09/2019 au 31/08/2020
+#6 2020-2021 du 01/09/2020 au 31/08/2021
+#7 2021-2022 du 01/09/2021 au 31/08/2022
+#8 2022-2023 du 01/09/2022 au 31/08/2023
+#9 2023-2024 du 01/09/2023 au 31/08/2024
+#10 2024-2025 du 01/09/2024 au 31/08/2025
+#11 2025-2026 (en cours) du 01/09/2025 au 31/08/2026
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: None, refresh_cache: True) =>
 Bureau - Admin
 Bureau - Président
 Bureau - Trésorier
@@ -188,7 +364,7 @@ Bot - ProBot
 Bot - VbrBot
 Invité
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: None, refresh_cache: False) =>
 Bureau - Admin
 Bureau - Président
 Bureau - Trésorier
@@ -202,7 +378,7 @@ Bot - ProBot
 Bot - VbrBot
 Invité
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: , refresh_cache: True) =>
 Bureau - Admin
 Bureau - Président
 Bureau - Trésorier
@@ -216,7 +392,49 @@ Bot - ProBot
 Bot - VbrBot
 Invité
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRole'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: , refresh_cache: False) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: full_simple, refresh_cache: True) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: full_simple, refresh_cache: False) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - Bureau - Admin
 #2 - Bureau - Président
 #3 - Bureau - Trésorier
@@ -230,7 +448,21 @@ Invité
 #11 - Bot - VbrBot
 #12 - Invité
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRole'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - Bureau - Admin
+#2 - Bureau - Président
+#3 - Bureau - Trésorier
+#4 - Bureau - Secrétaire
+#5 - Bureau - Communication
+#6 - Bureau - Autre
+#7 - Cotisant
+#8 - Cotisant saison préc
+#9 - Membre
+#10 - Bot - ProBot
+#11 - Bot - VbrBot
+#12 - Invité
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: None, refresh_cache: True) =>
 @everyone
 admin
 bureau
@@ -240,7 +472,7 @@ Ecuyer de l'assaut
 ProBot ✨
 VbrBot
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: None, refresh_cache: False) =>
 @everyone
 admin
 bureau
@@ -250,7 +482,7 @@ Ecuyer de l'assaut
 ProBot ✨
 VbrBot
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: , refresh_cache: True) =>
 @everyone
 admin
 bureau
@@ -260,7 +492,37 @@ Ecuyer de l'assaut
 ProBot ✨
 VbrBot
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.DiscordRole'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: , refresh_cache: False) =>
+@everyone
+admin
+bureau
+Chevalier de l'assaut
+Chevalier Errant
+Ecuyer de l'assaut
+ProBot ✨
+VbrBot
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: full_simple, refresh_cache: True) =>
+@everyone
+admin
+bureau
+Chevalier de l'assaut
+Chevalier Errant
+Ecuyer de l'assaut
+ProBot ✨
+VbrBot
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: full_simple, refresh_cache: False) =>
+@everyone
+admin
+bureau
+Chevalier de l'assaut
+Chevalier Errant
+Ecuyer de l'assaut
+ProBot ✨
+VbrBot
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: full_complete, refresh_cache: True) =>
 691003175037042788 - @everyone
 1430301775864270919 - admin
 1465046676988235887 - bureau
@@ -270,7 +532,17 @@ VbrBot
 1419044271595716765 - ProBot ✨
 1419010453023227968 - VbrBot
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.DiscordRole'>,), input_format: full_complete, refresh_cache: False) =>
+691003175037042788 - @everyone
+1430301775864270919 - admin
+1465046676988235887 - bureau
+1465047049081979223 - Chevalier de l'assaut
+1465047359468732638 - Chevalier Errant
+1465047502712471552 - Ecuyer de l'assaut
+1419044271595716765 - ProBot ✨
+1419010453023227968 - VbrBot
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: None, refresh_cache: True) =>
 #####
 #####
 #####
@@ -283,7 +555,7 @@ VbrBot
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: None, refresh_cache: False) =>
 #####
 #####
 #####
@@ -296,7 +568,33 @@ VbrBot
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: , refresh_cache: True) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: , refresh_cache: False) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: full_simple, refresh_cache: True) =>
 membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2019 au 31/08/2021)
 membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
 membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2020 au 31/08/2021)
@@ -309,7 +607,20 @@ membre AJ-00005 ==> asso role Bureau - Communication (du 01/09/2023 au 31/08/202
 membre AJ-00004 - @VbrBot ==> asso role Bot - VbrBot (depuis le 21/09/2025)
 membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/11/2025)
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: full_simple, refresh_cache: False) =>
+membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2019 au 31/08/2021)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
+membre AJ-00003 ==> asso role Bureau - Président (du 01/09/2020 au 31/08/2021)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2020 au 31/08/2023)
+membre AJ-00003 ==> asso role Bureau - Trésorier (du 01/09/2021 au 31/08/2023)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2021 au 31/08/2023)
+membre AJ-00005 ==> asso role Bureau - Secrétaire (du 01/09/2022 au 31/08/2023)
+membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Trésorier (depuis le 01/09/2023)
+membre AJ-00005 ==> asso role Bureau - Communication (du 01/09/2023 au 31/08/2024)
+membre AJ-00004 - @VbrBot ==> asso role Bot - VbrBot (depuis le 21/09/2025)
+membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/11/2025)
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2019 au 31/08/2021)
 #2 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
 #3 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2020 au 31/08/2021)
@@ -322,7 +633,20 @@ membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/
 #10 - membre AJ-00004 - @VbrBot ==> asso role #11 - Bot - VbrBot (depuis le 21/09/2025)
 #11 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #1 - Bureau - Admin (depuis le 01/11/2025)
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.MemberAssoRole'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2019 au 31/08/2021)
+#2 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2019 au 31/08/2023)
+#3 - membre AJ-00003 ==> asso role #2 - Bureau - Président (du 01/09/2020 au 31/08/2021)
+#4 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2020 au 31/08/2023)
+#5 - membre AJ-00003 ==> asso role #3 - Bureau - Trésorier (du 01/09/2021 au 31/08/2023)
+#6 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2021 au 31/08/2023)
+#7 - membre AJ-00005 ==> asso role #4 - Bureau - Secrétaire (du 01/09/2022 au 31/08/2023)
+#8 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #3 - Bureau - Trésorier (depuis le 01/09/2023)
+#9 - membre AJ-00005 ==> asso role #5 - Bureau - Communication (du 01/09/2023 au 31/08/2024)
+#10 - membre AJ-00004 - @VbrBot ==> asso role #11 - Bot - VbrBot (depuis le 21/09/2025)
+#11 - membre AJ-00001 - Bon Jean - @vbrett ==> asso role #1 - Bureau - Admin (depuis le 01/11/2025)
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: None, refresh_cache: True) =>
 #####
 #####
 #####
@@ -337,7 +661,7 @@ membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: None, refresh_cache: False) =>
 #####
 #####
 #####
@@ -352,7 +676,37 @@ membre AJ-00001 - Bon Jean - @vbrett ==> asso role Bureau - Admin (depuis le 01/
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: , refresh_cache: True) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: , refresh_cache: False) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: full_simple, refresh_cache: True) =>
 le role #1 est associé au role discord 1465046676988235887
 le role #1 est associé au role discord 1430301775864270919
 le role #2 est associé au role discord 1465046676988235887
@@ -367,7 +721,22 @@ le role #10 est associé au role discord 1419044271595716765
 le role #11 est associé au role discord 1419010453023227968
 le role #12 est associé au role discord 691003175037042788
 
-(input_table: <class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: full_simple, refresh_cache: False) =>
+le role #1 est associé au role discord 1465046676988235887
+le role #1 est associé au role discord 1430301775864270919
+le role #2 est associé au role discord 1465046676988235887
+le role #3 est associé au role discord 1465046676988235887
+le role #4 est associé au role discord 1465046676988235887
+le role #5 est associé au role discord 1465046676988235887
+le role #6 est associé au role discord 1465046676988235887
+le role #7 est associé au role discord 1465047049081979223
+le role #8 est associé au role discord 1465047359468732638
+le role #9 est associé au role discord 1465047502712471552
+le role #10 est associé au role discord 1419044271595716765
+le role #11 est associé au role discord 1419010453023227968
+le role #12 est associé au role discord 691003175037042788
+
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - le role #1 est associé au role discord 1465046676988235887
 #2 - le role #1 est associé au role discord 1430301775864270919
 #3 - le role #2 est associé au role discord 1465046676988235887
@@ -382,28 +751,64 @@ le role #12 est associé au role discord 691003175037042788
 #12 - le role #11 est associé au role discord 1419010453023227968
 #13 - le role #12 est associé au role discord 691003175037042788
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member.Member'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.role.AssoRoleDiscordRole'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - le role #1 est associé au role discord 1465046676988235887
+#2 - le role #1 est associé au role discord 1430301775864270919
+#3 - le role #2 est associé au role discord 1465046676988235887
+#4 - le role #3 est associé au role discord 1465046676988235887
+#5 - le role #4 est associé au role discord 1465046676988235887
+#6 - le role #5 est associé au role discord 1465046676988235887
+#7 - le role #6 est associé au role discord 1465046676988235887
+#8 - le role #7 est associé au role discord 1465047049081979223
+#9 - le role #8 est associé au role discord 1465047359468732638
+#10 - le role #9 est associé au role discord 1465047502712471552
+#11 - le role #10 est associé au role discord 1419044271595716765
+#12 - le role #11 est associé au role discord 1419010453023227968
+#13 - le role #12 est associé au role discord 691003175037042788
+
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: None, refresh_cache: True) =>
 AJ-00001 - Jean - @vbrett
 AJ-00002 - Marie - @AjBot
 AJ-00003
 AJ-00004 - @VbrBot
 AJ-00005
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member.Member'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: None, refresh_cache: False) =>
 AJ-00001 - Jean - @vbrett
 AJ-00002 - Marie - @AjBot
 AJ-00003
 AJ-00004 - @VbrBot
 AJ-00005
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member.Member'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: , refresh_cache: True) =>
+AJ-00001 - Jean - @vbrett
+AJ-00002 - Marie - @AjBot
+AJ-00003
+AJ-00004 - @VbrBot
+AJ-00005
+
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: , refresh_cache: False) =>
+AJ-00001 - Jean - @vbrett
+AJ-00002 - Marie - @AjBot
+AJ-00003
+AJ-00004 - @VbrBot
+AJ-00005
+
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: full_simple, refresh_cache: True) =>
 AJ-00001 - Bon Jean - @vbrett
 AJ-00002 - Dupont Marie - @AjBot
 AJ-00003
 AJ-00004 - @VbrBot
 AJ-00005
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member.Member'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: full_simple, refresh_cache: False) =>
+AJ-00001 - Bon Jean - @vbrett
+AJ-00002 - Dupont Marie - @AjBot
+AJ-00003
+AJ-00004 - @VbrBot
+AJ-00005
+
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: full_complete, refresh_cache: True) =>
 AJ-00001
     #1 - Bon Jean 01/01/1997
     @vbrett
@@ -431,107 +836,235 @@ AJ-00005
     role: #8 - Cotisant saison préc
     non cotisant, 0 participation(s) cette saison.
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Credential'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member.Member'>,), input_format: full_complete, refresh_cache: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00003
+    role: #8 - Cotisant saison préc
+    non cotisant, 0 participation(s) cette saison.
+AJ-00004
+    @VbrBot
+    role: #11 - Bot - VbrBot
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    non cotisant, 0 participation(s) cette saison.
+AJ-00005
+    role: #8 - Cotisant saison préc
+    non cotisant, 0 participation(s) cette saison.
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: None, refresh_cache: True) =>
 Jean
 Marie
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Credential'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: None, refresh_cache: False) =>
 Jean
 Marie
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Credential'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: , refresh_cache: True) =>
+Jean
+Marie
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: , refresh_cache: False) =>
+Jean
+Marie
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: full_simple, refresh_cache: True) =>
 Bon Jean
 Dupont Marie
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Credential'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: full_simple, refresh_cache: False) =>
+Bon Jean
+Dupont Marie
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - Bon Jean 01/01/1997
 #2 - Dupont Marie 02/08/1980
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Email'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Credential'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - Bon Jean 01/01/1997
+#2 - Dupont Marie 02/08/1980
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: None, refresh_cache: True) =>
 xxxxxx@yyyy.zzz
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Email'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: None, refresh_cache: False) =>
 xxxxxx@yyyy.zzz
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Email'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: , refresh_cache: True) =>
+xxxxxx@yyyy.zzz
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: , refresh_cache: False) =>
+xxxxxx@yyyy.zzz
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: full_simple, refresh_cache: True) =>
 jean.bon@porci.net
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Email'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: full_simple, refresh_cache: False) =>
+jean.bon@porci.net
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - jean.bon@porci.net
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Phone'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Email'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - jean.bon@porci.net
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: None, refresh_cache: True) =>
 (+33)XXXXXXXXX
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Phone'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: None, refresh_cache: False) =>
 (+33)XXXXXXXXX
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Phone'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: , refresh_cache: True) =>
+(+33)XXXXXXXXX
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: , refresh_cache: False) =>
+(+33)XXXXXXXXX
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: full_simple, refresh_cache: True) =>
 (+33)601020304
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.Phone'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: full_simple, refresh_cache: False) =>
+(+33)601020304
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - (+33)601020304
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.Phone'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - (+33)601020304
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: None, refresh_cache: True) =>
 Ailleurs
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: None, refresh_cache: False) =>
 Ailleurs
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: , refresh_cache: True) =>
+Ailleurs
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: , refresh_cache: False) =>
+Ailleurs
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: full_simple, refresh_cache: True) =>
 1 rue de l'abatoir 12345 Ailleurs Appt 2
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: full_simple, refresh_cache: False) =>
+1 rue de l'abatoir 12345 Ailleurs Appt 2
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.PostalAddress'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: None, refresh_cache: True) =>
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: None, refresh_cache: False) =>
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: , refresh_cache: True) =>
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: , refresh_cache: False) =>
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: full_simple, refresh_cache: True) =>
 membre AJ-00004, adresse #1
 membre AJ-00001, adresse #1
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: full_simple, refresh_cache: False) =>
+membre AJ-00004, adresse #1
+membre AJ-00001, adresse #1
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - membre AJ-00004, adresse #1
 #2 - membre AJ-00001, adresse #1
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberAddress'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - membre AJ-00004, adresse #1
+#2 - membre AJ-00001, adresse #1
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: None, refresh_cache: True) =>
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: None, refresh_cache: False) =>
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: , refresh_cache: True) =>
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: , refresh_cache: False) =>
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: full_simple, refresh_cache: True) =>
 membre AJ-00001, email #1
 membre AJ-00004, email #1
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: full_simple, refresh_cache: False) =>
+membre AJ-00001, email #1
+membre AJ-00004, email #1
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - membre AJ-00001, email #1
 #2 - membre AJ-00004, email #1
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberEmail'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - membre AJ-00001, email #1
+#2 - membre AJ-00004, email #1
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: None, refresh_cache: True) =>
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: None, refresh_cache: False) =>
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: , refresh_cache: True) =>
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: , refresh_cache: False) =>
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: full_simple, refresh_cache: True) =>
 membre AJ-00001, téléphone #1
 membre AJ-00002, téléphone #1
 
-(input_table: <class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: full_simple, refresh_cache: False) =>
+membre AJ-00001, téléphone #1
+membre AJ-00002, téléphone #1
+
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - membre AJ-00001, téléphone #1
 #2 - membre AJ-00002, téléphone #1
 
-(input_table: <class 'ajbot._internal.ajdb.tables.membership.Membership'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.member_private.MemberPhone'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - membre AJ-00001, téléphone #1
+#2 - membre AJ-00002, téléphone #1
+
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: None, refresh_cache: True) =>
 ****
 ****
 ****
@@ -555,7 +1088,7 @@ membre AJ-00002, téléphone #1
 ****
 ****
 
-(input_table: <class 'ajbot._internal.ajdb.tables.membership.Membership'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: None, refresh_cache: False) =>
 ****
 ****
 ****
@@ -579,7 +1112,55 @@ membre AJ-00002, téléphone #1
 ****
 ****
 
-(input_table: <class 'ajbot._internal.ajdb.tables.membership.Membership'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: , refresh_cache: True) =>
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: , refresh_cache: False) =>
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+****
+
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: full_simple, refresh_cache: True) =>
 membre AJ-00005 pour la **saison 2015-2016 du 01/01/2016 au 31/08/2016**
     cotisé le 07/06/2016
     - statuts __**non**__ acceptés
@@ -691,7 +1272,119 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
     - assurance civile __**non**__ fournie
     - droit à l'image __**non**__ accordé
 
-(input_table: <class 'ajbot._internal.ajdb.tables.membership.Membership'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: full_simple, refresh_cache: False) =>
+membre AJ-00005 pour la **saison 2015-2016 du 01/01/2016 au 31/08/2016**
+    cotisé le 07/06/2016
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00003 pour la **saison 2016-2017 du 01/09/2016 au 31/08/2017**
+    cotisé le 14/10/2016
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00003 pour la **saison 2017-2018 du 01/09/2017 au 31/08/2018**
+    cotisé le 05/09/2017
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00005 pour la **saison 2017-2018 du 01/09/2017 au 31/08/2018**
+    cotisé le 05/09/2017
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00005 pour la **saison 2018-2019 du 01/09/2018 au 31/08/2019**
+    cotisé le 04/09/2018
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00003 pour la **saison 2018-2019 du 01/09/2018 au 31/08/2019**
+    cotisé le 07/09/2018
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00003 pour la **saison 2019-2020 du 01/09/2019 au 31/08/2020**
+    cotisé le 01/09/2019
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00005 pour la **saison 2019-2020 du 01/09/2019 au 31/08/2020**
+    cotisé le 01/09/2019
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2019-2020 du 01/09/2019 au 31/08/2020**
+    cotisé le 20/09/2019
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2020-2021 du 01/09/2020 au 31/08/2021**
+    cotisé le 01/09/2020
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00003 pour la **saison 2020-2021 du 01/09/2020 au 31/08/2021**
+    cotisé le 01/09/2020
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00005 pour la **saison 2020-2021 du 01/09/2020 au 31/08/2021**
+    cotisé le 01/09/2020
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2021-2022 du 01/09/2021 au 31/08/2022**
+    cotisé le 01/09/2021
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00003 pour la **saison 2021-2022 du 01/09/2021 au 31/08/2022**
+    cotisé le 01/09/2021
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00005 pour la **saison 2021-2022 du 01/09/2021 au 31/08/2022**
+    cotisé le 01/09/2021
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2022-2023 du 01/09/2022 au 31/08/2023**
+    cotisé le 01/09/2022
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00005 pour la **saison 2022-2023 du 01/09/2022 au 31/08/2023**
+    cotisé le 01/09/2022
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2023-2024 du 01/09/2023 au 31/08/2024**
+    cotisé le 30/09/2023
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2024-2025 du 01/09/2024 au 31/08/2025**
+    cotisé le 06/09/2024
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00002 - Dupont Marie - @AjBot pour la **saison 2024-2025 du 01/09/2024 au 31/08/2025**
+    cotisé le 01/11/2024
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00002 - Dupont Marie - @AjBot pour la **saison 2025-2026 (en cours) du 01/09/2025 au 31/08/2026**
+    cotisé le 05/09/2025
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01/09/2025 au 31/08/2026**
+    cotisé le 13/09/2025
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - membre AJ-00005 pour la **saison #1 2015-2016 du 01/01/2016 au 31/08/2016**
     cotisé le 07/06/2016
     - statuts __**non**__ acceptés
@@ -803,7 +1496,119 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
     - assurance civile __**non**__ fournie
     - droit à l'image __**non**__ accordé
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.Event'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.membership.Membership'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - membre AJ-00005 pour la **saison #1 2015-2016 du 01/01/2016 au 31/08/2016**
+    cotisé le 07/06/2016
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#2 - membre AJ-00003 pour la **saison #2 2016-2017 du 01/09/2016 au 31/08/2017**
+    cotisé le 14/10/2016
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#3 - membre AJ-00003 pour la **saison #3 2017-2018 du 01/09/2017 au 31/08/2018**
+    cotisé le 05/09/2017
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#4 - membre AJ-00005 pour la **saison #3 2017-2018 du 01/09/2017 au 31/08/2018**
+    cotisé le 05/09/2017
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#5 - membre AJ-00005 pour la **saison #4 2018-2019 du 01/09/2018 au 31/08/2019**
+    cotisé le 04/09/2018
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#6 - membre AJ-00003 pour la **saison #4 2018-2019 du 01/09/2018 au 31/08/2019**
+    cotisé le 07/09/2018
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#7 - membre AJ-00003 pour la **saison #5 2019-2020 du 01/09/2019 au 31/08/2020**
+    cotisé le 01/09/2019
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#8 - membre AJ-00005 pour la **saison #5 2019-2020 du 01/09/2019 au 31/08/2020**
+    cotisé le 01/09/2019
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#9 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #5 2019-2020 du 01/09/2019 au 31/08/2020**
+    cotisé le 20/09/2019
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#10 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #6 2020-2021 du 01/09/2020 au 31/08/2021**
+    cotisé le 01/09/2020
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#11 - membre AJ-00003 pour la **saison #6 2020-2021 du 01/09/2020 au 31/08/2021**
+    cotisé le 01/09/2020
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#12 - membre AJ-00005 pour la **saison #6 2020-2021 du 01/09/2020 au 31/08/2021**
+    cotisé le 01/09/2020
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#13 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #7 2021-2022 du 01/09/2021 au 31/08/2022**
+    cotisé le 01/09/2021
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#14 - membre AJ-00003 pour la **saison #7 2021-2022 du 01/09/2021 au 31/08/2022**
+    cotisé le 01/09/2021
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#15 - membre AJ-00005 pour la **saison #7 2021-2022 du 01/09/2021 au 31/08/2022**
+    cotisé le 01/09/2021
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#16 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #8 2022-2023 du 01/09/2022 au 31/08/2023**
+    cotisé le 01/09/2022
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#17 - membre AJ-00005 pour la **saison #8 2022-2023 du 01/09/2022 au 31/08/2023**
+    cotisé le 01/09/2022
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#18 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #9 2023-2024 du 01/09/2023 au 31/08/2024**
+    cotisé le 30/09/2023
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#19 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #10 2024-2025 du 01/09/2024 au 31/08/2025**
+    cotisé le 06/09/2024
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#20 - membre AJ-00002 - Dupont Marie - @AjBot pour la **saison #10 2024-2025 du 01/09/2024 au 31/08/2025**
+    cotisé le 01/11/2024
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#21 - membre AJ-00002 - Dupont Marie - @AjBot pour la **saison #11 2025-2026 (en cours) du 01/09/2025 au 31/08/2026**
+    cotisé le 05/09/2025
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+#22 - membre AJ-00001 - Bon Jean - @vbrett pour la **saison #11 2025-2026 (en cours) du 01/09/2025 au 31/08/2026**
+    cotisé le 13/09/2025
+    - statuts __**non**__ acceptés
+    - assurance civile __**non**__ fournie
+    - droit à l'image __**non**__ accordé
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: None, refresh_cache: True) =>
 08/09/2019 - Forum associations 2019
 03/09/2023 - Forum associations 2023
 15/09/2023
@@ -897,7 +1702,7 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 19/12/2025
 09/01/2026 - Epiphanie 2026
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.Event'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: None, refresh_cache: False) =>
 08/09/2019 - Forum associations 2019
 03/09/2023 - Forum associations 2023
 15/09/2023
@@ -991,7 +1796,195 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 19/12/2025
 09/01/2026 - Epiphanie 2026
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.Event'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: , refresh_cache: True) =>
+08/09/2019 - Forum associations 2019
+03/09/2023 - Forum associations 2023
+15/09/2023
+22/09/2023
+29/09/2023
+06/10/2023
+13/10/2023
+20/10/2023
+10/11/2023
+17/11/2023
+24/11/2023
+01/12/2023
+08/12/2023
+15/12/2023
+22/12/2023
+12/01/2024 - Epiphanie 2024
+19/01/2024
+26/01/2024
+02/02/2024
+09/02/2024
+16/02/2024
+23/02/2024
+01/03/2024
+08/03/2024
+15/03/2024
+22/03/2024
+29/03/2024
+05/04/2024
+12/04/2024
+24/05/2024
+31/05/2024
+07/06/2024
+01/09/2024 - Forum associations 2024
+06/09/2024
+13/09/2024
+20/09/2024
+27/09/2024
+04/10/2024
+11/10/2024
+18/10/2024
+01/11/2024
+08/11/2024
+15/11/2024
+22/11/2024
+29/11/2024
+06/12/2024
+13/12/2024
+20/12/2024
+03/01/2025
+10/01/2025 - Epiphanie 2025
+17/01/2025
+24/01/2025
+31/01/2025
+07/02/2025
+14/02/2025
+21/02/2025
+28/02/2025
+07/03/2025
+14/03/2025
+21/03/2025 - Soirée Jeux Duo
+28/03/2025
+04/04/2025
+11/04/2025
+18/04/2025
+25/04/2025
+02/05/2025
+09/05/2025
+16/05/2025
+30/05/2025
+06/06/2025
+13/06/2025
+20/06/2025
+27/06/2025 - Assemblée Générale 2025
+04/07/2025
+05/09/2025
+07/09/2025 - Forum associations 2025
+12/09/2025
+19/09/2025
+26/09/2025
+03/10/2025
+10/10/2025
+17/10/2025
+24/10/2025
+31/10/2025 - Soirée Jeux Halloween
+07/11/2025
+14/11/2025
+21/11/2025
+28/11/2025
+05/12/2025
+12/12/2025
+19/12/2025
+09/01/2026 - Epiphanie 2026
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: , refresh_cache: False) =>
+08/09/2019 - Forum associations 2019
+03/09/2023 - Forum associations 2023
+15/09/2023
+22/09/2023
+29/09/2023
+06/10/2023
+13/10/2023
+20/10/2023
+10/11/2023
+17/11/2023
+24/11/2023
+01/12/2023
+08/12/2023
+15/12/2023
+22/12/2023
+12/01/2024 - Epiphanie 2024
+19/01/2024
+26/01/2024
+02/02/2024
+09/02/2024
+16/02/2024
+23/02/2024
+01/03/2024
+08/03/2024
+15/03/2024
+22/03/2024
+29/03/2024
+05/04/2024
+12/04/2024
+24/05/2024
+31/05/2024
+07/06/2024
+01/09/2024 - Forum associations 2024
+06/09/2024
+13/09/2024
+20/09/2024
+27/09/2024
+04/10/2024
+11/10/2024
+18/10/2024
+01/11/2024
+08/11/2024
+15/11/2024
+22/11/2024
+29/11/2024
+06/12/2024
+13/12/2024
+20/12/2024
+03/01/2025
+10/01/2025 - Epiphanie 2025
+17/01/2025
+24/01/2025
+31/01/2025
+07/02/2025
+14/02/2025
+21/02/2025
+28/02/2025
+07/03/2025
+14/03/2025
+21/03/2025 - Soirée Jeux Duo
+28/03/2025
+04/04/2025
+11/04/2025
+18/04/2025
+25/04/2025
+02/05/2025
+09/05/2025
+16/05/2025
+30/05/2025
+06/06/2025
+13/06/2025
+20/06/2025
+27/06/2025 - Assemblée Générale 2025
+04/07/2025
+05/09/2025
+07/09/2025 - Forum associations 2025
+12/09/2025
+19/09/2025
+26/09/2025
+03/10/2025
+10/10/2025
+17/10/2025
+24/10/2025
+31/10/2025 - Soirée Jeux Halloween
+07/11/2025
+14/11/2025
+21/11/2025
+28/11/2025
+05/12/2025
+12/12/2025
+19/12/2025
+09/01/2026 - Epiphanie 2026
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: full_simple, refresh_cache: True) =>
 08/09/2019 - Forum associations 2019 - saison 2019-2020 - 0 participant(s)
 03/09/2023 - Forum associations 2023 - saison 2023-2024 - 0 participant(s)
 15/09/2023 - saison 2023-2024 - 1 participant(s)
@@ -1085,7 +2078,101 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 19/12/2025 - saison 2025-2026 - 1 participant(s)
 09/01/2026 - Epiphanie 2026 - saison 2025-2026 - 2 participant(s)
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.Event'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: full_simple, refresh_cache: False) =>
+08/09/2019 - Forum associations 2019 - saison 2019-2020 - 0 participant(s)
+03/09/2023 - Forum associations 2023 - saison 2023-2024 - 0 participant(s)
+15/09/2023 - saison 2023-2024 - 1 participant(s)
+22/09/2023 - saison 2023-2024 - 2 participant(s)
+29/09/2023 - saison 2023-2024 - 1 participant(s)
+06/10/2023 - saison 2023-2024 - 1 participant(s)
+13/10/2023 - saison 2023-2024 - 1 participant(s)
+20/10/2023 - saison 2023-2024 - 1 participant(s)
+10/11/2023 - saison 2023-2024 - 1 participant(s)
+17/11/2023 - saison 2023-2024 - 1 participant(s)
+24/11/2023 - saison 2023-2024 - 1 participant(s)
+01/12/2023 - saison 2023-2024 - 1 participant(s)
+08/12/2023 - saison 2023-2024 - 1 participant(s)
+15/12/2023 - saison 2023-2024 - 1 participant(s)
+22/12/2023 - saison 2023-2024 - 1 participant(s)
+12/01/2024 - Epiphanie 2024 - saison 2023-2024 - 1 participant(s)
+19/01/2024 - saison 2023-2024 - 1 participant(s)
+26/01/2024 - saison 2023-2024 - 1 participant(s)
+02/02/2024 - saison 2023-2024 - 1 participant(s)
+09/02/2024 - saison 2023-2024 - 1 participant(s)
+16/02/2024 - saison 2023-2024 - 1 participant(s)
+23/02/2024 - saison 2023-2024 - 5 participant(s)
+01/03/2024 - saison 2023-2024 - 1 participant(s)
+08/03/2024 - saison 2023-2024 - 2 participant(s)
+15/03/2024 - saison 2023-2024 - 1 participant(s)
+22/03/2024 - saison 2023-2024 - 1 participant(s)
+29/03/2024 - saison 2023-2024 - 2 participant(s)
+05/04/2024 - saison 2023-2024 - 1 participant(s)
+12/04/2024 - saison 2023-2024 - 1 participant(s)
+24/05/2024 - saison 2023-2024 - 1 participant(s)
+31/05/2024 - saison 2023-2024 - 1 participant(s)
+07/06/2024 - saison 2023-2024 - 1 participant(s)
+01/09/2024 - Forum associations 2024 - saison 2024-2025 - 0 participant(s)
+06/09/2024 - saison 2024-2025 - 1 participant(s)
+13/09/2024 - saison 2024-2025 - 1 participant(s)
+20/09/2024 - saison 2024-2025 - 2 participant(s)
+27/09/2024 - saison 2024-2025 - 1 participant(s)
+04/10/2024 - saison 2024-2025 - 2 participant(s)
+11/10/2024 - saison 2024-2025 - 1 participant(s)
+18/10/2024 - saison 2024-2025 - 1 participant(s)
+01/11/2024 - saison 2024-2025 - 2 participant(s)
+08/11/2024 - saison 2024-2025 - 2 participant(s)
+15/11/2024 - saison 2024-2025 - 3 participant(s)
+22/11/2024 - saison 2024-2025 - 1 participant(s)
+29/11/2024 - saison 2024-2025 - 2 participant(s)
+06/12/2024 - saison 2024-2025 - 1 participant(s)
+13/12/2024 - saison 2024-2025 - 1 participant(s)
+20/12/2024 - saison 2024-2025 - 1 participant(s)
+03/01/2025 - saison 2024-2025 - 2 participant(s)
+10/01/2025 - Epiphanie 2025 - saison 2024-2025 - 2 participant(s)
+17/01/2025 - saison 2024-2025 - 1 participant(s)
+24/01/2025 - saison 2024-2025 - 1 participant(s)
+31/01/2025 - saison 2024-2025 - 1 participant(s)
+07/02/2025 - saison 2024-2025 - 2 participant(s)
+14/02/2025 - saison 2024-2025 - 1 participant(s)
+21/02/2025 - saison 2024-2025 - 1 participant(s)
+28/02/2025 - saison 2024-2025 - 1 participant(s)
+07/03/2025 - saison 2024-2025 - 2 participant(s)
+14/03/2025 - saison 2024-2025 - 1 participant(s)
+21/03/2025 - Soirée Jeux Duo - saison 2024-2025 - 2 participant(s)
+28/03/2025 - saison 2024-2025 - 2 participant(s)
+04/04/2025 - saison 2024-2025 - 2 participant(s)
+11/04/2025 - saison 2024-2025 - 1 participant(s)
+18/04/2025 - saison 2024-2025 - 1 participant(s)
+25/04/2025 - saison 2024-2025 - 1 participant(s)
+02/05/2025 - saison 2024-2025 - 1 participant(s)
+09/05/2025 - saison 2024-2025 - 1 participant(s)
+16/05/2025 - saison 2024-2025 - 2 participant(s)
+30/05/2025 - saison 2024-2025 - 2 participant(s)
+06/06/2025 - saison 2024-2025 - 1 participant(s)
+13/06/2025 - saison 2024-2025 - 1 participant(s)
+20/06/2025 - saison 2024-2025 - 1 participant(s)
+27/06/2025 - Assemblée Générale 2025 - saison 2024-2025 - 2 participant(s)
+04/07/2025 - saison 2024-2025 - 1 participant(s)
+05/09/2025 - saison 2025-2026 - 2 participant(s)
+07/09/2025 - Forum associations 2025 - saison 2025-2026 - 0 participant(s)
+12/09/2025 - saison 2025-2026 - 1 participant(s)
+19/09/2025 - saison 2025-2026 - 2 participant(s)
+26/09/2025 - saison 2025-2026 - 1 participant(s)
+03/10/2025 - saison 2025-2026 - 1 participant(s)
+10/10/2025 - saison 2025-2026 - 2 participant(s)
+17/10/2025 - saison 2025-2026 - 2 participant(s)
+24/10/2025 - saison 2025-2026 - 1 participant(s)
+31/10/2025 - Soirée Jeux Halloween - saison 2025-2026 - 2 participant(s)
+07/11/2025 - saison 2025-2026 - 1 participant(s)
+14/11/2025 - saison 2025-2026 - 1 participant(s)
+21/11/2025 - saison 2025-2026 - 2 participant(s)
+28/11/2025 - saison 2025-2026 - 1 participant(s)
+05/12/2025 - saison 2025-2026 - 2 participant(s)
+12/12/2025 - saison 2025-2026 - 2 participant(s)
+19/12/2025 - saison 2025-2026 - 1 participant(s)
+09/01/2026 - Epiphanie 2026 - saison 2025-2026 - 2 participant(s)
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: full_complete, refresh_cache: True) =>
 #1 - 08/09/2019 - Forum associations 2019 - saison 2019-2020 - 0 participant(s) ()
 #2 - 03/09/2023 - Forum associations 2023 - saison 2023-2024 - 0 participant(s) ()
 #3 - 15/09/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
@@ -1179,7 +2266,101 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 #91 - 19/12/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
 #92 - 09/01/2026 - Epiphanie 2026 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.MemberEvent'>, input_format: None) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.Event'>,), input_format: full_complete, refresh_cache: False) =>
+#1 - 08/09/2019 - Forum associations 2019 - saison 2019-2020 - 0 participant(s) ()
+#2 - 03/09/2023 - Forum associations 2023 - saison 2023-2024 - 0 participant(s) ()
+#3 - 15/09/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#4 - 22/09/2023 - saison 2023-2024 - 2 participant(s) (AJ-00001, inconnu(e))
+#5 - 29/09/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#6 - 06/10/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#7 - 13/10/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#8 - 20/10/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#9 - 10/11/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#10 - 17/11/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#11 - 24/11/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#12 - 01/12/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#13 - 08/12/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#14 - 15/12/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#15 - 22/12/2023 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#16 - 12/01/2024 - Epiphanie 2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#17 - 19/01/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#18 - 26/01/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#19 - 02/02/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#20 - 09/02/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#21 - 16/02/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#22 - 23/02/2024 - saison 2023-2024 - 5 participant(s) (inconnu(e), inconnu(e), inconnu(e), inconnu(e), inconnu(e))
+#23 - 01/03/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#24 - 08/03/2024 - saison 2023-2024 - 2 participant(s) (AJ-00001, inconnu(e))
+#25 - 15/03/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#26 - 22/03/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#27 - 29/03/2024 - saison 2023-2024 - 2 participant(s) (AJ-00001, inconnu(e))
+#28 - 05/04/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#29 - 12/04/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#30 - 24/05/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#31 - 31/05/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#32 - 07/06/2024 - saison 2023-2024 - 1 participant(s) (AJ-00001)
+#33 - 01/09/2024 - Forum associations 2024 - saison 2024-2025 - 0 participant(s) ()
+#34 - 06/09/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#35 - 13/09/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#36 - 20/09/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#37 - 27/09/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#38 - 04/10/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#39 - 11/10/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#40 - 18/10/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#41 - 01/11/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#42 - 08/11/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#43 - 15/11/2024 - saison 2024-2025 - 3 participant(s) (AJ-00001, AJ-00002, AJ-00005)
+#44 - 22/11/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#45 - 29/11/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#46 - 06/12/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#47 - 13/12/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#48 - 20/12/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#49 - 03/01/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#50 - 10/01/2025 - Epiphanie 2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#51 - 17/01/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#52 - 24/01/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#53 - 31/01/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#54 - 07/02/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#55 - 14/02/2025 - saison 2024-2025 - 1 participant(s) (AJ-00002)
+#56 - 21/02/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#57 - 28/02/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#58 - 07/03/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#59 - 14/03/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#60 - 21/03/2025 - Soirée Jeux Duo - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#61 - 28/03/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#62 - 04/04/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#63 - 11/04/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#64 - 18/04/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#65 - 25/04/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#66 - 02/05/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#67 - 09/05/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#68 - 16/05/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#69 - 30/05/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#70 - 06/06/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#71 - 13/06/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#72 - 20/06/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#73 - 27/06/2025 - Assemblée Générale 2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#74 - 04/07/2025 - saison 2024-2025 - 1 participant(s) (AJ-00002)
+#75 - 05/09/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#76 - 07/09/2025 - Forum associations 2025 - saison 2025-2026 - 0 participant(s) ()
+#77 - 12/09/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#78 - 19/09/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#79 - 26/09/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#80 - 03/10/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#81 - 10/10/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#82 - 17/10/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#83 - 24/10/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#84 - 31/10/2025 - Soirée Jeux Halloween - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#85 - 07/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#86 - 14/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#87 - 21/11/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#88 - 28/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#89 - 05/12/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#90 - 12/12/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#91 - 19/12/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#92 - 09/01/2026 - Epiphanie 2026 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: None, refresh_cache: True) =>
 #####
 #####
 #####
@@ -1302,7 +2483,7 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.MemberEvent'>, input_format: ) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: None, refresh_cache: False) =>
 #####
 #####
 #####
@@ -1425,7 +2606,253 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 #####
 #####
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.MemberEvent'>, input_format: full_simple) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: , refresh_cache: True) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: , refresh_cache: False) =>
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+#####
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: full_simple, refresh_cache: True) =>
 évènement #3, membre AJ-00001
 évènement #4, membre AJ-00001
 évènement #4, membre None
@@ -1548,7 +2975,253 @@ membre AJ-00001 - Bon Jean - @vbrett pour la **saison 2025-2026 (en cours) du 01
 évènement #92, membre AJ-00001
 évènement #92, membre AJ-00002
 
-(input_table: <class 'ajbot._internal.ajdb.tables.event.MemberEvent'>, input_format: full_complete) =>
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: full_simple, refresh_cache: False) =>
+évènement #3, membre AJ-00001
+évènement #4, membre AJ-00001
+évènement #4, membre None
+évènement #5, membre AJ-00001
+évènement #6, membre AJ-00001
+évènement #7, membre AJ-00001
+évènement #8, membre AJ-00001
+évènement #9, membre AJ-00001
+évènement #10, membre AJ-00001
+évènement #11, membre AJ-00001
+évènement #12, membre AJ-00001
+évènement #13, membre AJ-00001
+évènement #14, membre AJ-00001
+évènement #15, membre AJ-00001
+évènement #16, membre AJ-00001
+évènement #17, membre AJ-00001
+évènement #18, membre AJ-00001
+évènement #19, membre AJ-00001
+évènement #20, membre AJ-00001
+évènement #21, membre AJ-00001
+évènement #22, membre None
+évènement #22, membre None
+évènement #22, membre None
+évènement #22, membre None
+évènement #22, membre None
+évènement #23, membre AJ-00001
+évènement #24, membre AJ-00001
+évènement #24, membre None
+évènement #25, membre AJ-00001
+évènement #26, membre AJ-00001
+évènement #27, membre AJ-00001
+évènement #27, membre None
+évènement #28, membre AJ-00001
+évènement #29, membre AJ-00001
+évènement #30, membre AJ-00001
+évènement #31, membre AJ-00001
+évènement #32, membre AJ-00001
+évènement #34, membre AJ-00001
+évènement #35, membre AJ-00001
+évènement #36, membre AJ-00001
+évènement #36, membre AJ-00002
+évènement #37, membre AJ-00001
+évènement #38, membre AJ-00001
+évènement #38, membre AJ-00002
+évènement #39, membre AJ-00001
+évènement #40, membre AJ-00001
+évènement #41, membre AJ-00001
+évènement #41, membre AJ-00002
+évènement #42, membre AJ-00001
+évènement #42, membre AJ-00002
+évènement #43, membre AJ-00001
+évènement #43, membre AJ-00002
+évènement #43, membre AJ-00005
+évènement #44, membre AJ-00001
+évènement #45, membre AJ-00001
+évènement #45, membre AJ-00002
+évènement #46, membre AJ-00001
+évènement #47, membre AJ-00001
+évènement #48, membre AJ-00001
+évènement #49, membre AJ-00001
+évènement #49, membre AJ-00002
+évènement #50, membre AJ-00001
+évènement #50, membre AJ-00002
+évènement #51, membre AJ-00001
+évènement #52, membre AJ-00001
+évènement #53, membre AJ-00001
+évènement #54, membre AJ-00001
+évènement #54, membre AJ-00002
+évènement #55, membre AJ-00002
+évènement #56, membre AJ-00001
+évènement #57, membre AJ-00001
+évènement #58, membre AJ-00001
+évènement #58, membre AJ-00002
+évènement #59, membre AJ-00001
+évènement #60, membre AJ-00001
+évènement #60, membre AJ-00002
+évènement #61, membre AJ-00001
+évènement #61, membre AJ-00002
+évènement #62, membre AJ-00001
+évènement #62, membre AJ-00002
+évènement #63, membre AJ-00001
+évènement #64, membre AJ-00001
+évènement #65, membre AJ-00001
+évènement #66, membre AJ-00001
+évènement #67, membre AJ-00001
+évènement #68, membre AJ-00001
+évènement #68, membre AJ-00002
+évènement #69, membre AJ-00001
+évènement #69, membre AJ-00002
+évènement #70, membre AJ-00001
+évènement #71, membre AJ-00001
+évènement #72, membre AJ-00001
+évènement #73, membre AJ-00001
+évènement #73, membre AJ-00002
+évènement #74, membre AJ-00002
+évènement #75, membre AJ-00001
+évènement #75, membre AJ-00002
+évènement #77, membre AJ-00001
+évènement #78, membre AJ-00001
+évènement #78, membre AJ-00002
+évènement #79, membre AJ-00001
+évènement #80, membre AJ-00001
+évènement #81, membre AJ-00001
+évènement #81, membre AJ-00002
+évènement #82, membre AJ-00001
+évènement #82, membre AJ-00002
+évènement #83, membre AJ-00001
+évènement #84, membre AJ-00001
+évènement #84, membre AJ-00002
+évènement #85, membre AJ-00001
+évènement #86, membre AJ-00001
+évènement #87, membre AJ-00001
+évènement #87, membre AJ-00002
+évènement #88, membre AJ-00001
+évènement #89, membre AJ-00001
+évènement #89, membre AJ-00002
+évènement #90, membre AJ-00001
+évènement #90, membre AJ-00002
+évènement #91, membre AJ-00001
+évènement #92, membre AJ-00001
+évènement #92, membre AJ-00002
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: full_complete, refresh_cache: True) =>
+#1 - évènement #3, membre AJ-00001
+#2 - évènement #4, membre AJ-00001
+#3 - évènement #4, membre None
+#4 - évènement #5, membre AJ-00001
+#5 - évènement #6, membre AJ-00001
+#6 - évènement #7, membre AJ-00001
+#7 - évènement #8, membre AJ-00001
+#8 - évènement #9, membre AJ-00001
+#9 - évènement #10, membre AJ-00001
+#10 - évènement #11, membre AJ-00001
+#11 - évènement #12, membre AJ-00001
+#12 - évènement #13, membre AJ-00001
+#13 - évènement #14, membre AJ-00001
+#14 - évènement #15, membre AJ-00001
+#15 - évènement #16, membre AJ-00001
+#16 - évènement #17, membre AJ-00001
+#17 - évènement #18, membre AJ-00001
+#18 - évènement #19, membre AJ-00001
+#19 - évènement #20, membre AJ-00001
+#20 - évènement #21, membre AJ-00001
+#21 - évènement #22, membre None
+#22 - évènement #22, membre None
+#23 - évènement #22, membre None
+#24 - évènement #22, membre None
+#25 - évènement #22, membre None
+#26 - évènement #23, membre AJ-00001
+#27 - évènement #24, membre AJ-00001
+#28 - évènement #24, membre None
+#29 - évènement #25, membre AJ-00001
+#30 - évènement #26, membre AJ-00001
+#31 - évènement #27, membre AJ-00001
+#32 - évènement #27, membre None
+#33 - évènement #28, membre AJ-00001
+#34 - évènement #29, membre AJ-00001
+#35 - évènement #30, membre AJ-00001
+#36 - évènement #31, membre AJ-00001
+#37 - évènement #32, membre AJ-00001
+#38 - évènement #34, membre AJ-00001
+#39 - évènement #35, membre AJ-00001
+#40 - évènement #36, membre AJ-00001
+#41 - évènement #36, membre AJ-00002
+#42 - évènement #37, membre AJ-00001
+#43 - évènement #38, membre AJ-00001
+#44 - évènement #38, membre AJ-00002
+#45 - évènement #39, membre AJ-00001
+#46 - évènement #40, membre AJ-00001
+#47 - évènement #41, membre AJ-00001
+#48 - évènement #41, membre AJ-00002
+#49 - évènement #42, membre AJ-00001
+#50 - évènement #42, membre AJ-00002
+#51 - évènement #43, membre AJ-00001
+#52 - évènement #43, membre AJ-00002
+#53 - évènement #43, membre AJ-00005
+#54 - évènement #44, membre AJ-00001
+#55 - évènement #45, membre AJ-00001
+#56 - évènement #45, membre AJ-00002
+#57 - évènement #46, membre AJ-00001
+#58 - évènement #47, membre AJ-00001
+#59 - évènement #48, membre AJ-00001
+#60 - évènement #49, membre AJ-00001
+#61 - évènement #49, membre AJ-00002
+#62 - évènement #50, membre AJ-00001
+#63 - évènement #50, membre AJ-00002
+#64 - évènement #51, membre AJ-00001
+#65 - évènement #52, membre AJ-00001
+#66 - évènement #53, membre AJ-00001
+#67 - évènement #54, membre AJ-00001
+#68 - évènement #54, membre AJ-00002
+#69 - évènement #55, membre AJ-00002
+#70 - évènement #56, membre AJ-00001
+#71 - évènement #57, membre AJ-00001
+#72 - évènement #58, membre AJ-00001
+#73 - évènement #58, membre AJ-00002
+#74 - évènement #59, membre AJ-00001
+#75 - évènement #60, membre AJ-00001
+#76 - évènement #60, membre AJ-00002
+#77 - évènement #61, membre AJ-00001
+#78 - évènement #61, membre AJ-00002
+#79 - évènement #62, membre AJ-00001
+#80 - évènement #62, membre AJ-00002
+#81 - évènement #63, membre AJ-00001
+#82 - évènement #64, membre AJ-00001
+#83 - évènement #65, membre AJ-00001
+#84 - évènement #66, membre AJ-00001
+#85 - évènement #67, membre AJ-00001
+#86 - évènement #68, membre AJ-00001
+#87 - évènement #68, membre AJ-00002
+#88 - évènement #69, membre AJ-00001
+#89 - évènement #69, membre AJ-00002
+#90 - évènement #70, membre AJ-00001
+#91 - évènement #71, membre AJ-00001
+#92 - évènement #72, membre AJ-00001
+#93 - évènement #73, membre AJ-00001
+#94 - évènement #73, membre AJ-00002
+#95 - évènement #74, membre AJ-00002
+#96 - évènement #75, membre AJ-00001
+#97 - évènement #75, membre AJ-00002
+#98 - évènement #77, membre AJ-00001
+#99 - évènement #78, membre AJ-00001
+#100 - évènement #78, membre AJ-00002
+#101 - évènement #79, membre AJ-00001
+#102 - évènement #80, membre AJ-00001
+#103 - évènement #81, membre AJ-00001
+#104 - évènement #81, membre AJ-00002
+#105 - évènement #82, membre AJ-00001
+#106 - évènement #82, membre AJ-00002
+#107 - évènement #83, membre AJ-00001
+#108 - évènement #84, membre AJ-00001
+#109 - évènement #84, membre AJ-00002
+#110 - évènement #85, membre AJ-00001
+#111 - évènement #86, membre AJ-00001
+#112 - évènement #87, membre AJ-00001
+#113 - évènement #87, membre AJ-00002
+#114 - évènement #88, membre AJ-00001
+#115 - évènement #89, membre AJ-00001
+#116 - évènement #89, membre AJ-00002
+#117 - évènement #90, membre AJ-00001
+#118 - évènement #90, membre AJ-00002
+#119 - évènement #91, membre AJ-00001
+#120 - évènement #92, membre AJ-00001
+#121 - évènement #92, membre AJ-00002
+
+(args: (<class 'ajbot._internal.ajdb.tables.event.MemberEvent'>,), input_format: full_complete, refresh_cache: False) =>
 #1 - évènement #3, membre AJ-00001
 #2 - évènement #4, membre AJ-00001
 #3 - évènement #4, membre None

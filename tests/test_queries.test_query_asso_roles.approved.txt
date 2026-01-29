@@ -1,0 +1,28 @@
+(lazyload: False) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
+(lazyload: True) =>
+Bureau - Admin
+Bureau - Président
+Bureau - Trésorier
+Bureau - Secrétaire
+Bureau - Communication
+Bureau - Autre
+Cotisant
+Cotisant saison préc
+Membre
+Bot - ProBot
+Bot - VbrBot
+Invité
+
