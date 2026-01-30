@@ -1,0 +1,58 @@
+(season_name: None, subscriber_only: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(season_name: None, subscriber_only: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(season_name: Season Non Existent, subscriber_only: False) =>
+
+
+(season_name: Season Non Existent, subscriber_only: True) =>
+
+
+(season_name: 2023-2024, subscriber_only: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(season_name: 2023-2024, subscriber_only: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+

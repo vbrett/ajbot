@@ -290,7 +290,7 @@ class AjDb():
         return matched_members
 
 
-    async def query_members_per_season_presence(self, season_name = None, subscriber_only = False) -> list[db_t.Member]:
+    async def query_members_per_season_presence(self, season_name:str = None, subscriber_only:bool = False) -> list[db_t.Member]:
         ''' retrieve list of members having participated in season
             @args
                 season_name     [Optional] If empty, use current season

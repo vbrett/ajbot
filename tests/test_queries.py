@@ -166,7 +166,7 @@ async def test_query_members():
                    None,
                    1,
                    2,
-                   50,                   
+                   50,
                    "abc",
                    "Bon",
                    "Jean",
@@ -181,3 +181,49 @@ async def test_query_members():
                                                            match_crit = match_crits,
                                                            break_if_multi_perfect_match = break_if_multi_perfect_matchs
                                                           )
+
+
+##########################
+async def _do_query_members_per_season_presence(season_name, subscriber_only):
+    async with AjDb() as aj_db:
+        items = await aj_db.query_members_per_season_presence(season_name = season_name, subscriber_only = subscriber_only)
+        result = get_printable_ajdb_objects(ajdb_objects=items,
+                                            str_format=FormatTypes.DEBUG)
+        return result
+
+@pytest.mark.asyncio
+async def test_query_members_per_season_presence():
+    """
+    Unit test for aj_db.query_members_per_season_presence
+    """
+    season_names = [
+                    None,
+                    "Season Non Existent",
+                    "2023-2024",
+                   ]
+    subscriber_onlys = [False, True]
+    await async_verify_all_combinations_with_labeled_input(_do_query_members_per_season_presence,
+                                                           season_name = season_names,
+                                                           subscriber_only = subscriber_onlys)
+
+
+##########################
+async def _do_query_members_per_event_presence(event_id):
+    async with AjDb() as aj_db:
+        items = await aj_db.query_members_per_event_presence(event_id = event_id)
+        result = get_printable_ajdb_objects(ajdb_objects=items,
+                                            str_format=FormatTypes.DEBUG)
+        return result
+
+@pytest.mark.asyncio
+async def test_query_members_per_event_presence():
+    """
+    Unit test for aj_db.query_members_per_event_presence
+    """
+    event_ids = [1,
+                 20,
+                 90,
+                 9999,
+                ]
+    await async_verify_all_combinations_with_labeled_input(_do_query_members_per_event_presence,
+                                                           event_id = event_ids)
