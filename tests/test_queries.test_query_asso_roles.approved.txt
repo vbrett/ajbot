@@ -1,28 +1,28 @@
 (lazyload: False) =>
-Bureau - Admin
-Bureau - Président
-Bureau - Trésorier
-Bureau - Secrétaire
-Bureau - Communication
-Bureau - Autre
-Cotisant
-Cotisant saison préc
-Membre
-Bot - ProBot
-Bot - VbrBot
-Invité
+#1 - Bureau - Admin
+#2 - Bureau - Président
+#3 - Bureau - Trésorier
+#4 - Bureau - Secrétaire
+#5 - Bureau - Communication
+#6 - Bureau - Autre
+#7 - Cotisant
+#8 - Cotisant saison préc
+#9 - Membre
+#10 - Bot - ProBot
+#11 - Bot - VbrBot
+#12 - Invité
 
 (lazyload: True) =>
-Bureau - Admin
-Bureau - Président
-Bureau - Trésorier
-Bureau - Secrétaire
-Bureau - Communication
-Bureau - Autre
-Cotisant
-Cotisant saison préc
-Membre
-Bot - ProBot
-Bot - VbrBot
-Invité
+#1 - Bureau - Admin
+#2 - Bureau - Président
+#3 - Bureau - Trésorier
+#4 - Bureau - Secrétaire
+#5 - Bureau - Communication
+#6 - Bureau - Autre
+#7 - Cotisant
+#8 - Cotisant saison préc
+#9 - Membre
+#10 - Bot - ProBot
+#11 - Bot - VbrBot
+#12 - Invité
 

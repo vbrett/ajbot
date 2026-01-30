@@ -13,7 +13,7 @@ from ajbot._internal.config import AjConfig, FormatTypes
 from tests.support import async_verify_all_combinations_with_labeled_input, get_printable_ajdb_objects, ExpectedExceptionDuringTest
 
 
-
+##########################
 async def _do_query_table_content(args:tuple, input_format, refresh_cache):
     with AjConfig() as aj_config:
         async with AjDb(aj_config=aj_config) as aj_db:
@@ -67,6 +67,8 @@ async def test_query_table_content():
                                                            input_format = formats,
                                                            refresh_cache=refresh_cache,)
 
+
+##########################
 @pytest.mark.asyncio
 async def test_query_table_content_with_options():
     """
@@ -78,13 +80,12 @@ async def test_query_table_content_with_options():
     approvaltests.verify(result)
 
 
-
-
+##########################
 async def _do_query_seasons(lazyload:bool):
     async with AjDb() as aj_db:
         items = await aj_db.query_seasons(lazyload=lazyload)
         result = get_printable_ajdb_objects(ajdb_objects=items,
-                                            str_format=FormatTypes.FULL)
+                                            str_format=FormatTypes.DEBUG)
         return result
 
 @pytest.mark.asyncio
@@ -97,11 +98,12 @@ async def test_query_seasons():
                                                            lazyload = lazyloads)
 
 
+##########################
 async def _do_query_asso_roles(lazyload:bool):
     async with AjDb() as aj_db:
         items = await aj_db.query_asso_roles(lazyload=lazyload)
         result = get_printable_ajdb_objects(ajdb_objects=items,
-                                            str_format=FormatTypes.FULL)
+                                            str_format=FormatTypes.DEBUG)
         return result
 
 @pytest.mark.asyncio
@@ -114,19 +116,18 @@ async def test_query_asso_roles():
                                                            lazyload = lazyloads)
 
 
-
+##########################
 async def _do_query_events(event:str, lazyload:bool):
     async with AjDb() as aj_db:
         items = await aj_db.query_events(event, lazyload=lazyload)
         try:
             result = get_printable_ajdb_objects(ajdb_objects=items,
-                                                str_format=FormatTypes.FULL)
+                                                str_format=FormatTypes.DEBUG)
         except sa.exc.StatementError as e:
             if lazyload:
                 raise ExpectedExceptionDuringTest(f"{e.__class__.__name__}: Cannot get printable items. This is excepted since we're lazy loading data") from e
             raise e
         return result
-
 
 @pytest.mark.asyncio
 async def test_query_events():
