@@ -1,0 +1,1236 @@
+(lookup_val: None, match_crit: 0, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 0, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 1, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 1, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 25, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 25, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 50, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 50, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 60, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 60, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 75, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 75, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 80, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 80, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 90, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 90, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 99, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 99, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 100, break_if_multi_perfect_match: False) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: None, match_crit: 100, break_if_multi_perfect_match: True) =>
+Le champ de recherche doit être de type 'discord', 'int' or 'str', pas '<class 'NoneType'>'
+
+(lookup_val: 1, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 25, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 25, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 50, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 50, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 60, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 60, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 75, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 75, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 80, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 80, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 90, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 90, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 99, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 99, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 100, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 1, match_crit: 100, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 25, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 25, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 50, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 50, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 60, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 60, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 75, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 75, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 80, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 80, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 90, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 90, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 99, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 99, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 100, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 2, match_crit: 100, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: 50, match_crit: 0, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 0, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 1, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 1, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 25, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 25, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 50, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 50, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 60, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 60, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 75, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 75, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 80, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 80, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 90, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 90, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 99, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 99, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: 50, match_crit: 100, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: 50, match_crit: 100, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (18%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (13%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: abc, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (18%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (13%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: abc, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (18%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (13%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: abc, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (18%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (13%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: abc, match_crit: 25, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 25, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 50, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 50, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 60, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 60, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 75, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 75, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 80, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 80, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 90, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 90, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 99, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 99, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: abc, match_crit: 100, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: abc, match_crit: 100, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (27%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (27%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (27%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (27%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 25, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (27%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 25, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (27%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 50, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 50, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (55%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon, match_crit: 60, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Bon, match_crit: 60, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon, match_crit: 75, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Bon, match_crit: 75, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon, match_crit: 80, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Bon, match_crit: 80, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon, match_crit: 90, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Bon, match_crit: 90, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon, match_crit: 99, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Bon, match_crit: 99, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon, match_crit: 100, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Bon, match_crit: 100, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Jean, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (12%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (12%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (12%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+AJ-00002
+    #2 - Dupont Marie (12%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 25, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 25, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 50, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 50, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 60, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 60, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean (67%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Jean, match_crit: 75, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Jean, match_crit: 75, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Jean, match_crit: 80, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Jean, match_crit: 80, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Jean, match_crit: 90, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Jean, match_crit: 90, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Jean, match_crit: 99, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Jean, match_crit: 99, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Jean, match_crit: 100, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Jean, match_crit: 100, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie (35%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00001
+    #1 - Bon Jean (31%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Julie, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie (35%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00001
+    #1 - Bon Jean (31%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Julie, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie (35%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00001
+    #1 - Bon Jean (31%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Julie, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie (35%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00001
+    #1 - Bon Jean (31%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Julie, match_crit: 25, break_if_multi_perfect_match: False) =>
+AJ-00002
+    #2 - Dupont Marie (35%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00001
+    #1 - Bon Jean (31%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Julie, match_crit: 25, break_if_multi_perfect_match: True) =>
+AJ-00002
+    #2 - Dupont Marie (35%) 02/08/1980
+    @AjBot
+    role: #7 - Cotisant
+    téléphone: #1 - (+33)601020304
+    cotisant, 9 participation(s) cette saison.
+AJ-00001
+    #1 - Bon Jean (31%) 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Julie, match_crit: 50, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 50, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 60, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 60, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 75, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 75, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 80, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 80, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 90, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 90, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 99, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 99, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Julie, match_crit: 100, break_if_multi_perfect_match: False) =>
+
+
+(lookup_val: Julie, match_crit: 100, break_if_multi_perfect_match: True) =>
+
+
+(lookup_val: Bon Jean, match_crit: 0, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 0, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 1, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 1, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 25, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 25, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 50, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 50, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 60, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 60, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 75, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 75, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 80, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 80, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 90, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 90, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 99, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 99, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 100, break_if_multi_perfect_match: False) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+
+(lookup_val: Bon Jean, match_crit: 100, break_if_multi_perfect_match: True) =>
+AJ-00001
+    #1 - Bon Jean 01/01/1997
+    @vbrett
+    role: #3 - Bureau - Trésorier
+    email: #1 - jean.bon@porci.net
+    addresse: #1 - 1 rue de l'abatoir 12345 Ailleurs Appt 2
+    téléphone: #1 - (+33)601020304
+    cotisant, 17 participation(s) cette saison.
+

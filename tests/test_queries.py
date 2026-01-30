@@ -1,6 +1,8 @@
 """
 approval tests - queries
 """
+from typing import Optional
+
 import pytest
 import approvaltests
 
@@ -143,3 +145,39 @@ async def test_query_events():
     await async_verify_all_combinations_with_labeled_input(_do_query_events,
                                                            event = events,
                                                            lazyload = lazyloads)
+
+
+##########################
+async def _do_query_members(lookup_val:Optional[str], match_crit, break_if_multi_perfect_match:bool):
+    async with AjDb() as aj_db:
+        items = await aj_db.query_members(lookup_val = lookup_val,
+                                          match_crit = match_crit,
+                                          break_if_multi_perfect_match = break_if_multi_perfect_match)
+        result = get_printable_ajdb_objects(ajdb_objects=items,
+                                            str_format=FormatTypes.DEBUG)
+        return result
+
+@pytest.mark.asyncio
+async def test_query_members():
+    """
+    Unit test for aj_db.query_members
+    """
+    lookup_vals = [
+                   None,
+                   1,
+                   2,
+                   50,                   
+                   "abc",
+                   "Bon",
+                   "Jean",
+                   "Julie",
+                   "Bon Jean",
+                  ]
+    match_crits = [0, 1, 25, 50, 60, 75, 80, 90, 99, 100]
+    break_if_multi_perfect_matchs = [False, True]
+
+    await async_verify_all_combinations_with_labeled_input(_do_query_members,
+                                                           lookup_val = lookup_vals,
+                                                           match_crit = match_crits,
+                                                           break_if_multi_perfect_match = break_if_multi_perfect_matchs
+                                                          )
