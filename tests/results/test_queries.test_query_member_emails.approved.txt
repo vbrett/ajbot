@@ -1,0 +1,15 @@
+(last_participation_duration: None) =>
+#1 - jean.bon@porci.net
+
+(last_participation_duration: 0) =>
+#1 - jean.bon@porci.net
+
+(last_participation_duration: 10) =>
+#1 - jean.bon@porci.net
+
+(last_participation_duration: 99) =>
+#1 - jean.bon@porci.net
+
+(last_participation_duration: 9999) =>
+#1 - jean.bon@porci.net
+

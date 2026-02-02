@@ -1,0 +1,99 @@
+(season: None, lazyload: False) =>
+#75 - 05/09/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#76 - 07/09/2025 - Forum associations 2025 - saison 2025-2026 - 0 participant(s) ()
+#77 - 12/09/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#78 - 19/09/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#79 - 26/09/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#80 - 03/10/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#81 - 10/10/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#82 - 17/10/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#83 - 24/10/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#84 - 31/10/2025 - Soirée Jeux Halloween - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#85 - 07/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#86 - 14/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#87 - 21/11/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#88 - 28/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#89 - 05/12/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#90 - 12/12/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#91 - 19/12/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#92 - 09/01/2026 - Epiphanie 2026 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+
+(season: None, lazyload: True) =>
+StatementError: Cannot get printable items. This is excepted since we're lazy loading data
+
+(season: 2020-2021, lazyload: False) =>
+
+
+(season: 2020-2021, lazyload: True) =>
+
+
+(season: 2024-2025, lazyload: False) =>
+#33 - 01/09/2024 - Forum associations 2024 - saison 2024-2025 - 0 participant(s) ()
+#34 - 06/09/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#35 - 13/09/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#36 - 20/09/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#37 - 27/09/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#38 - 04/10/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#39 - 11/10/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#40 - 18/10/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#41 - 01/11/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#42 - 08/11/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#43 - 15/11/2024 - saison 2024-2025 - 3 participant(s) (AJ-00001, AJ-00002, AJ-00005)
+#44 - 22/11/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#45 - 29/11/2024 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#46 - 06/12/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#47 - 13/12/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#48 - 20/12/2024 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#49 - 03/01/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#50 - 10/01/2025 - Epiphanie 2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#51 - 17/01/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#52 - 24/01/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#53 - 31/01/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#54 - 07/02/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#55 - 14/02/2025 - saison 2024-2025 - 1 participant(s) (AJ-00002)
+#56 - 21/02/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#57 - 28/02/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#58 - 07/03/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#59 - 14/03/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#60 - 21/03/2025 - Soirée Jeux Duo - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#61 - 28/03/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#62 - 04/04/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#63 - 11/04/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#64 - 18/04/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#65 - 25/04/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#66 - 02/05/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#67 - 09/05/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#68 - 16/05/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#69 - 30/05/2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#70 - 06/06/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#71 - 13/06/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#72 - 20/06/2025 - saison 2024-2025 - 1 participant(s) (AJ-00001)
+#73 - 27/06/2025 - Assemblée Générale 2025 - saison 2024-2025 - 2 participant(s) (AJ-00001, AJ-00002)
+#74 - 04/07/2025 - saison 2024-2025 - 1 participant(s) (AJ-00002)
+
+(season: 2024-2025, lazyload: True) =>
+StatementError: Cannot get printable items. This is excepted since we're lazy loading data
+
+(season: 2025-2026, lazyload: False) =>
+#75 - 05/09/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#76 - 07/09/2025 - Forum associations 2025 - saison 2025-2026 - 0 participant(s) ()
+#77 - 12/09/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#78 - 19/09/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#79 - 26/09/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#80 - 03/10/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#81 - 10/10/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#82 - 17/10/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#83 - 24/10/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#84 - 31/10/2025 - Soirée Jeux Halloween - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#85 - 07/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#86 - 14/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#87 - 21/11/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#88 - 28/11/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#89 - 05/12/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#90 - 12/12/2025 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+#91 - 19/12/2025 - saison 2025-2026 - 1 participant(s) (AJ-00001)
+#92 - 09/01/2026 - Epiphanie 2026 - saison 2025-2026 - 2 participant(s) (AJ-00001, AJ-00002)
+
+(season: 2025-2026, lazyload: True) =>
+StatementError: Cannot get printable items. This is excepted since we're lazy loading data
+

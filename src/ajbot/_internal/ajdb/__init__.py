@@ -383,7 +383,7 @@ class AjDb():
         input_list += [['']*len(input_columns)]*n_empty_rows
 
         # Create the PDF and write the table to it, splited per page
-        with PdfPages(sign_sheet_file) as signsheet_file:
+        with PdfPages(sign_sheet_file, metadata = {'Creator':None, 'Producer':None, 'CreationDate':None}) as signsheet_file:
             for sub_input_list in divide_list(input_list, row_per_page):
                 _the_table = ax.table(
                     cellText=sub_input_list,

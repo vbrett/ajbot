@@ -2,6 +2,8 @@
 approval tests - queries
 """
 from typing import Optional
+import tempfile
+from datetime import timedelta
 
 import pytest
 import approvaltests
@@ -148,6 +150,37 @@ async def test_query_events():
 
 
 ##########################
+async def _do_query_events_per_season(season:str, lazyload:bool):
+    async with AjDb() as aj_db:
+        items = await aj_db.query_events_per_season(season, lazyload=lazyload)
+        try:
+            result = get_printable_ajdb_objects(ajdb_objects=items,
+                                                str_format=FormatTypes.DEBUG)
+        except sa.exc.StatementError as e:
+            if lazyload:
+                raise ExpectedExceptionDuringTest(f"{e.__class__.__name__}: Cannot get printable items. This is excepted since we're lazy loading data") from e
+            raise e
+        return result
+
+@pytest.mark.asyncio
+async def test_query_events_per_season():
+    """
+    Unit test for aj_db.query_events_per_season
+    """
+    seasons = [
+            None,
+            "2020-2021",
+            "2024-2025",
+            "2025-2026",
+            ]
+    lazyloads = [False, True]
+
+    await async_verify_all_combinations_with_labeled_input(_do_query_events_per_season,
+                                                           season = seasons,
+                                                           lazyload = lazyloads)
+
+
+##########################
 async def _do_query_members(lookup_val:Optional[str], match_crit, break_if_multi_perfect_match:bool):
     async with AjDb() as aj_db:
         items = await aj_db.query_members(lookup_val = lookup_val,
@@ -227,3 +260,38 @@ async def test_query_members_per_event_presence():
                 ]
     await async_verify_all_combinations_with_labeled_input(_do_query_members_per_event_presence,
                                                            event_id = event_ids)
+
+
+##########################
+@pytest.mark.asyncio
+async def test_query_member_sign_sheet():
+    """
+    Unit test for aj_db.query_member_sign_sheet
+    """
+    async with AjDb() as aj_db:
+        with tempfile.SpooledTemporaryFile(max_size=1024*1024, mode='w+b') as temp_file:
+            await aj_db.query_member_sign_sheet(temp_file)
+
+            # Set stream position back to file start to pass it to discord
+            temp_file.seek(0)
+            approvaltests.verify_binary(temp_file.read(), ".pdf")
+
+
+##########################
+async def _do_query_member_emails(last_participation_duration:int):
+    async with AjDb() as aj_db:
+        if last_participation_duration:
+            last_participation_duration = timedelta(last_participation_duration)
+        items = await aj_db.query_member_emails(last_participation_duration = last_participation_duration)
+        result = get_printable_ajdb_objects(ajdb_objects=items,
+                                            str_format=FormatTypes.DEBUG)
+        return result
+
+@pytest.mark.asyncio
+async def test_query_member_emails():
+    """
+    Unit test for aj_db.query_member_emails
+    """
+    last_participation_durations = [None, 0, 10, 99, 9999]
+    await async_verify_all_combinations_with_labeled_input(_do_query_member_emails,
+                                                           last_participation_duration = last_participation_durations)
