@@ -3,20 +3,12 @@
 import sys
 import asyncio
 from typing import cast
-from datetime import date
 from functools import wraps
 
 import sqlalchemy as sa
 
 from ajbot._internal.ajdb import AjDb, tables as db_t
 from ajbot._internal.config import FormatTypes
-
-def _test_format_types(objects):
-    for o in objects:
-        print(f"{o:{FormatTypes.RESTRICTED}} ****** {o:{FormatTypes.FULL}} ****** {o:{FormatTypes.DEBUG}}")
-    # WARNING: cannot print that a '\r\n'.join(..).
-    # There is currently a bug with the Python extension for VS Code that results in sufficiently long strings
-    # being truncated when printed in the terminal. The bug report and its status can be found here: https://github.com/microsoft/debugpy/issues/1285
 
 
 def _test_case(func):
@@ -93,34 +85,6 @@ async def _test_stuff():
         await _principal_address(aj_db)
 
         await _test_query(aj_db)
-        # await _test_create_query(aj_db)
-        # await _test_update_query(aj_db)
-
-
-
-
-##################################################################
-
-
-
-@_test_case
-async def _test_add_update_event():
-    async with AjDb(modifier_discord="vbrett") as aj_db:
-        new_event = await aj_db.add_update_event(event_date=date(2026, 1, 18),
-                                                 event_name="bubou",
-                                                 participant_ids=[36,151,14],)
-    _test_format_types([new_event])
-
-    async with AjDb(modifier_discord="vbrett") as aj_db:
-        event = await aj_db.add_update_event(event_id=new_event.id,
-                                             event_name="ppppp",
-                                             participant_ids=[2,36,14,1,2,3,4,5],)
-    _test_format_types([event])
-
-
-async def _test_event():
-    await _test_add_update_event()
-
 
 
 
@@ -134,10 +98,7 @@ async def _main():
     """
 
     # Original test
-    # await _test_stuff()
-
-    # Test event stuff
-    await _test_event()
+    await _test_stuff()
 
     return 0
 
