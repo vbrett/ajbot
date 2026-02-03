@@ -3,7 +3,7 @@ approval tests - queries
 """
 from typing import Optional
 import tempfile
-from datetime import timedelta
+from datetime import date, timedelta
 
 import pytest
 import approvaltests
@@ -179,6 +179,58 @@ async def test_query_events_per_season():
                                                            season = seasons,
                                                            lazyload = lazyloads)
 
+
+##########################
+async def _do_add_update_event(event_id,
+                               modifier_discord:Optional[str],
+                               event_date:Optional[date],
+                               event_name:Optional[str],
+                               participant_ids:Optional[list[int]]):
+    async with AjDb(modifier_discord=modifier_discord) as aj_db:
+        items = await aj_db.add_update_event(event_id=event_id,
+                                             event_date=event_date,
+                                             event_name=event_name,
+                                             participant_ids=participant_ids)
+        result = get_printable_ajdb_objects(ajdb_objects=items,
+                                            str_format=FormatTypes.DEBUG)
+        return result
+
+@pytest.mark.asyncio
+async def test_add_update_event():
+    """
+    Unit test for aj_db.add_update_event
+    """
+    modifier_discords = [None, "user1", "vbrett"]
+    event_ids = [
+            None,
+            # 1,
+            # 88,
+            # 250
+            ]
+    event_dates = [
+            None,
+            date(2025, 12, 31),
+            # date(2026, 1, 18),
+            ]
+    event_names = [
+            None,
+            "Nouvel An 2026",
+            # "bubou",
+            ]
+    participant_ids = [
+            None,
+            [],
+            [1,2,3],
+            # [10,20,30,40,50],
+            # [36,151,14],
+            ]
+
+    await async_verify_all_combinations_with_labeled_input(_do_add_update_event,
+                                                           modifier_discord=modifier_discords,
+                                                           event_id=event_ids,
+                                                           event_date=event_dates,
+                                                           event_name=event_names,
+                                                           participant_ids=participant_ids)
 
 ##########################
 async def _do_query_members(lookup_val:Optional[str], match_crit, break_if_multi_perfect_match:bool):

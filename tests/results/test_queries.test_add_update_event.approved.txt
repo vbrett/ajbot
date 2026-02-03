@@ -1,0 +1,72 @@
+(modifier_discord: None, event_id: None, event_date: None, event_name: None, participant_ids: None) =>
+Date du nouvel évènement manquante.
+
+(modifier_discord: None, event_id: None, event_date: None, event_name: None, participant_ids: []) =>
+Date du nouvel évènement manquante.
+
+(modifier_discord: None, event_id: None, event_date: None, event_name: None, participant_ids: [1, 2, 3]) =>
+Date du nouvel évènement manquante.
+
+(modifier_discord: None, event_id: None, event_date: None, event_name: Nouvel An 2026, participant_ids: None) =>
+Date du nouvel évènement manquante.
+
+(modifier_discord: None, event_id: None, event_date: None, event_name: Nouvel An 2026, participant_ids: []) =>
+Date du nouvel évènement manquante.
+
+(modifier_discord: None, event_id: None, event_date: None, event_name: Nouvel An 2026, participant_ids: [1, 2, 3]) =>
+Date du nouvel évènement manquante.
+
+(modifier_discord: None, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: None) =>
+Cannot add without a modifier ID
+
+(modifier_discord: None, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: []) =>
+Cannot add without a modifier ID
+
+(modifier_discord: None, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: [1, 2, 3]) =>
+Cannot add without a modifier ID
+
+(modifier_discord: None, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: None) =>
+Cannot add without a modifier ID
+
+(modifier_discord: None, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: []) =>
+Cannot add without a modifier ID
+
+(modifier_discord: None, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: [1, 2, 3]) =>
+Cannot add without a modifier ID
+
+(modifier_discord: user1, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: None) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: user1, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: []) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: user1, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: [1, 2, 3]) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: user1, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: None) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: user1, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: []) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: user1, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: [1, 2, 3]) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: vbrett, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: None) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: vbrett, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: []) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: vbrett, event_id: None, event_date: 2025-12-31, event_name: None, participant_ids: [1, 2, 3]) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: vbrett, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: None) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: vbrett, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: []) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
+(modifier_discord: vbrett, event_id: None, event_date: 2025-12-31, event_name: Nouvel An 2026, participant_ids: [1, 2, 3]) =>
+Evènement existe et date fournie. Ce n'est pas permis.
+
