@@ -10,9 +10,9 @@
             "problemMatcher": []
         },
         {
-            "label": "init db_test",
+            "label": "init db_mock",
             "type": "shell",
-            "command": ".tasks/init_db_test.bat",
+            "command": ".tasks/init_db_mock.bat",
             "problemMatcher": []
         }
     ]

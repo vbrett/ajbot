@@ -10,8 +10,8 @@ import approvaltests
 from ajbot._internal.config import FormatTypes
 
 REPORT_EOL = '\n'
-TEST_PATH = Path('tests/db_test')
-TEST_MIGRATE_FILE = 'db_test.xlsx'
+TEST_PATH = Path('tests/db_mock')
+TEST_MIGRATE_FILE = 'db_mock.xlsx'
 
 
 

@@ -1,4 +1,4 @@
-(modules: ('ajbot.migrate', [WindowsPath('tests/db_test/elsewhere/db_test.xlsx')])) => 0
+(modules: ('ajbot.migrate', [WindowsPath('tests/db_mock/elsewhere/db_mock.xlsx')])) => 0
 (modules: ('ajbot._internal', None)) => No module named ajbot._internal.__main__; 'ajbot._internal' is a package and cannot be directly executed
 (modules: ('ajbot._internal.config', None)) => This module is not meant to be executed directly.
 (modules: ('ajbot._internal.exceptions', None)) => This module should not be called directly.
