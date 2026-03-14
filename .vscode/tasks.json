@@ -10,6 +10,12 @@
             "problemMatcher": []
         },
         {
+            "label": "migrate",
+            "type": "shell",
+            "command": ".tasks/migrate.bat",
+            "problemMatcher": []
+        },
+        {
             "label": "init db_mock",
             "type": "shell",
             "command": ".tasks/init_db_mock.bat",
