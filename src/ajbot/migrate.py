@@ -20,6 +20,7 @@ async def _create_db_schema(aj_db:AjDb):
 async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
     """ Populate lookup & role tables
     """
+    print(">>  Populating lookup & role tables...")
 
     lut_role_tables = []
     for val in ajdb_xls.dict_from_table('saisons'):
@@ -83,6 +84,7 @@ async def _populate_lut_role_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook):
 async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables):
     """ Populate member tables
     """
+    print(">>  Populating member tables...")
     member_tables = []
     for val in ajdb_xls.dict_from_table('annuaire'):
         if not isinstance(val['creation']['date'], datetime):
@@ -177,6 +179,7 @@ async def _populate_member_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables
 async def _populate_events_memberships_tables(aj_db:AjDb, ajdb_xls:ExcelWorkbook, lut_tables, member_tables):
     """ Populate all event related tables
     """
+    print(">>  Populating event & membership tables...")
 
     membership_tables = []
     event_tables = []
@@ -290,17 +293,14 @@ async def migrate(ajdb_xls_file:Path, config_file:Optional[Path]=None):
             print("Populating DB...")
 
             # lookup tables
-            print(">>  Populating lookup & role tables...")
             lut_role_tables = await _populate_lut_role_tables(aj_db=aj_db, ajdb_xls=ajdb_xls)
             all_tables.extend(lut_role_tables)
             if lut_role_tables:
                 # member tables
-                print(">>  Populating member tables...")
                 member_tables = await _populate_member_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables)
                 all_tables.extend(member_tables)
                 if member_tables:
                     # membership & event tables
-                    print(">>  Populating event & membership tables...")
                     event_membership_tables = await _populate_events_memberships_tables(aj_db=aj_db, ajdb_xls=ajdb_xls, lut_tables=lut_role_tables, member_tables=member_tables)
                     all_tables.extend(event_membership_tables)
 

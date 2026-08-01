@@ -30,6 +30,7 @@ def test_direct_call():
                ('ajbot._internal.types', None),
                ('ajbot._internal.ajdb', None),
                ('ajbot._internal.ajdb.__init__', None),
+               ('ajbot._internal.ajdb.api', None),
                ('ajbot._internal.ajdb.tables', None),
                ('ajbot._internal.ajdb.tables.__init__', None),
                ('ajbot._internal.ajdb.tables.base', None),

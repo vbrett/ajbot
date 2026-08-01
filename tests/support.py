@@ -41,7 +41,7 @@ async def async_verify_all_combinations_with_labeled_input(
     approval_strings = []
     for args in parameter_combinations:
         try:
-            result = await function_under_test(*args)
+            result = await function_under_test(**dict(zip(labels, args)))
         except BaseException as exception:      # pylint: disable=broad-exception-caught    # catching all exeception is done on purpose for test
             result = exception
         approval_strings.append(formatter(args, result))
