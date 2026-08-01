@@ -4,18 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "group": "build",
+            "label": "build image",
             "type": "shell",
             "command": ".tasks/build.bat",
             "problemMatcher": []
         },
         {
+            "group": "none",
             "label": "migrate",
             "type": "shell",
             "command": ".tasks/migrate.bat",
             "problemMatcher": []
         },
         {
+            "group": "test",
             "label": "init db_mock",
             "type": "shell",
             "command": ".tasks/init_db_mock.bat",

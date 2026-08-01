@@ -147,10 +147,10 @@ A la **Maison de quartier de la Marinière**
 -# ↪ Si la porte n'est pas ouverte, sonnez à "_salle d'activité_" (le bouton du haut)
 # __Comment venir ?__
 ## En bus
-- Ligne **26**, arrêt St-Exupéry
-- Ligne **25**, arrêt Flaubert
-- Ligne **1**, arrêt Robert Schumann
-- Ligne **9**, arrêt Clémenceau
+- Ligne **6426** (ex 26), arrêt St-Exupéry
+- Ligne **6425** (ex 25), arrêt Flaubert
+- Ligne **6411** (ex 1), arrêt Robert Schumann
+- Ligne **6401** (ex 9), arrêt Clémenceau
 - Ligne **272**, arrêt Clémenceau (Le dernier bus est aux alentours de 1h)
 - Ligne **N24**, arrêt Clémenceau (Le 1er bus est aux alentours de minuit)
 ## En voiture
